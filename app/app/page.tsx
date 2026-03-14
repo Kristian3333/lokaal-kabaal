@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import FlyerExport from '../../components/FlyerExport';
 
 const NLMap = dynamic(() => import('../../components/NLMap'), { ssr: false, loading: () => (
   <div style={{ height: '280px', background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '12px', fontFamily: 'var(--font-mono)' }}>Kaart laden...</div>
@@ -474,6 +475,7 @@ export default function LokaalKabaal() {
   const [scanLoading, setScanLoading] = useState(false);
   const [scanMsg, setScanMsg] = useState('');
   const logoRef = useRef<HTMLInputElement>(null);
+  const flyerPreviewRef = useRef<HTMLDivElement>(null);
 
   const updateFlyer = useCallback((patch: Partial<FlyerState>) => {
     setFlyer(f => ({ ...f, ...patch }));
@@ -1202,13 +1204,29 @@ export default function LokaalKabaal() {
           </div>
 
           {/* Preview */}
-          <div style={{ position: 'sticky', top: '20px' }}>
-            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '12px' }}>Preview</div>
-            <FlyerPreview flyer={flyer} />
-            <div style={{ marginTop: '12px', padding: '10px', background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)' }}>
+          <div style={{ position: 'sticky', top: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px' }}>Preview</div>
+            {/* Bleed indicator wrapper */}
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              <div ref={flyerPreviewRef}>
+                <FlyerPreview flyer={flyer} />
+              </div>
+              {/* Safe zone overlay (dashed) */}
+              <div style={{
+                position: 'absolute', inset: '6px', border: '1px dashed rgba(0,232,122,0.35)',
+                borderRadius: '4px', pointerEvents: 'none',
+              }} title="Veiligheidszone (3mm van snijrand)" />
+            </div>
+            <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--muted)', display: 'flex', gap: '12px' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ display: 'inline-block', width: '12px', height: '1px', borderTop: '1px dashed #00E87A' }} />
+                Veiligheidszone
+              </span>
+            </div>
+            <div style={{ padding: '10px', background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)' }}>
               <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>FORMAAT</div>
               <div style={{ display: 'flex', gap: '6px' }}>
-                {['a6', 'a5', 'a4'].map(f => (
+                {(['a6', 'a5', 'a4'] as const).map(f => (
                   <button key={f} onClick={() => updateFlyer({ afmeting: f })}
                     style={{ padding: '4px 10px', border: `1px solid ${flyer.afmeting === f ? 'var(--green)' : 'var(--line)'}`, borderRadius: 'var(--radius)', background: flyer.afmeting === f ? 'var(--green-bg)' : 'var(--paper)', cursor: 'pointer', fontSize: '12px', fontFamily: 'var(--font-mono)', fontWeight: flyer.afmeting === f ? 700 : 400, color: flyer.afmeting === f ? 'var(--green-dim)' : 'var(--ink)' }}>
                     {f.toUpperCase()}
@@ -1220,7 +1238,12 @@ export default function LokaalKabaal() {
                 <span style={{ fontSize: '12px', fontFamily: 'var(--font-mono)' }}>Dubbelzijdig (+€0,06/stuk)</span>
               </label>
             </div>
-            <button onClick={() => setPage('wizard')} style={{ marginTop: '12px', width: '100%', padding: '12px', background: 'var(--ink)', color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>Campagne starten →</button>
+            <FlyerExport
+              flyerRef={flyerPreviewRef}
+              formaat={(flyer.afmeting as 'a6' | 'a5' | 'a4') || 'a5'}
+              bedrijfsnaam={flyer.bedrijfsnaam || 'flyer'}
+            />
+            <button onClick={() => setPage('wizard')} style={{ width: '100%', padding: '12px', background: 'var(--ink)', color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>Campagne starten →</button>
           </div>
         </div>
       </div>
