@@ -571,86 +571,36 @@ export default function LokaalKabaal() {
   // ── Pages ──
 
   function renderDashboard() {
-    const campaigns = [
-      { naam: 'Koffiehuis Utrecht', gebied: '3 PC4-gebieden · 8km', status: 'actief', flyers: 500, conversie: '4.2%', omzet: '€3.200' },
-      { naam: 'Fietsenwinkel Leiden', gebied: '7 PC4-gebieden · 15km', status: 'actief', flyers: 750, conversie: '3.8%', omzet: '€2.100' },
-      { naam: 'Bakkerij Eindhoven', gebied: '5 PC4-gebieden · 12km', status: 'voltooid', flyers: 1000, conversie: '5.1%', omzet: '€4.800' },
-    ];
     return (
       <div className="fade-in">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginBottom: '20px' }}>
           {[
-            { label: 'Actieve campagnes', val: '2', delta: '+1 deze maand' },
-            { label: 'Flyers verstuurd', val: '1.250', delta: 'deze maand' },
-            { label: 'Gem. conversie', val: '4.0%', delta: '+0.3% t.o.v. vorig' },
-            { label: 'Credits over', val: '3', delta: 'koop meer →' },
+            { label: 'Actieve campagnes', val: '0', delta: 'Start je eerste' },
+            { label: 'Flyers verstuurd', val: '0', delta: 'deze maand' },
+            { label: 'Gem. conversie', val: '—', delta: 'geen data nog' },
+            { label: 'Credits over', val: '0', delta: 'koop credits →' },
           ].map(s => (
             <div key={s.label} style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px' }}>
               <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>{s.label}</div>
               <div style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', lineHeight: 1 }}>{s.val}</div>
-              <div style={{ fontSize: '11px', color: 'var(--green-dim)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>{s.delta}</div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>{s.delta}</div>
             </div>
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '12px', marginBottom: '20px' }}>
-          <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px' }}>Flyervolume per maand</div>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)' }}>2026</span>
-            </div>
-            <MiniChart />
-          </div>
-          <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
-            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '12px' }}>Credits</div>
-            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '48px', color: 'var(--green)', lineHeight: 1 }}>3</div>
-            <div style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '4px', marginBottom: '16px' }}>credits beschikbaar</div>
-            <button onClick={() => setPage('credits')} style={{
-              width: '100%', padding: '10px', background: 'var(--green)', color: 'var(--ink)',
-              border: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', cursor: 'pointer'
-            }}>
-              Credits kopen
-            </button>
-          </div>
-        </div>
-
-        <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: '16px' }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px' }}>Actieve campagnes</div>
-            <button onClick={() => setPage('wizard')} style={{
-              padding: '6px 14px', background: 'var(--ink)', color: 'var(--paper)',
-              border: 'none', borderRadius: 'var(--radius)', fontSize: '12px', cursor: 'pointer', fontWeight: 600
-            }}>+ Nieuwe campagne</button>
-          </div>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: 'var(--paper2)' }}>
-                  {['Naam', 'Werkgebied', 'Status', 'Flyers', 'Conversie', 'Omzet'].map(h => (
-                    <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--muted)', fontWeight: 500, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {campaigns.map((c, i) => (
-                  <tr key={i} style={{ borderTop: '1px solid var(--line)' }}>
-                    <td style={{ padding: '12px 16px', fontWeight: 600 }}>{c.naam}</td>
-                    <td style={{ padding: '12px 16px', color: 'var(--muted)', fontSize: '12px', fontFamily: 'var(--font-mono)' }}>{c.gebied}</td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <span style={{
-                        padding: '3px 8px', borderRadius: '2px', fontSize: '11px', fontFamily: 'var(--font-mono)',
-                        background: c.status === 'actief' ? 'var(--green-bg)' : 'var(--paper3)',
-                        color: c.status === 'actief' ? 'var(--green-dim)' : 'var(--muted)'
-                      }}>{c.status}</span>
-                    </td>
-                    <td style={{ padding: '12px 16px', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>{c.flyers}</td>
-                    <td style={{ padding: '12px 16px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--green-dim)' }}>{c.conversie}</td>
-                    <td style={{ padding: '12px 16px', fontFamily: 'var(--font-mono)', fontSize: '12px', fontWeight: 600 }}>{c.omzet}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        {/* Empty state */}
+        <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '60px 40px', textAlign: 'center', marginBottom: '20px' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', marginBottom: '16px', color: 'var(--line)' }}>◈</div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', marginBottom: '10px' }}>Nog geen campagnes</div>
+          <p style={{ color: 'var(--muted)', fontSize: '13px', lineHeight: 1.65, maxWidth: '380px', margin: '0 auto 24px' }}>
+            Maak je eerste campagne en bereik nieuwe bewoners in jouw werkgebied — automatisch elke maand.
+          </p>
+          <button onClick={() => setPage('wizard')} style={{
+            padding: '12px 28px', background: 'var(--ink)', color: 'var(--paper)',
+            border: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px', cursor: 'pointer'
+          }}>
+            + Eerste campagne starten
+          </button>
         </div>
 
         <Ticker />
