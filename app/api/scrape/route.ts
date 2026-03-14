@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 
+export const maxDuration = 30;
+
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
 // Simple HTML text extractor (no Cheerio needed)
@@ -45,7 +47,7 @@ export async function POST(req: NextRequest) {
           'Accept-Encoding': 'gzip, deflate',
           'Connection': 'keep-alive',
         },
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(4000),
         redirect: 'follow',
       });
       if (resp.ok) {
@@ -57,14 +59,13 @@ export async function POST(req: NextRequest) {
       console.log('Website fetch failed, proceeding with URL analysis:', err);
     }
 
+    const hasContent = pageContent.title || pageContent.bodyText;
     const prompt = `Je bent een expert flyer copywriter voor lokale ondernemers in Nederland.
 
-Analyseer de volgende website-informatie en maak op basis daarvan een wervende flyertekst voor nieuwe bewoners in de buurt.
-
-URL: ${normalizedUrl}
-${pageContent.title ? `Paginatitel: ${pageContent.title}` : ''}
-${pageContent.description ? `Omschrijving: ${pageContent.description}` : ''}
-${pageContent.bodyText ? `Websitetekst (fragment): ${pageContent.bodyText.slice(0, 800)}` : ''}
+${hasContent
+  ? `Analyseer de volgende website-informatie en maak op basis daarvan een wervende flyertekst voor nieuwe huishoudens in de buurt.\n\nURL: ${normalizedUrl}\n${pageContent.title ? `Paginatitel: ${pageContent.title}` : ''}\n${pageContent.description ? `Omschrijving: ${pageContent.description}` : ''}\n${pageContent.bodyText ? `Websitetekst (fragment): ${pageContent.bodyText.slice(0, 800)}` : ''}`
+  : `De website kon niet worden bereikt, maar je kunt op basis van de domeinnaam een goede inschatting maken van het bedrijf.\n\nURL: ${normalizedUrl}\n\nLeid het bedrijfstype, de branche en merkstijl af uit de domeinnaam. Maak een professionele flyertekst voor nieuwe huishoudens in de buurt.`
+}
 
 Genereer ook een voorstel voor de merkstijl op basis van de bedrijfsnaam/type.
 

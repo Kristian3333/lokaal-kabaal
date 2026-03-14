@@ -301,9 +301,9 @@ function CoverageVisual({ centrum, straalKm }: { centrum: string; straalKm: numb
       <NLMap centrum={centrum} straalKm={straalKm} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
         {[
-          { label: 'PC4-gebieden', val: String(stats.pc4Count), sub: 'volledig gedekt' },
-          { label: 'Nieuwe bewoners/mnd', val: `~${stats.estAdressenMaand}`, sub: 'op basis van Kadaster' },
-          { label: 'Referentie vorig jaar', val: `~${stats.referentieVorigjaar}`, sub: 'transacties in dit gebied' },
+          { label: 'PC4-gebieden', val: String(stats.pc4Count), sub: 'in dekking' },
+          { label: 'Nieuwe huishoudens/mnd', val: `~${stats.estAdressenMaand}`, sub: 'schatting CBS 5,5% jaarlijkse verhuisgraad' },
+          { label: 'Verhuisbewegingen/jaar', val: `~${stats.referentieVorigjaar}`, sub: `≈ ${stats.estAdressenMaand}/mnd × 12 (CBS-schatting)` },
         ].map(s => (
           <div key={s.label} style={{
             background: 'var(--white)', border: '1px solid var(--line)',
@@ -629,14 +629,20 @@ export default function LokaalKabaal() {
 
     return (
       <div className="fade-in">
-        {/* Progress */}
-        <div style={{ display: 'flex', gap: '4px', marginBottom: '24px' }}>
-          {Array.from({ length: 7 }, (_, i) => (
-            <div key={i} style={{ flex: 1, height: '3px', borderRadius: '2px', background: i + 1 <= step ? 'var(--green)' : 'var(--line)', transition: 'background 0.3s' }} />
-          ))}
-        </div>
-        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '16px' }}>
-          Stap {step} van 7
+        {/* Progress — sticky */}
+        <div style={{
+          position: 'sticky', top: 0, zIndex: 20,
+          background: 'var(--paper)', paddingTop: '12px', paddingBottom: '12px',
+          marginBottom: '8px', borderBottom: '1px solid var(--line)',
+        }}>
+          <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
+            {Array.from({ length: 7 }, (_, i) => (
+              <div key={i} style={{ flex: 1, height: '3px', borderRadius: '2px', background: i + 1 <= step ? 'var(--green)' : 'var(--line)', transition: 'background 0.3s' }} />
+            ))}
+          </div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)' }}>
+            Stap {step} van 7 — {['Akkoord', 'Branche', 'Startdatum', 'Werkgebied', 'Formaat & aantallen', 'Controleer', 'Bevestiging'][step - 1]}
+          </div>
         </div>
 
         <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '28px', marginBottom: '16px' }}>
@@ -1037,8 +1043,8 @@ export default function LokaalKabaal() {
               <div style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>Voer je website in — wij halen automatisch je merkstijl op</div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input
-                  type="url"
-                  placeholder="https://jouwwebsite.nl"
+                  type="text"
+                  placeholder="www.jouwwebsite.nl"
                   value={flyer.websiteUrl}
                   onChange={e => updateFlyer({ websiteUrl: e.target.value })}
                   style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)' }}
@@ -1201,74 +1207,27 @@ export default function LokaalKabaal() {
   }
 
   function renderCredits() {
-    const history = [
-      { datum: '2026-03-01', omschrijving: '500 flyers A5 · Utrecht centrum', bedrag: -1, saldo: 3 },
-      { datum: '2026-02-15', omschrijving: 'Credits gekocht (5 stuks)', bedrag: +5, saldo: 4 },
-      { datum: '2026-02-01', omschrijving: '750 flyers A5 · Rotterdam Noord', bedrag: -1, saldo: -1 },
-    ];
     return (
       <div className="fade-in">
-        <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '4px' }}>Credits</h1>
+        <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '4px' }}>Resterende flyers</h1>
         <p style={{ color: 'var(--muted)', marginBottom: '20px', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
-          1 credit = 1 campagne per werkgebied per maand
+          Credits zijn niet-verzonden flyers uit betaalde campagnes — bijvoorbeeld bij een geannuleerde of aangepaste maand.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '20px' }}>
-          {[
-            { label: 'Huidig saldo', val: '3 credits' },
-            { label: 'Waarde per credit', val: '€245' },
-            { label: 'Besteed dit jaar', val: '€490' },
-          ].map(s => (
-            <div key={s.label} style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
-              <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>{s.label.toUpperCase()}</div>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', color: 'var(--green)' }}>{s.val}</div>
-            </div>
-          ))}
+        <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '12px 16px', marginBottom: '20px', fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--muted)', lineHeight: 1.6 }}>
+          <strong style={{ color: 'var(--ink)' }}>Wat zijn credits?</strong> Als je een campagne annuleert of aanpast nadat flyers al zijn betaald maar nog niet verzonden, worden de resterende exemplaren bijgeschreven als credits. Die kun je inzetten voor een volgende campagne.
         </div>
 
-        <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px', marginBottom: '16px' }}>
-          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', marginBottom: '16px' }}>Credits kopen</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px' }}>
-            {[
-              { credits: 1, prijs: 245, label: 'Starter', desc: '1 campagne · maand naar keuze' },
-              { credits: 3, prijs: 675, label: 'Groeier', desc: '3 campagnes · bespaar €60', popular: true },
-              { credits: 12, prijs: 2400, label: 'Dominantie', desc: '12 campagnes · bespaar €540' },
-            ].map(p => (
-              <div key={p.credits} style={{ border: `2px solid ${p.popular ? 'var(--green)' : 'var(--line)'}`, borderRadius: 'var(--radius)', padding: '20px', position: 'relative', background: p.popular ? 'var(--green-bg)' : 'var(--paper)' }}>
-                {p.popular && <div style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: 'var(--green)', color: 'var(--ink)', fontSize: '10px', fontWeight: 700, padding: '2px 10px', borderRadius: '2px', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>MEEST GEKOZEN</div>}
-                <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '4px' }}>{p.label}</div>
-                <div style={{ fontFamily: 'var(--font-serif)', fontSize: '32px', color: 'var(--green)', marginBottom: '4px' }}>{p.credits} <span style={{ fontSize: '16px', color: 'var(--muted)' }}>credits</span></div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', marginBottom: '8px' }}>€{p.prijs.toLocaleString('nl')}</div>
-                <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '16px' }}>{p.desc}</div>
-                <button style={{ width: '100%', padding: '10px', background: 'var(--ink)', color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>Kopen</button>
-              </div>
-            ))}
+        {/* Empty state */}
+        <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '60px 24px', textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '48px', color: 'var(--line)', marginBottom: '12px' }}>0</div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '6px' }}>Geen resterende flyers</div>
+          <div style={{ fontSize: '13px', color: 'var(--muted)', maxWidth: '360px', margin: '0 auto 20px', lineHeight: 1.6 }}>
+            Je hebt momenteel geen credits. Credits verschijnen hier automatisch als je een campagne aanpast of annuleert na betaling.
           </div>
-        </div>
-
-        <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)', fontFamily: 'var(--font-serif)', fontSize: '18px' }}>Transactiehistorie</div>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: 'var(--paper2)' }}>
-                  {['Datum', 'Omschrijving', 'Credits', 'Saldo'].map(h => (
-                    <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--muted)', fontWeight: 500 }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {history.map((h, i) => (
-                  <tr key={i} style={{ borderTop: '1px solid var(--line)' }}>
-                    <td style={{ padding: '12px 16px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--muted)' }}>{h.datum}</td>
-                    <td style={{ padding: '12px 16px', fontSize: '13px' }}>{h.omschrijving}</td>
-                    <td style={{ padding: '12px 16px', fontFamily: 'var(--font-mono)', fontSize: '13px', color: h.bedrag > 0 ? 'var(--green-dim)' : 'var(--red)', fontWeight: 600 }}>{h.bedrag > 0 ? '+' : ''}{h.bedrag}</td>
-                    <td style={{ padding: '12px 16px', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>{h.saldo}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <button onClick={() => setPage('wizard')} style={{ padding: '10px 24px', background: 'var(--ink)', color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>
+            Campagne starten →
+          </button>
         </div>
       </div>
     );
