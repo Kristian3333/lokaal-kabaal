@@ -38,16 +38,23 @@ export async function POST(req: NextRequest) {
     // Attempt to fetch the actual website
     try {
       const resp = await fetch(normalizedUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; LokaalKabaal/1.0)' },
-        signal: AbortSignal.timeout(8000),
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'nl-NL,nl;q=0.9,en;q=0.8',
+          'Accept-Encoding': 'gzip, deflate',
+          'Connection': 'keep-alive',
+        },
+        signal: AbortSignal.timeout(10000),
+        redirect: 'follow',
       });
       if (resp.ok) {
         const html = await resp.text();
         pageContent = extractText(html);
       }
-    } catch {
+    } catch (err) {
       // If fetch fails, continue with URL-based analysis only
-      console.log('Website fetch failed, proceeding with URL analysis');
+      console.log('Website fetch failed, proceeding with URL analysis:', err);
     }
 
     const prompt = `Je bent een expert flyer copywriter voor lokale ondernemers in Nederland.

@@ -249,6 +249,97 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* FLYER VOORBEELDEN */}
+      <section style={{ padding: '100px 40px', maxWidth: '1080px', margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+          <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Flyervoorbeelden</div>
+          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '38px', fontWeight: 400, marginBottom: '12px' }}>Zo ziet jouw flyer <em style={{ color: 'var(--muted)' }}>eruit</em></h2>
+          <p style={{ color: 'var(--muted)', fontSize: '14px', maxWidth: '480px', margin: '0 auto' }}>Kies een template of upload je eigen ontwerp. De AI schrijft de tekst op maat.</p>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '32px', alignItems: 'start' }}>
+          {[
+            { kleur: '#1C0F0A', accent: '#E8A020', label: 'Koffiebar', icon: '☕', naam: 'Koffiehuis de Hoek', slogan: 'Elke dag vers.', tekst: 'Net ingetrokken? Welkom in de buurt! Kom kennismaken en geniet van de beste koffie in de wijk. Bij een besteding van €20 of meer, krijg jij €5 korting.', usps: ['€5 welkomstkorting bij €20', 'Vers gezette specialty koffie', 'Je nieuwe stamkroeg'] },
+            { kleur: '#14213D', accent: '#C8A97E', label: 'Meubelwinkel', icon: '🛋️', naam: 'Wonen & Zo', slogan: 'Jouw thuis, jouw stijl.', tekst: 'Een nieuw huis verdient een nieuw begin. Als nieuwe bewoner krijg je 10% welkomstkorting op je eerste aankoop. Kom langs en laat je verrassen.', usps: ['10% welkomstkorting', 'Grote showroom', 'Gratis levering in regio'] },
+            { kleur: '#0D0D0D', accent: '#FF6B35', label: 'Stucadoor', icon: '🔨', naam: 'StucPro Regio', slogan: 'Strak. Snel. Lokaal.', tekst: 'Nieuwe woning, nieuwe muren. Of je nu wil stucen, schilderen of verbouwen — wij zijn dé vakman in jouw regio. Gratis offerte aan huis.', usps: ['Gratis offerte aan huis', 'Lokale vakman', 'Binnen 2 weken op locatie'] },
+          ].map(t => (
+            <div key={t.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+              {/* Flyer card */}
+              <div style={{
+                width: '240px', height: '340px', background: t.kleur, borderRadius: '6px',
+                overflow: 'hidden', position: 'relative', flexShrink: 0,
+                boxShadow: '0 16px 48px rgba(0,0,0,0.18)',
+              }}>
+                <div style={{ height: '5px', background: t.accent }} />
+                <div style={{ padding: '16px 18px 10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ width: '36px', height: '36px', background: t.accent, borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>{t.icon}</div>
+                  <div>
+                    <div style={{ color: '#fff', fontWeight: 700, fontSize: '11px' }}>{t.naam}</div>
+                    <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '9px', marginTop: '2px' }}>{t.slogan}</div>
+                  </div>
+                </div>
+                <div style={{ padding: '4px 18px 12px' }}>
+                  <div style={{ color: t.accent, fontFamily: 'var(--font-serif)', fontSize: '15px', fontStyle: 'italic', lineHeight: 1.3, marginBottom: '10px' }}>Welkom in de buurt!</div>
+                  <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '9px', lineHeight: 1.6, marginBottom: '12px' }}>{t.tekst}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    {t.usps.map((u, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ width: '14px', height: '14px', background: t.accent, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <span style={{ color: t.kleur, fontSize: '8px', fontWeight: 700 }}>✓</span>
+                        </div>
+                        <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '8px' }}>{u}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 18px', borderTop: `1px solid ${t.accent}33`, background: 'rgba(0,0,0,0.3)' }}>
+                  <div style={{ color: t.accent, fontSize: '8px', fontFamily: 'var(--font-mono)' }}>lokaalkabaal.nl · Jouw website hier</div>
+                </div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>{t.label}</div>
+                <div style={{ fontSize: '12px', color: 'var(--muted)' }}>Template · aanpasbaar</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ textAlign: 'center', marginTop: '48px' }}>
+          <Link href="/login" style={{ padding: '12px 28px', background: 'var(--ink)', color: '#fff', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', textDecoration: 'none' }}>Maak jouw flyer →</Link>
+        </div>
+      </section>
+
+      {/* BLOG PREVIEW */}
+      <section style={{ background: 'var(--ink)', padding: '100px 40px' }}>
+        <div style={{ maxWidth: '1080px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '48px' }}>
+            <div>
+              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Kennis & Kabaal</div>
+              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '38px', fontWeight: 400, color: '#fff', margin: 0 }}>Onze kijk op <em style={{ color: 'rgba(255,255,255,.35)' }}>lokale marketing</em></h2>
+            </div>
+            <Link href="/blog" style={{ fontSize: '12px', color: 'rgba(255,255,255,.4)', textDecoration: 'none', fontFamily: 'var(--font-mono)', flexShrink: 0 }}>Alle artikelen →</Link>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+            {[
+              { slug: 'eerste-kennismaking', cat: 'Marketing', titel: 'De Eerste Kennismaking: Jouw Flyer als Start van de Klantreis', datum: '1 feb 2026', min: '5 min' },
+              { slug: 'digitale-moeheid', cat: 'Gedrag', titel: 'Digitale Moeheid: Fysiek heeft een Langere Houdbaarheid', datum: '8 feb 2026', min: '4 min' },
+              { slug: 'hyperlokaal', cat: 'Strategie', titel: 'Hyperlokaal: Vertrouwen via Fysieke Aanwezigheid', datum: '10 mrt 2026', min: '5 min' },
+            ].map(a => (
+              <Link key={a.slug} href={`/blog/${a.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div style={{ padding: '24px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 'var(--radius)', background: 'rgba(255,255,255,0.03)', height: '100%', boxSizing: 'border-box' }}
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--green)')}
+                  onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)')}>
+                  <div style={{ display: 'flex', gap: '10px', marginBottom: '14px' }}>
+                    <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--green)', background: 'rgba(0,232,122,0.1)', padding: '2px 8px', borderRadius: '2px' }}>{a.cat.toUpperCase()}</span>
+                    <span style={{ fontSize: '10px', color: 'rgba(255,255,255,.3)', fontFamily: 'var(--font-mono)' }}>{a.min}</span>
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', fontWeight: 400, color: '#fff', lineHeight: 1.25, marginBottom: '16px' }}>{a.titel}</div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.3)', fontFamily: 'var(--font-mono)' }}>{a.datum}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA FOOTER */}
       <section style={{ padding: '80px 40px', textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
         <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '36px', fontWeight: 400, marginBottom: '16px' }}>

@@ -1,7 +1,12 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
+
+const NLMap = dynamic(() => import('../../components/NLMap'), { ssr: false, loading: () => (
+  <div style={{ height: '280px', background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '12px', fontFamily: 'var(--font-mono)' }}>Kaart laden...</div>
+) });
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -137,112 +142,124 @@ type Page = 'dashboard' | 'wizard' | 'flyer' | 'credits' | 'profiel';
 // ─── Flyer Preview ────────────────────────────────────────────────────────────
 
 function FlyerPreview({ flyer }: { flyer: FlyerState }) {
+  const initials = flyer.bedrijfsnaam
+    ? flyer.bedrijfsnaam.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
+    : 'LK';
+  const usps = flyer.usp ? flyer.usp.split('\n').filter(Boolean).slice(0, 3) : [];
+
   return (
     <div style={{
-      width: '240px', height: '340px', background: flyer.kleur, borderRadius: '4px',
-      overflow: 'hidden', position: 'relative', flexShrink: 0,
-      border: '1px solid var(--line)', fontFamily: 'var(--font-sans)'
+      width: '240px', height: '340px', background: flyer.kleur,
+      borderRadius: '8px', overflow: 'hidden', position: 'relative',
+      flexShrink: 0, fontFamily: 'var(--font-sans)',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
     }}>
-      <div style={{ height: '6px', background: flyer.accent }} />
-      <div style={{ padding: '16px 16px 8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        {flyer.logoData ? (
-          <img src={flyer.logoData} alt="logo" style={{ width: '36px', height: '36px', objectFit: 'contain', borderRadius: '4px' }} />
-        ) : (
-          <div style={{ width: '36px', height: '36px', background: flyer.accent, borderRadius: '4px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: flyer.kleur, fontWeight: 700, fontSize: '14px' }}>
-            {flyer.bedrijfsnaam ? flyer.bedrijfsnaam.charAt(0).toUpperCase() : 'L'}
+      {/* Top accent bar with diagonal cut */}
+      <div style={{ position: 'relative', height: '72px', background: flyer.accent, overflow: 'hidden' }}>
+        {/* Diagonal bottom edge */}
+        <div style={{
+          position: 'absolute', bottom: '-12px', left: 0, right: 0,
+          height: '28px', background: flyer.kleur,
+          clipPath: 'polygon(0 40%, 100% 0%, 100% 100%, 0% 100%)',
+        }} />
+        {/* Logo + naam in header */}
+        <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '10px', position: 'relative', zIndex: 1 }}>
+          {flyer.logoData ? (
+            <img src={flyer.logoData} alt="logo" style={{ width: '36px', height: '36px', objectFit: 'contain', borderRadius: '6px', background: '#fff' }} />
+          ) : (
+            <div style={{
+              width: '36px', height: '36px', background: flyer.kleur, borderRadius: '6px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: flyer.accent, fontWeight: 800, fontSize: '13px', letterSpacing: '-0.03em',
+            }}>{initials}</div>
+          )}
+          <div>
+            <div style={{ color: flyer.kleur, fontWeight: 700, fontSize: '11px', lineHeight: 1.2 }}>
+              {flyer.bedrijfsnaam || 'Jouw Bedrijfsnaam'}
+            </div>
+            {flyer.slogan && (
+              <div style={{ color: `${flyer.kleur}bb`, fontSize: '8px', marginTop: '2px', fontStyle: 'italic' }}>{flyer.slogan}</div>
+            )}
           </div>
-        )}
-        <div>
-          <div style={{ color: '#fff', fontWeight: 700, fontSize: '11px', lineHeight: 1.2 }}>
-            {flyer.bedrijfsnaam || 'Jouw Bedrijfsnaam'}
-          </div>
-          {flyer.slogan && <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '9px', marginTop: '2px' }}>{flyer.slogan}</div>}
         </div>
       </div>
-      <div style={{ padding: '8px 16px' }}>
-        <div style={{ color: flyer.accent, fontFamily: 'var(--font-serif)', fontSize: '15px', fontStyle: 'italic', lineHeight: 1.3, marginBottom: '8px' }}>
-          Welkom in de buurt!
+
+      {/* Body */}
+      <div style={{ padding: '8px 16px 0' }}>
+        {/* Welcome heading */}
+        <div style={{
+          color: flyer.accent, fontFamily: 'var(--font-serif)',
+          fontSize: '18px', fontStyle: 'italic', lineHeight: 1.2, marginBottom: '8px',
+        }}>
+          Welkom in<br />de buurt!
         </div>
-        <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '9px', lineHeight: 1.5 }}>
-          {flyer.tekst || 'Wij heten je van harte welkom als nieuwe buurman of buurvrouw. Kom eens langs en ontdek wat wij voor jou kunnen betekenen.'}
+
+        {/* Body text */}
+        <div style={{ color: 'rgba(255,255,255,0.78)', fontSize: '8.5px', lineHeight: 1.6, marginBottom: '10px' }}>
+          {flyer.tekst || 'Wij heten je van harte welkom als nieuwe bewoner. Kom eens langs en ontdek wat wij voor jou kunnen betekenen in de buurt.'}
         </div>
-        {flyer.usp && (
-          <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {flyer.usp.split('\n').slice(0, 3).map((u, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <div style={{ width: '10px', height: '10px', background: flyer.accent, borderRadius: '50%', flexShrink: 0 }} />
-                <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '8px' }}>{u}</span>
+
+        {/* USPs */}
+        {usps.length > 0 && (
+          <div style={{
+            background: `${flyer.accent}18`, borderLeft: `2px solid ${flyer.accent}`,
+            padding: '8px 10px', borderRadius: '0 4px 4px 0',
+            display: 'flex', flexDirection: 'column', gap: '5px',
+          }}>
+            {usps.map((u, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{
+                  width: '14px', height: '14px', background: flyer.accent, borderRadius: '50%',
+                  flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ color: flyer.kleur, fontSize: '8px', fontWeight: 700 }}>✓</span>
+                </div>
+                <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '8px', fontWeight: 500 }}>{u}</span>
               </div>
             ))}
           </div>
         )}
       </div>
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 16px',
-        borderTop: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-          {flyer.telefoon && <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '8px' }}>📞 {flyer.telefoon}</div>}
-          {flyer.website && <div style={{ color: flyer.accent, fontSize: '8px' }}>🌐 {flyer.website}</div>}
+
+      {/* Footer */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        padding: '8px 16px 10px',
+        background: `linear-gradient(to top, ${flyer.kleur}ff, ${flyer.kleur}00)`,
+        paddingTop: '20px',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            {flyer.telefoon && (
+              <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '7.5px', fontFamily: 'var(--font-mono)' }}>
+                ☎ {flyer.telefoon}
+              </div>
+            )}
+            {flyer.website && (
+              <div style={{ color: flyer.accent, fontSize: '7.5px', fontFamily: 'var(--font-mono)' }}>
+                ⬡ {flyer.website}
+              </div>
+            )}
+          </div>
+          {/* Accent dot badge */}
+          <div style={{
+            width: '28px', height: '28px', borderRadius: '50%',
+            background: flyer.accent, opacity: 0.15,
+          }} />
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Coverage Visual ──────────────────────────────────────────────────────────
+// ─── Coverage Visual (now uses real NL map) ──────────────────────────────────
 
 function CoverageVisual({ centrum, straalKm }: { centrum: string; straalKm: number }) {
   const stats = estimeerDekkingsgebied(straalKm);
-  const r = Math.min(88, straalKm * 3.5);
-  // Deterministic dots based on straalKm
-  const dots = useMemo(() => {
-    const n = Math.min(stats.pc4Count, 28);
-    return Array.from({ length: n }, (_, i) => {
-      const angle = (i / n) * 2 * Math.PI + (i * 0.7);
-      const dist = (((i * 17 + 5) % 80) / 100 + 0.15) * r;
-      return {
-        x: 100 + Math.cos(angle) * dist,
-        y: 100 + Math.sin(angle) * dist,
-      };
-    });
-  }, [straalKm, r, stats.pc4Count]);
-
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'start' }}>
-      {/* Circle visual */}
-      <div style={{
-        background: 'var(--paper2)', border: '1px solid var(--line)',
-        borderRadius: 'var(--radius)', overflow: 'hidden', position: 'relative',
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-      }}>
-        <svg width="200" height="200" viewBox="0 0 200 200" style={{ display: 'block' }}>
-          {/* Grid */}
-          {[30, 55, 80].map(gr => (
-            <circle key={gr} cx="100" cy="100" r={gr} fill="none" stroke="var(--line)" strokeWidth="1" strokeDasharray="3 3" />
-          ))}
-          <line x1="10" y1="100" x2="190" y2="100" stroke="var(--line)" strokeWidth="1" />
-          <line x1="100" y1="10" x2="100" y2="190" stroke="var(--line)" strokeWidth="1" />
-          {/* Coverage fill */}
-          <circle cx="100" cy="100" r={r} fill="rgba(0,232,122,0.08)" stroke="var(--green)" strokeWidth="2" />
-          {/* PC4 dots */}
-          {dots.map((d, i) => (
-            <circle key={i} cx={d.x} cy={d.y} r="3" fill="var(--green)" opacity="0.55" />
-          ))}
-          {/* Center */}
-          <circle cx="100" cy="100" r="7" fill="var(--green)" />
-          <circle cx="100" cy="100" r="3" fill="var(--ink)" />
-        </svg>
-        <div style={{
-          padding: '6px 12px 10px', textAlign: 'center',
-          fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--muted)',
-        }}>
-          {centrum || 'Postcode centrum'} · {straalKm} km straal
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <NLMap centrum={centrum} straalKm={straalKm} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
         {[
           { label: 'PC4-gebieden', val: String(stats.pc4Count), sub: 'volledig gedekt' },
           { label: 'Nieuwe bewoners/mnd', val: `~${stats.estAdressenMaand}`, sub: 'op basis van Kadaster' },
@@ -255,7 +272,7 @@ function CoverageVisual({ centrum, straalKm }: { centrum: string; straalKm: numb
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', marginBottom: '3px' }}>
               {s.label.toUpperCase()}
             </div>
-            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', color: 'var(--green)', lineHeight: 1 }}>
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: 'var(--green)', lineHeight: 1 }}>
               {s.val}
             </div>
             <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
@@ -263,13 +280,13 @@ function CoverageVisual({ centrum, straalKm }: { centrum: string; straalKm: numb
             </div>
           </div>
         ))}
-        <div style={{
-          background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.25)',
-          borderRadius: 'var(--radius)', padding: '10px 12px',
-          fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)',
-        }}>
-          💡 Suggestie: {stats.suggestieFlyers} flyers/mnd op basis van dit gebied
-        </div>
+      </div>
+      <div style={{
+        background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.25)',
+        borderRadius: 'var(--radius)', padding: '10px 12px',
+        fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)',
+      }}>
+        💡 Suggestie: {stats.suggestieFlyers} flyers/mnd op basis van dit gebied
       </div>
     </div>
   );
