@@ -43,6 +43,7 @@ export default function Landing() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
           <a href="#hoe" style={{ fontSize: '12px', color: 'rgba(255,255,255,.5)', textDecoration: 'none' }}>Hoe werkt het</a>
           <a href="#prijzen" style={{ fontSize: '12px', color: 'rgba(255,255,255,.5)', textDecoration: 'none' }}>Prijzen</a>
+          <Link href="/blog" style={{ fontSize: '12px', color: 'rgba(255,255,255,.5)', textDecoration: 'none' }}>Blog</Link>
           <Link href="/login" style={{
             fontSize: '12px', color: 'rgba(255,255,255,.6)',
             textDecoration: 'none', fontFamily: 'var(--font-mono)',
