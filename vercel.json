@@ -1,6 +1,5 @@
 {
-  "installCommand": "npm install --legacy-peer-deps",
-  "crons": [
+"crons": [
     {
       "path": "/api/cron/addresses",
       "schedule": "0 5 25 * *"
