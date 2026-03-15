@@ -529,10 +529,10 @@ export default function LokaalKabaal() {
         websiteScan: { primaryColor: data.kleuren?.primair, accentColor: data.kleuren?.accent },
         heroImageUrl: data.besteFotoUrl || null,
         pdfUrl: data.pdfUrl || null,
+        logoData: data.logoUrl || null,
       };
       if (data.kleuren?.primair) patch.kleur = data.kleuren.primair;
       if (data.kleuren?.accent) patch.accent = data.kleuren.accent;
-      if (data.logoUrl) patch.logoData = data.logoUrl;
       if (data.tekst?.bodytekst) patch.tekst = data.tekst.bodytekst;
       if (data.tekst?.usps?.length) patch.usp = data.tekst.usps.join('\n');
       if (data.tekst?.headline) patch.headline = data.tekst.headline;
