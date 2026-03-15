@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getVerhuisgraadVoorPc4 } from '@/lib/cbsData';
+import { PC4_COORDS } from '@/lib/pc4Coords';
 
 // Haversine distance in km
 function haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -59,11 +60,15 @@ async function nominatimQuery(url: string): Promise<{ lat: number; lon: number }
 }
 
 async function geocodePC4(pc4: string): Promise<{ lat: number; lon: number } | null> {
-  // 1. Hardcoded sample
+  // 1. Uitgebreide CBS/Kadaster lookup (hoogste prioriteit — ~600 PC4s)
+  const fromCoords = PC4_COORDS[pc4];
+  if (fromCoords) return { lat: fromCoords[0], lon: fromCoords[1] };
+
+  // 2. Kleine hardcoded sample als extra backup
   const inSample = PC4_SAMPLE.find(([p]) => p === pc4);
   if (inSample) return { lat: inSample[1], lon: inSample[2] };
 
-  // 2. In-memory cache
+  // 3. In-memory cache
   if (GEOCODE_CACHE.has(pc4)) return GEOCODE_CACHE.get(pc4)!;
 
   // 3. Nominatim gestructureerde query
