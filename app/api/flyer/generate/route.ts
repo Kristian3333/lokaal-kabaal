@@ -26,46 +26,58 @@ async function scrapeSite(url: string) {
           code: `export default async function({ page, context }) {
             await page.goto(context.url, { waitUntil: 'networkidle2', timeout: 15000 });
             return await page.evaluate(() => {
-              const kleuren = new Set();
+              // ── Kleuren uit CSS ──
+              const bgSet = new Set();
               document.querySelectorAll('*').forEach(el => {
                 const s = getComputedStyle(el);
-                ['backgroundColor','color','borderColor'].forEach(prop => {
-                  const v = s[prop];
-                  if (v && v !== 'rgba(0, 0, 0, 0)' && v !== 'transparent') kleuren.add(v);
-                });
+                const bg = s.backgroundColor;
+                if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') bgSet.add(bg);
               });
 
+              // ── Logo: breed zoeken ──
               const logo =
                 document.querySelector('img[alt*="logo" i]')?.src ||
+                document.querySelector('img[src*="logo" i]')?.src ||
+                document.querySelector('img[class*="logo" i]')?.src ||
                 document.querySelector('header img')?.src ||
                 document.querySelector('nav img')?.src ||
-                document.querySelector('a[href="/"] img')?.src || null;
+                document.querySelector('.logo img, .logo-img, #logo img')?.src ||
+                document.querySelector('a[href="/"] img')?.src ||
+                document.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href') || null;
 
-              const fotos = [...document.querySelectorAll('img')]
+              // ── Foto's: gebruik naturalWidth ipv getBoundingClientRect ──
+              const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute('content') || null;
+              const imgFotos = [...document.querySelectorAll('img')]
                 .filter(img => {
-                  const rect = img.getBoundingClientRect();
-                  return rect.width > 200 && rect.height > 150;
+                  const w = img.naturalWidth || img.width || parseInt(img.getAttribute('width') || '0');
+                  const h = img.naturalHeight || img.height || parseInt(img.getAttribute('height') || '0');
+                  return w > 300 && h > 200;
                 })
                 .map(img => img.src)
                 .filter(src =>
                   src && src.startsWith('http') &&
                   !src.includes('icon') &&
-                  !src.includes('logo') &&
                   !src.includes('favicon') &&
                   !src.includes('avatar') &&
-                  !src.includes('sprite')
+                  !src.includes('sprite') &&
+                  !src.includes('pixel') &&
+                  !src.includes('tracking')
                 )
                 .slice(0, 8);
 
+              const fotos = ogImage
+                ? [ogImage, ...imgFotos.filter(s => s !== ogImage)].slice(0, 8)
+                : imgFotos;
+
+              // ── Tekst ──
               const h1 = document.querySelector('h1')?.innerText?.trim() || '';
               const meta = document.querySelector('meta[name="description"]')?.content?.trim() || '';
               const ogDesc = document.querySelector('meta[property="og:description"]')?.content?.trim() || '';
-              const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute('content') || null;
 
               return {
-                kleuren: [...kleuren].slice(0, 25),
+                kleuren: [...bgSet].slice(0, 30),
                 logo,
-                fotos: ogImage && !fotos.includes(ogImage) ? [ogImage, ...fotos].slice(0, 8) : fotos,
+                fotos,
                 h1,
                 meta: meta || ogDesc
               };
@@ -164,7 +176,58 @@ async function selecteerBesteFoto(fotos: string[], branche: string): Promise<str
   }
 }
 
-// ─── Sub-functie C: dominanteKleuren ─────────────────────────────────────────
+// ─── Sub-functie C: kleuren uit CSS array (meest betrouwbaar) ────────────────
+
+function cssRgbToRgb(css: string): [number, number, number] | null {
+  const m = css.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (!m) return null;
+  return [parseInt(m[1]), parseInt(m[2]), parseInt(m[3])];
+}
+
+function kleurenUitCSSArray(cssKleuren: string[]): { primair: string; accent: string } | null {
+  if (!cssKleuren || cssKleuren.length === 0) return null;
+
+  // Telfrequentie per kleur
+  const freq = new Map<string, { rgb: [number,number,number]; count: number }>();
+  for (const css of cssKleuren) {
+    const rgb = cssRgbToRgb(css);
+    if (!rgb) continue;
+    const [r, g, b] = rgb;
+    // Sla wit, zwart, lichtgrijs en transparant over
+    if (r > 235 && g > 235 && b > 235) continue; // wit
+    if (r < 20 && g < 20 && b < 20) continue;    // zwart
+    if (Math.abs(r-g) < 15 && Math.abs(g-b) < 15 && r < 220) continue; // grijs
+
+    // Quantize
+    const key = `${Math.round(r/10)*10},${Math.round(g/10)*10},${Math.round(b/10)*10}`;
+    const e = freq.get(key) || { rgb, count: 0 };
+    e.count++;
+    freq.set(key, e);
+  }
+
+  const sorted = Array.from(freq.values()).sort((a, b) => b.count - a.count);
+  if (sorted.length === 0) return null;
+
+  const p = sorted[0].rgb;
+  const primair = rgbToHex(p[0], p[1], p[2]);
+
+  // Accent: zoek kleur met genoeg contrast tov primair én niet te licht
+  let accent = '#00E87A';
+  for (const { rgb: c } of sorted.slice(1)) {
+    const afstand = Math.sqrt(
+      Math.pow(p[0]-c[0],2) + Math.pow(p[1]-c[1],2) + Math.pow(p[2]-c[2],2)
+    );
+    const isNietTeWit = !(c[0] > 235 && c[1] > 235 && c[2] > 235);
+    if (afstand > 70 && isNietTeWit) {
+      accent = rgbToHex(c[0], c[1], c[2]);
+      break;
+    }
+  }
+
+  return { primair, accent };
+}
+
+// ─── Sub-functie D-extra: dominanteKleuren uit foto (fallback) ────────────────
 // Pure-JS JPEG pixel sampler — geen native binaries nodig
 
 function parseJpegPixels(buf: Buffer): Array<[number, number, number]> | null {
@@ -433,10 +496,9 @@ export async function POST(req: NextRequest) {
     ]);
     console.log('[flyer] besteFoto:', besteFoto, '| tekst headline:', tekst?.headline);
 
-    // Stap 3: kleuren extraheren uit beste foto
-    const kleuren = besteFoto
-      ? await dominanteKleuren(besteFoto)
-      : { primair: '#0A0A0A', accent: '#00E87A' };
+    // Stap 3: kleuren — CSS kleuren zijn de meest betrouwbare bron
+    const kleuren = kleurenUitCSSArray(scraped.kleuren || [])
+      ?? (besteFoto ? await dominanteKleuren(besteFoto) : { primair: '#0A0A0A', accent: '#00E87A' });
     console.log('[flyer] kleuren:', kleuren);
 
     // Stap 4: flyer HTML bouwen
