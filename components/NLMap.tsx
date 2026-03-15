@@ -10,24 +10,34 @@ interface NLMapProps {
 const PDOK_ITEMS = 'https://api.pdok.nl/cbs/postcode4/ogc/v1/collections/postcode4/items';
 const CRS84 = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84';
 
-// Bereken bbox in graden vanuit centrum + straal
 function bboxFromCenter(lat: number, lon: number, radiusKm: number) {
   const dLat = radiusKm / 111;
   const dLon = radiusKm / (111 * Math.cos(lat * Math.PI / 180));
-  return {
-    minLon: lon - dLon, minLat: lat - dLat,
-    maxLon: lon + dLon, maxLat: lat + dLat,
-  };
+  return { minLon: lon - dLon, minLat: lat - dLat, maxLon: lon + dLon, maxLat: lat + dLat };
 }
 
-// Haal Leaflet rings ([lat,lon]) op uit GeoJSON Polygon of MultiPolygon
+// Haversine afstand in km
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Centroïd van een ring als gemiddelde van alle hoekpunten
+function ringCentroid(ring: [number, number][]): [number, number] {
+  const lat = ring.reduce((s, [la]) => s + la, 0) / ring.length;
+  const lon = ring.reduce((s, [, lo]) => s + lo, 0) / ring.length;
+  return [lat, lon];
+}
+
 function ringsFromGeometry(geometry: { type: string; coordinates: unknown }): [number, number][][] {
   const rings: [number, number][][] = [];
-
   function processRing(ring: unknown[]): [number, number][] {
     return (ring as number[][]).map(([lon, lat]) => [lat, lon]);
   }
-
   if (geometry.type === 'Polygon') {
     const coords = geometry.coordinates as unknown[][];
     if (coords[0]) rings.push(processRing(coords[0]));
@@ -37,26 +47,22 @@ function ringsFromGeometry(geometry: { type: string; coordinates: unknown }): [n
       if (poly[0]) rings.push(processRing(poly[0]));
     }
   }
-
   return rings;
 }
 
-// Haal PC4-grenzen op via PDOK Kadaster OGC API Features (CBS postcode4 dataset)
 async function fetchPC4Grenzen(
   lat: number,
   lon: number,
   radiusKm: number,
   signal: AbortSignal
 ): Promise<{ pc4: string; rings: [number, number][][] }[]> {
-  const { minLon, minLat, maxLon, maxLat } = bboxFromCenter(lat, lon, radiusKm * 1.25);
+  // Bbox iets groter dan straal zodat we alle grenspercelen ophalen
+  const { minLon, minLat, maxLon, maxLat } = bboxFromCenter(lat, lon, radiusKm * 1.1);
   const url =
     `${PDOK_ITEMS}?bbox=${minLon},${minLat},${maxLon},${maxLat}` +
     `&f=json&limit=500&crs=${encodeURIComponent(CRS84)}`;
 
-  const res = await fetch(url, {
-    headers: { Accept: 'application/geo+json' },
-    signal,
-  });
+  const res = await fetch(url, { headers: { Accept: 'application/geo+json' }, signal });
   if (!res.ok) return [];
 
   const data = await res.json();
@@ -65,7 +71,7 @@ async function fetchPC4Grenzen(
     properties: Record<string, unknown>;
   }>;
 
-  // Dedupliceer: per postcode de meest recente jaarcode bewaren
+  // Dedupliceer op jaarcode
   const byPc4 = new Map<string, typeof features[0]>();
   for (const f of features) {
     const pc4 = String(f.properties.postcode).padStart(4, '0');
@@ -80,13 +86,18 @@ async function fetchPC4Grenzen(
   for (const [pc4, feature] of Array.from(byPc4)) {
     if (!feature.geometry) continue;
     const rings = ringsFromGeometry(feature.geometry);
-    if (rings.length) results.push({ pc4, rings });
+    if (!rings.length) continue;
+
+    // Filter: centroïd van de eerste ring moet binnen de straal vallen
+    const [cLat, cLon] = ringCentroid(rings[0]);
+    if (haversineKm(lat, lon, cLat, cLon) > radiusKm) continue;
+
+    results.push({ pc4, rings });
   }
 
   return results;
 }
 
-// Controleer of het centrum nabij de grens ligt (< 30 km van DE of BE)
 function isGrensgebied(lat: number, lon: number): boolean {
   return lon > 6.4 || lat < 51.5;
 }
@@ -94,10 +105,12 @@ function isGrensgebied(lat: number, lon: number): boolean {
 export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<unknown>(null);
-  const baseLayersRef = useRef<unknown[]>([]);   // cirkel + stip — update direct
-  const pc4LayersRef = useRef<unknown[]>([]);    // polygonen + labels — bewaar tot nieuwe klaar
-  // Keep backward compat alias used elsewhere in the component
-  const layersRef = { current: [] as unknown[] }; // unused stub
+  const baseLayersRef = useRef<unknown[]>([]);
+  const pc4LayersRef = useRef<unknown[]>([]);
+
+  // Ref voor callback zodat het nooit de effect-deps triggert
+  const onPc4sFoundRef = useRef(onPc4sFound);
+  useEffect(() => { onPc4sFoundRef.current = onPc4sFound; });
 
   // Kaart initialiseren (eenmalig)
   useEffect(() => {
@@ -129,7 +142,8 @@ export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
     };
   }, []);
 
-  // Cirkel + PC4-grenzen updaten als center of straal wijzigt
+  // Cirkel + PC4 updaten als center of straal wijzigt
+  // onPc4sFound is BEWUST niet in deps — wordt via ref bijgehouden
   useEffect(() => {
     if (!leafletMapRef.current || !center) return;
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -137,53 +151,49 @@ export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
     const map = leafletMapRef.current as import('leaflet').Map;
     const coords: [number, number] = [center.lat, center.lon];
 
-    // Verwijder alleen base lagen (cirkel + stip) — PC4 blijft staan tot nieuwe klaar zijn
+    // Alleen base lagen vervangen — PC4 blijft staan tot nieuwe klaar zijn
     baseLayersRef.current.forEach(l => (l as import('leaflet').Layer).remove());
     baseLayersRef.current = [];
 
-    // Dekkingscirkel
     const circle = L.circle(coords, {
       radius: straalKm * 1000,
       color: '#00E87A', fillColor: '#00E87A',
-      fillOpacity: 0.07, weight: 2, dashArray: '8 5',
+      fillOpacity: 0.07, weight: 2, dashArray: '6 4',
     }).addTo(map);
     baseLayersRef.current.push(circle);
 
-    // Centrum-stip
     const dot = L.circleMarker(coords, {
       radius: 5, color: '#00E87A', fillColor: '#00E87A', fillOpacity: 1, weight: 2,
     }).addTo(map);
     baseLayersRef.current.push(dot);
 
-    // Zoom naar het gebied (geen animatie — voorkomt flicker bij snel aanpassen)
     const zoom = straalKm <= 5 ? 12 : straalKm <= 10 ? 11 : straalKm <= 20 ? 10 : 9;
     map.setView(coords, zoom);
 
-    // PC4-polygonen asynchroon laden — pas vervangen als nieuwe data klaar is
     const controller = new AbortController();
     fetchPC4Grenzen(center.lat, center.lon, straalKm, controller.signal)
       .then(gebieden => {
         if (!leafletMapRef.current || controller.signal.aborted) return;
 
-        // Nu pas oude PC4 lagen verwijderen en nieuwe toevoegen (geen flicker)
+        // Pas nu oude PC4 verwijderen + nieuwe toevoegen (atomisch swap — geen flicker)
         pc4LayersRef.current.forEach(l => (l as import('leaflet').Layer).remove());
         pc4LayersRef.current = [];
 
-        if (onPc4sFound) onPc4sFound(gebieden.map(g => g.pc4).sort());
+        if (onPc4sFoundRef.current) onPc4sFoundRef.current(gebieden.map(g => g.pc4).sort());
+
         for (const { pc4, rings } of gebieden) {
           for (const ring of rings) {
             const poly = L.polygon(ring as [number, number][], {
               color: '#00E87A', weight: 1.5, opacity: 0.9,
-              fillColor: '#00E87A', fillOpacity: 0.08,
+              fillColor: '#00E87A', fillOpacity: 0.10,
             }).addTo(map);
             pc4LayersRef.current.push(poly);
 
-            // PC4-label op centroid van de bounding box
             const polyCenter = poly.getBounds().getCenter();
             const label = L.marker(polyCenter, {
               interactive: false,
               icon: L.divIcon({
-                html: `<span style="font:700 9px/1 monospace;color:#00E87A;background:rgba(10,10,10,0.75);padding:2px 5px;border-radius:2px;white-space:nowrap;pointer-events:none">${pc4}</span>`,
+                html: `<span style="font:700 9px/1 monospace;color:#00E87A;background:rgba(10,10,10,0.78);padding:2px 5px;border-radius:2px;white-space:nowrap;pointer-events:none">${pc4}</span>`,
                 iconAnchor: [18, 7], className: '',
               }),
             }).addTo(map);
@@ -194,7 +204,7 @@ export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
       .catch(() => {});
 
     return () => { controller.abort(); };
-  }, [center, straalKm, onPc4sFound]);
+  }, [center, straalKm]); // onPc4sFound bewust niet in deps
 
   const toonGrensWaarschuwing = center && isGrensgebied(center.lat, center.lon);
 
@@ -222,7 +232,7 @@ export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
             fontSize: '10px', fontFamily: 'var(--font-mono)',
             padding: '3px 8px', borderRadius: '3px', pointerEvents: 'none',
           }}>
-            {straalKm} km straal · PC4-grenzen laden…
+            {straalKm} km straal
           </div>
         )}
       </div>

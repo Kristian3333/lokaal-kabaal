@@ -127,6 +127,7 @@ interface FlyerState {
   heroImageUrl: string | null;
   heroOffsetX: number;
   heroOffsetY: number;
+  heroScale: number;
   headline: string;
   cta: string;
   pdfUrl: string | null;
@@ -149,6 +150,7 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
   const initials = naam.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase();
   const ox = flyer.heroOffsetX ?? 50;
   const oy = flyer.heroOffsetY ?? 50;
+  const hs = flyer.heroScale ?? 100; // 50–200, default 100
 
   // Draggable hero image handler
   const handleHeroDrag = (e: React.MouseEvent<HTMLImageElement>) => {
@@ -174,9 +176,12 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
     window.addEventListener('mouseup', onUp);
   };
 
+  // h = base height string (e.g. '100px'). heroScale zooms into the image without changing the box.
   const heroImgStyle = (h: string): React.CSSProperties => ({
     width: '100%', height: h, objectFit: 'cover', display: 'block',
     objectPosition: `${ox}% ${oy}%`,
+    transform: `scale(${hs / 100})`,
+    transformOrigin: `${ox}% ${oy}%`,
     cursor: onHeroOffsetChange ? 'grab' : 'default',
     userSelect: 'none',
   });
@@ -187,64 +192,74 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
     boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
   };
 
+  const ctaText = flyer.cta || '10% welkomstkorting';
+  // Small drag hint — top-right corner chip, non-intrusive
+  const dragOverlay = onHeroOffsetChange ? (
+    <div style={{ position: 'absolute', top: '5px', right: '5px', background: 'rgba(0,0,0,0.52)', borderRadius: '3px', padding: '2px 5px', pointerEvents: 'none', zIndex: 2 }}>
+      <span style={{ fontSize: '7px', color: 'rgba(255,255,255,0.85)', fontFamily: 'var(--font-mono)' }}>↕ sleep</span>
+    </div>
+  ) : null;
+
   // ── Design 1: EDITORIAL (magazine split-layout) ──────────────────────────
   if (flyer.design === 'editorial') {
     const headline = flyer.headline || 'Welkom in de buurt.';
     return (
       <div style={{ ...base, background: flyer.kleur }}>
-        {/* Left color stripe */}
-        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: flyer.accent }} />
+        {/* Left color stripe — bold accent bar */}
+        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '10px', background: flyer.accent }} />
         {/* Top section */}
-        <div style={{ padding: '20px 18px 0 20px' }}>
+        <div style={{ padding: '18px 16px 0 22px' }}>
           {/* Category label */}
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', letterSpacing: '0.15em', color: flyer.accent, textTransform: 'uppercase', marginBottom: '10px' }}>
-            Nieuwe bewoners — Welkomstaanbieding
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', letterSpacing: '0.18em', color: flyer.accent, textTransform: 'uppercase', marginBottom: '10px', opacity: 0.9 }}>
+            Nieuwe bewoners · Welkomst
           </div>
-          {/* Hero image or headline */}
+          {/* Hero image */}
           {flyer.heroImageUrl ? (
             <>
-              <div style={{ position: 'relative', marginBottom: '8px' }}>
-                <img src={flyer.heroImageUrl!} alt="" style={{ ...heroImgStyle('80px'), borderRadius: '3px' }} onMouseDown={handleHeroDrag} />
-                {onHeroOffsetChange && <div style={{ position: 'absolute', inset: 0, border: '1.5px dashed rgba(255,255,255,0.5)', borderRadius: '3px', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-mono)', background: 'rgba(0,0,0,0.4)', padding: '1px 5px', borderRadius: '2px' }}>sleep om te verschuiven</span></div>}
+              <div style={{ position: 'relative', marginBottom: '8px', borderRadius: '3px', overflow: 'hidden' }}>
+                <img src={flyer.heroImageUrl!} alt="" style={{ ...heroImgStyle('85px'), borderRadius: '3px' }} onMouseDown={handleHeroDrag} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.35) 100%)', pointerEvents: 'none' }} />
+                {dragOverlay}
               </div>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', fontWeight: 700, color: '#fff', lineHeight: 1.1, marginBottom: '6px', letterSpacing: '-0.02em' }}>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', fontWeight: 700, color: '#fff', lineHeight: 1.05, marginBottom: '6px', letterSpacing: '-0.02em' }}>
                 {headline}
               </div>
             </>
           ) : (
-            <>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 400, color: '#fff', lineHeight: 1.05, marginBottom: '10px', letterSpacing: '-0.02em' }}>
-                {headline.includes(' ') ? (
-                  <>{headline.split(' ').slice(0, 2).join(' ')}<br /><em style={{ color: flyer.accent }}>{headline.split(' ').slice(2).join(' ') || 'in de buurt.'}</em></>
-                ) : <><em style={{ color: flyer.accent }}>{headline}</em></>}
-              </div>
-            </>
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '30px', fontWeight: 400, color: '#fff', lineHeight: 1.0, marginBottom: '10px', letterSpacing: '-0.03em' }}>
+              {headline.split(' ').slice(0, 2).join(' ')}<br />
+              <em style={{ color: flyer.accent, fontStyle: 'italic' }}>{headline.split(' ').slice(2).join(' ') || 'de buurt.'}</em>
+            </div>
           )}
           {/* Divider */}
-          <div style={{ width: '32px', height: '2px', background: flyer.accent, marginBottom: '10px' }} />
+          <div style={{ width: '28px', height: '2px', background: flyer.accent, marginBottom: '8px' }} />
           {/* Body */}
-          <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.72)', lineHeight: 1.65, marginBottom: '12px' }}>{tekst}</div>
+          <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.68)', lineHeight: 1.7, marginBottom: '10px' }}>{tekst}</div>
           {/* USPs */}
           {usps.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '10px' }}>
               {usps.map((u, i) => (
                 <div key={i} style={{ display: 'flex', gap: '7px', alignItems: 'flex-start' }}>
-                  <span style={{ color: flyer.accent, fontSize: '9px', lineHeight: 1.4, flexShrink: 0 }}>—</span>
-                  <span style={{ color: 'rgba(255,255,255,0.88)', fontSize: '8px', lineHeight: 1.4 }}>{u}</span>
+                  <span style={{ color: flyer.accent, fontSize: '9px', lineHeight: 1.4, flexShrink: 0, fontWeight: 700 }}>›</span>
+                  <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '8px', lineHeight: 1.4 }}>{u}</span>
                 </div>
               ))}
             </div>
           )}
+          {/* CTA */}
+          <div style={{ display: 'inline-block', background: flyer.accent, borderRadius: '2px', padding: '5px 10px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '8px', fontWeight: 800, color: flyer.kleur, fontFamily: 'var(--font-mono)', letterSpacing: '0.04em' }}>{ctaText}</span>
+          </div>
         </div>
         {/* Footer bar */}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, borderTop: `1px solid rgba(255,255,255,0.1)`, padding: '10px 18px 10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, borderTop: `1px solid rgba(255,255,255,0.08)`, padding: '9px 16px 9px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.2)' }}>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '9px', color: '#fff' }}>{naam}</div>
-            {flyer.website && <div style={{ fontSize: '7px', color: flyer.accent, fontFamily: 'var(--font-mono)', marginTop: '2px' }}>{flyer.website}</div>}
+            <div style={{ fontWeight: 800, fontSize: '9px', color: '#fff', letterSpacing: '0.01em' }}>{naam}</div>
+            {flyer.website && <div style={{ fontSize: '7px', color: flyer.accent, fontFamily: 'var(--font-mono)', marginTop: '1px' }}>{flyer.website}</div>}
           </div>
           {flyer.logoData
-            ? <img src={flyer.logoData} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain', borderRadius: '4px' }} />
-            : <div style={{ width: '28px', height: '28px', background: flyer.accent, borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: flyer.kleur, fontWeight: 800, fontSize: '10px' }}>{initials}</div>
+            ? <img src={flyer.logoData} alt="" style={{ width: '26px', height: '26px', objectFit: 'contain', borderRadius: '3px' }} />
+            : <div style={{ width: '26px', height: '26px', background: flyer.accent, borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: flyer.kleur, fontWeight: 900, fontSize: '9px' }}>{initials}</div>
           }
         </div>
       </div>
@@ -253,31 +268,53 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
 
   // ── Design 2: GEOMETRIC (bold shapes) ────────────────────────────────────
   if (flyer.design === 'geometric') {
+    const headline = flyer.headline || 'Welkom in de buurt.';
     return (
       <div style={{ ...base, background: '#f5f4f0' }}>
-        {/* Large background circle */}
-        <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: flyer.kleur, opacity: 0.08 }} />
-        <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '120px', height: '120px', borderRadius: '50%', background: flyer.accent, opacity: 0.15 }} />
-        {/* Top colored block */}
-        <div style={{ background: flyer.kleur, padding: '18px 18px 22px', position: 'relative', overflow: 'hidden' }}>
-          {/* Decorative circle */}
-          <div style={{ position: 'absolute', bottom: '-30px', right: '-20px', width: '90px', height: '90px', borderRadius: '50%', border: `12px solid ${flyer.accent}`, opacity: 0.3 }} />
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: flyer.accent, letterSpacing: '0.12em', marginBottom: '8px' }}>WELKOM IN DE BUURT</div>
-          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '26px', color: '#fff', lineHeight: 1.0, fontWeight: 400, letterSpacing: '-0.02em' }}>
-            {naam}
+        {/* Background shapes */}
+        <div style={{ position: 'absolute', bottom: '40px', left: '-50px', width: '180px', height: '180px', borderRadius: '50%', background: flyer.kleur, opacity: 0.06 }} />
+        <div style={{ position: 'absolute', bottom: '20px', left: '-20px', width: '100px', height: '100px', borderRadius: '50%', background: flyer.accent, opacity: 0.10 }} />
+        {/* Hero image — full width strip at top */}
+        {flyer.heroImageUrl ? (
+          <div style={{ position: 'relative', height: '100px', overflow: 'hidden' }}>
+            <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('100px') }} onMouseDown={handleHeroDrag} />
+            <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 30%, ${flyer.kleur}cc 100%)`, pointerEvents: 'none' }} />
+            {dragOverlay}
+            {/* Headline over image */}
+            <div style={{ position: 'absolute', bottom: '10px', left: '14px', right: '14px' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: flyer.accent, letterSpacing: '0.15em', marginBottom: '3px' }}>WELKOM IN DE BUURT</div>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', color: '#fff', lineHeight: 1.05, fontWeight: 700, letterSpacing: '-0.02em' }}>{headline}</div>
+            </div>
           </div>
-          {flyer.slogan && <div style={{ fontSize: '9px', color: flyer.accent, marginTop: '4px', fontStyle: 'italic' }}>{flyer.slogan}</div>}
-        </div>
+        ) : (
+          /* Top colored block when no image */
+          <div style={{ background: flyer.kleur, padding: '16px 16px 20px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', bottom: '-25px', right: '-15px', width: '80px', height: '80px', borderRadius: '50%', border: `10px solid ${flyer.accent}`, opacity: 0.35 }} />
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: flyer.accent, letterSpacing: '0.14em', marginBottom: '6px' }}>WELKOM IN DE BUURT</div>
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', color: '#fff', lineHeight: 1.05, fontWeight: 700, letterSpacing: '-0.02em' }}>{headline}</div>
+            {flyer.slogan && <div style={{ fontSize: '8px', color: flyer.accent, marginTop: '4px', fontStyle: 'italic' }}>{flyer.slogan}</div>}
+          </div>
+        )}
+        {/* Business name strip */}
+        {flyer.heroImageUrl && (
+          <div style={{ background: flyer.kleur, padding: '8px 14px 6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {flyer.logoData
+              ? <img src={flyer.logoData} alt="" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+              : <div style={{ width: '20px', height: '20px', background: flyer.accent, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '7px', fontWeight: 900, color: flyer.kleur, flexShrink: 0 }}>{initials}</div>
+            }
+            <div style={{ fontWeight: 700, fontSize: '9px', color: '#fff' }}>{naam}</div>
+          </div>
+        )}
         {/* Content */}
-        <div style={{ padding: '14px 18px' }}>
-          <div style={{ fontSize: '8.5px', color: '#333', lineHeight: 1.65, marginBottom: '12px' }}>{tekst}</div>
+        <div style={{ padding: '10px 14px' }}>
+          <div style={{ fontSize: '8px', color: '#444', lineHeight: 1.65, marginBottom: '10px' }}>{tekst}</div>
           {/* USP pills */}
           {usps.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '10px' }}>
               {usps.map((u, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: `${flyer.kleur}0f`, borderRadius: '20px', padding: '5px 10px' }}>
-                  <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: flyer.accent, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ color: flyer.kleur, fontSize: '8px', fontWeight: 800 }}>✓</span>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: `${flyer.kleur}12`, borderRadius: '20px', padding: '5px 10px' }}>
+                  <div style={{ width: '14px', height: '14px', borderRadius: '50%', background: flyer.accent, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ color: flyer.kleur, fontSize: '7px', fontWeight: 900 }}>✓</span>
                   </div>
                   <span style={{ fontSize: '7.5px', color: flyer.kleur, fontWeight: 600 }}>{u}</span>
                 </div>
@@ -286,9 +323,9 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
           )}
         </div>
         {/* Bottom CTA strip */}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: flyer.accent, padding: '8px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '8px', fontWeight: 700, color: flyer.kleur }}>{flyer.website || 'www.jouwwebsite.nl'}</span>
-          {flyer.telefoon && <span style={{ fontSize: '8px', color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>{flyer.telefoon}</span>}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: flyer.accent, padding: '8px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '8px', fontWeight: 800, color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>{ctaText}</span>
+          <span style={{ fontSize: '7px', color: `${flyer.kleur}bb`, fontFamily: 'var(--font-mono)' }}>{flyer.website || ''}</span>
         </div>
       </div>
     );
@@ -296,34 +333,46 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
 
   // ── Design 3: MINIMAL LUXURY ──────────────────────────────────────────────
   if (flyer.design === 'minimal') {
-  return (
+    const headline = flyer.headline || 'Welkom in de buurt.';
+    return (
     <div style={{ ...base, background: '#faf9f7' }}>
-      {/* Full-bleed accent top */}
-      <div style={{ height: '8px', background: flyer.accent }} />
-      {/* Thin accent line accent */}
-      <div style={{ height: '1px', background: flyer.kleur, margin: '0 20px' }} />
-      <div style={{ padding: '16px 20px' }}>
+      {/* Hero image — full width, tall strip */}
+      {flyer.heroImageUrl ? (
+        <div style={{ position: 'relative', height: '110px', overflow: 'hidden' }}>
+          <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('110px') }} onMouseDown={handleHeroDrag} />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(250,249,247,0.95) 100%)', pointerEvents: 'none' }} />
+          {dragOverlay}
+        </div>
+      ) : (
+        /* No image: full-bleed accent top bar + thin line */
+        <>
+          <div style={{ height: '5px', background: flyer.accent }} />
+          <div style={{ height: '1px', background: flyer.kleur, margin: '0 20px' }} />
+        </>
+      )}
+      <div style={{ padding: flyer.heroImageUrl ? '4px 20px 16px' : '14px 20px 16px' }}>
         {/* Logo row */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <div>
-            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '13px', color: flyer.kleur, fontWeight: 400, letterSpacing: '0.02em' }}>{naam}</div>
-            {flyer.slogan && <div style={{ fontSize: '7px', color: '#888', marginTop: '2px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{flyer.slogan}</div>}
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '12px', color: flyer.kleur, fontWeight: 400, letterSpacing: '0.03em' }}>{naam}</div>
+            {flyer.slogan && <div style={{ fontSize: '7px', color: '#999', marginTop: '2px', letterSpacing: '0.10em', textTransform: 'uppercase' }}>{flyer.slogan}</div>}
           </div>
           {flyer.logoData
-            ? <img src={flyer.logoData} alt="" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
-            : <div style={{ width: '32px', height: '32px', border: `1.5px solid ${flyer.kleur}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: flyer.kleur }}>{initials}</div>
+            ? <img src={flyer.logoData} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+            : <div style={{ width: '28px', height: '28px', border: `1px solid ${flyer.kleur}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 700, color: flyer.kleur }}>{initials}</div>
           }
         </div>
+        {!flyer.heroImageUrl && <div style={{ height: '1px', background: '#e8e6e0', marginBottom: '12px' }} />}
         {/* Headline */}
-        <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', fontWeight: 400, color: flyer.kleur, lineHeight: 1.15, marginBottom: '6px', letterSpacing: '-0.02em' }}>
-          Welkom in<br />de buurt.
+        <div style={{ fontFamily: 'var(--font-serif)', fontSize: flyer.heroImageUrl ? '19px' : '22px', fontWeight: 400, color: flyer.kleur, lineHeight: 1.1, marginBottom: '5px', letterSpacing: '-0.02em' }}>
+          {headline}
         </div>
-        <div style={{ width: '24px', height: '2px', background: flyer.accent, marginBottom: '12px' }} />
+        <div style={{ width: '20px', height: '2px', background: flyer.accent, marginBottom: '10px' }} />
         {/* Body */}
-        <div style={{ fontSize: '8px', color: '#555', lineHeight: 1.7, marginBottom: '14px' }}>{tekst}</div>
+        <div style={{ fontSize: '8px', color: '#666', lineHeight: 1.65, marginBottom: '10px' }}>{tekst}</div>
         {/* USPs — minimal list */}
         {usps.length > 0 && (
-          <div style={{ borderTop: '1px solid #e8e6e0', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div style={{ borderTop: '1px solid #ede9e3', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '8px' }}>
             {usps.map((u, i) => (
               <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: flyer.accent, flexShrink: 0 }} />
@@ -332,11 +381,16 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
             ))}
           </div>
         )}
+        {/* CTA — elegant underlined */}
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', borderBottom: `1.5px solid ${flyer.accent}`, paddingBottom: '1px' }}>
+          <span style={{ fontSize: '8px', fontWeight: 700, color: flyer.kleur, letterSpacing: '0.04em' }}>{ctaText}</span>
+          <span style={{ fontSize: '8px', color: flyer.accent, fontWeight: 700 }}>→</span>
+        </div>
       </div>
       {/* Bottom contact */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 20px', borderTop: '1px solid #e8e6e0', display: 'flex', justifyContent: 'space-between' }}>
-        {flyer.website && <span style={{ fontSize: '7px', color: '#888', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
-        {flyer.telefoon && <span style={{ fontSize: '7px', color: '#888', fontFamily: 'var(--font-mono)' }}>{flyer.telefoon}</span>}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '7px 20px', borderTop: '1px solid #e8e6e0', display: 'flex', justifyContent: 'space-between' }}>
+        {flyer.website && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
+        {flyer.telefoon && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.telefoon}</span>}
       </div>
     </div>
   );
@@ -349,33 +403,38 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
       <div style={{ ...base, background: flyer.kleur }}>
         {/* Full-bleed hero photo or big type */}
         {flyer.heroImageUrl ? (
-          <div style={{ position: 'relative', height: '160px', overflow: 'hidden' }}>
-            <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('160px') }} onMouseDown={handleHeroDrag} />
+          <div style={{ position: 'relative', height: '165px', overflow: 'hidden' }}>
+            <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('165px') }} onMouseDown={handleHeroDrag} />
             {/* Dark gradient overlay */}
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%)', pointerEvents: 'none' }} />
-            {onHeroOffsetChange && <div style={{ position: 'absolute', inset: 0, border: '1.5px dashed rgba(255,255,255,0.5)', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-mono)', background: 'rgba(0,0,0,0.5)', padding: '1px 5px', borderRadius: '2px' }}>sleep om te verschuiven</span></div>}
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.65) 100%)', pointerEvents: 'none' }} />
+            {dragOverlay}
+            {/* Welkomst badge — top left */}
+            <div style={{ position: 'absolute', top: '10px', left: '12px', background: flyer.accent, borderRadius: '2px', padding: '3px 7px' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '6.5px', fontWeight: 800, color: flyer.kleur, letterSpacing: '0.1em' }}>NIEUW IN DE BUURT</span>
+            </div>
             {/* Headline over photo */}
             <div style={{ position: 'absolute', bottom: '10px', left: '14px', right: '14px' }}>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', fontWeight: 700, color: '#fff', lineHeight: 1.05, letterSpacing: '-0.02em', textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>{headline}</div>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', fontWeight: 700, color: '#fff', lineHeight: 1.0, letterSpacing: '-0.02em', textShadow: '0 2px 12px rgba(0,0,0,0.6)' }}>{headline}</div>
             </div>
           </div>
         ) : (
-          <div style={{ height: '120px', background: flyer.accent, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '14px 16px' }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', letterSpacing: '0.18em', color: flyer.kleur, opacity: 0.7, marginBottom: '6px', textTransform: 'uppercase' }}>Nieuwe bewoners</div>
-            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', fontWeight: 700, color: flyer.kleur, lineHeight: 1.05, letterSpacing: '-0.02em' }}>{headline}</div>
+          <div style={{ height: '120px', background: flyer.accent, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '14px 16px', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', letterSpacing: '0.18em', color: flyer.kleur, opacity: 0.75, marginBottom: '5px', textTransform: 'uppercase' }}>Nieuw in de buurt</div>
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', fontWeight: 700, color: flyer.kleur, lineHeight: 1.0, letterSpacing: '-0.02em' }}>{headline}</div>
           </div>
         )}
         {/* Content */}
-        <div style={{ padding: '14px 16px' }}>
+        <div style={{ padding: '12px 16px' }}>
           {/* Accent bar */}
-          <div style={{ width: '40px', height: '3px', background: flyer.accent, marginBottom: '10px', borderRadius: '2px' }} />
-          <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.75)', lineHeight: 1.65, marginBottom: '10px' }}>{tekst}</div>
+          <div style={{ width: '36px', height: '3px', background: flyer.accent, marginBottom: '8px', borderRadius: '2px' }} />
+          <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.72)', lineHeight: 1.65, marginBottom: '8px' }}>{tekst}</div>
           {usps.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '8px' }}>
               {usps.map((u, i) => (
                 <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <div style={{ width: '14px', height: '14px', background: flyer.accent, borderRadius: '2px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontSize: '8px', color: flyer.kleur, fontWeight: 900 }}>✓</span>
+                  <div style={{ width: '13px', height: '13px', background: flyer.accent, borderRadius: '2px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: '7px', color: flyer.kleur, fontWeight: 900 }}>✓</span>
                   </div>
                   <span style={{ fontSize: '7.5px', color: 'rgba(255,255,255,0.85)' }}>{u}</span>
                 </div>
@@ -383,13 +442,20 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
             </div>
           )}
         </div>
-        {/* Footer */}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '9px 16px', background: flyer.accent, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontWeight: 800, fontSize: '9px', color: flyer.kleur }}>{naam}</div>
-          {flyer.logoData
-            ? <img src={flyer.logoData} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain', borderRadius: '3px' }} />
-            : <div style={{ fontSize: '8px', fontWeight: 700, color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>{flyer.website || ''}</div>
-          }
+        {/* CTA + Footer */}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
+          {/* CTA bar */}
+          <div style={{ background: flyer.accent, padding: '7px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '8px', fontWeight: 800, color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>{ctaText}</span>
+            {flyer.logoData
+              ? <img src={flyer.logoData} alt="" style={{ width: '20px', height: '20px', objectFit: 'contain', borderRadius: '2px' }} />
+              : <span style={{ fontSize: '7px', fontWeight: 700, color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>{flyer.website || ''}</span>
+            }
+          </div>
+          {/* Business name strip */}
+          <div style={{ background: 'rgba(0,0,0,0.3)', padding: '5px 16px' }}>
+            <div style={{ fontWeight: 700, fontSize: '8px', color: 'rgba(255,255,255,0.7)' }}>{naam}</div>
+          </div>
         </div>
       </div>
     );
@@ -402,48 +468,54 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
     return (
       <div style={{ ...base, background: bg }}>
         {/* Top border strip */}
-        <div style={{ height: '5px', background: flyer.kleur }} />
+        <div style={{ height: '6px', background: flyer.kleur }} />
         <div style={{ height: '2px', background: flyer.accent }} />
-        <div style={{ padding: '12px 16px' }}>
+        <div style={{ padding: '10px 16px' }}>
           {/* Vintage badge */}
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
-            <div style={{ border: `2px solid ${flyer.kleur}`, borderRadius: '50px', padding: '3px 14px', display: 'inline-block' }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', letterSpacing: '0.2em', color: flyer.kleur, textTransform: 'uppercase' }}>Welkom · Nieuw in de buurt</span>
+            <div style={{ border: `2px solid ${flyer.kleur}`, borderRadius: '50px', padding: '3px 14px' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '6.5px', letterSpacing: '0.22em', color: flyer.kleur, textTransform: 'uppercase' }}>Welkom · Nieuw in de buurt</span>
             </div>
           </div>
           {/* Hero image */}
-          {flyer.heroImageUrl && (
-            <div style={{ position: 'relative', marginBottom: '8px', border: `2px solid ${flyer.kleur}` }}>
-              <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('70px') }} onMouseDown={handleHeroDrag} />
-              {onHeroOffsetChange && <div style={{ position: 'absolute', inset: 0, border: '1.5px dashed rgba(255,255,255,0.6)', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-mono)', background: 'rgba(0,0,0,0.4)', padding: '1px 5px', borderRadius: '2px' }}>sleep om te verschuiven</span></div>}
+          {flyer.heroImageUrl ? (
+            <div style={{ position: 'relative', marginBottom: '8px', border: `2px solid ${flyer.kleur}`, overflow: 'hidden' }}>
+              <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('65px') }} onMouseDown={handleHeroDrag} />
+              {dragOverlay}
             </div>
-          )}
-          {/* Headline — big serif */}
-          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', fontWeight: 700, color: flyer.kleur, lineHeight: 1.0, textAlign: 'center', letterSpacing: '-0.01em', marginBottom: '4px' }}>{headline}</div>
-          {/* Decorative line */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '8px 0' }}>
-            <div style={{ flex: 1, height: '1px', background: flyer.kleur, opacity: 0.3 }} />
-            <div style={{ width: '6px', height: '6px', background: flyer.accent, transform: 'rotate(45deg)' }} />
-            <div style={{ flex: 1, height: '1px', background: flyer.kleur, opacity: 0.3 }} />
+          ) : null}
+          {/* Headline — big serif centered */}
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: flyer.heroImageUrl ? '20px' : '26px', fontWeight: 700, color: flyer.kleur, lineHeight: 1.0, textAlign: 'center', letterSpacing: '-0.01em', marginBottom: '4px' }}>{headline}</div>
+          {/* Decorative ornamental rule */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', margin: '7px 0' }}>
+            <div style={{ flex: 1, height: '1px', background: flyer.kleur, opacity: 0.25 }} />
+            <div style={{ width: '5px', height: '5px', background: flyer.accent, transform: 'rotate(45deg)', flexShrink: 0 }} />
+            <div style={{ flex: 1, height: '1px', background: flyer.kleur, opacity: 0.25 }} />
           </div>
           {/* Body */}
-          <div style={{ fontSize: '7.5px', color: '#4a3a28', lineHeight: 1.7, marginBottom: '10px', textAlign: 'center' }}>{tekst}</div>
-          {/* USPs in horizontal chips */}
+          <div style={{ fontSize: '7.5px', color: '#4a3a28', lineHeight: 1.65, marginBottom: '8px', textAlign: 'center' }}>{tekst}</div>
+          {/* USP chips */}
           {usps.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '4px', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '4px', marginBottom: '8px' }}>
               {usps.map((u, i) => (
                 <span key={i} style={{ fontSize: '7px', background: flyer.kleur, color: bg, padding: '3px 8px', borderRadius: '2px', fontFamily: 'var(--font-mono)', letterSpacing: '0.04em' }}>{u}</span>
               ))}
             </div>
           )}
+          {/* CTA — vintage badge style */}
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <div style={{ background: flyer.accent, borderRadius: '2px', padding: '4px 12px' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '7.5px', fontWeight: 800, color: flyer.kleur, letterSpacing: '0.06em' }}>{ctaText}</span>
+            </div>
+          </div>
         </div>
         {/* Bottom border */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
-          <div style={{ padding: '7px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `2px solid ${flyer.kleur}` }}>
+          <div style={{ padding: '6px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `2px solid ${flyer.kleur}` }}>
             <div style={{ fontFamily: 'var(--font-serif)', fontSize: '9px', fontWeight: 700, color: flyer.kleur }}>{naam}</div>
             {flyer.logoData
-              ? <img src={flyer.logoData} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
-              : <div style={{ fontSize: '7px', fontFamily: 'var(--font-mono)', color: flyer.kleur, opacity: 0.7 }}>{flyer.website || ''}</div>
+              ? <img src={flyer.logoData} alt="" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+              : <div style={{ fontSize: '7px', fontFamily: 'var(--font-mono)', color: flyer.kleur, opacity: 0.65 }}>{flyer.website || ''}</div>
             }
           </div>
           <div style={{ height: '2px', background: flyer.accent }} />
@@ -459,44 +531,49 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
     const bg = '#FFF8F0';
     return (
       <div style={{ ...base, background: bg }}>
-        {/* Large rounded top block */}
-        <div style={{ background: flyer.kleur, borderRadius: '0 0 40px 0', padding: '18px 16px 20px', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '80px', height: '80px', borderRadius: '50%', background: flyer.accent, opacity: 0.2 }} />
-          {flyer.heroImageUrl ? (
+        {/* Rounded top block */}
+        <div style={{ background: flyer.kleur, borderRadius: '0 0 36px 0', padding: '15px 16px 18px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: '-15px', right: '-15px', width: '70px', height: '70px', borderRadius: '50%', background: flyer.accent, opacity: 0.22 }} />
+          <div style={{ position: 'absolute', bottom: '-25px', left: '10px', width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
+          {flyer.heroImageUrl && (
             <div style={{ position: 'relative', marginBottom: '8px', borderRadius: '8px', overflow: 'hidden' }}>
-              <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('60px'), borderRadius: '8px' }} onMouseDown={handleHeroDrag} />
-              {onHeroOffsetChange && <div style={{ position: 'absolute', inset: 0, border: '1.5px dashed rgba(255,255,255,0.5)', borderRadius: '8px', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-mono)', background: 'rgba(0,0,0,0.4)', padding: '1px 5px', borderRadius: '2px' }}>sleep om te verschuiven</span></div>}
+              <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('58px'), borderRadius: '8px' }} onMouseDown={handleHeroDrag} />
+              {dragOverlay}
             </div>
-          ) : null}
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: flyer.accent, letterSpacing: '0.15em', marginBottom: '6px', textTransform: 'uppercase' }}>Hoi nieuwe buur!</div>
-          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: '#fff', lineHeight: 1.1, letterSpacing: '-0.01em' }}>{headline}</div>
+          )}
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: flyer.accent, letterSpacing: '0.16em', marginBottom: '5px', textTransform: 'uppercase' }}>Hoi nieuwe buur!</div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: '#fff', lineHeight: 1.05, letterSpacing: '-0.01em', fontWeight: 400 }}>{headline}</div>
         </div>
         {/* Content */}
-        <div style={{ padding: '14px 16px' }}>
-          {/* Business name with accent dot */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: flyer.accent, flexShrink: 0 }} />
+        <div style={{ padding: '12px 16px' }}>
+          {/* Business name */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '7px' }}>
+            {flyer.logoData
+              ? <img src={flyer.logoData} alt="" style={{ width: '18px', height: '18px', objectFit: 'contain', borderRadius: '50%', flexShrink: 0 }} />
+              : <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: flyer.accent, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '7px', fontWeight: 900, color: flyer.kleur }}>{initials}</div>
+            }
             <div style={{ fontSize: '10px', fontWeight: 700, color: flyer.kleur }}>{naam}</div>
           </div>
-          <div style={{ fontSize: '8px', color: '#5a4a3a', lineHeight: 1.7, marginBottom: '10px' }}>{tekst}</div>
+          <div style={{ fontSize: '8px', color: '#5a4a3a', lineHeight: 1.65, marginBottom: '8px' }}>{tekst}</div>
           {usps.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '8px' }}>
               {usps.map((u, i) => (
-                <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', background: `${flyer.accent}18`, borderRadius: '6px', padding: '4px 8px' }}>
-                  <span style={{ fontSize: '9px', color: flyer.accent, flexShrink: 0 }}>♥</span>
+                <div key={i} style={{ display: 'flex', gap: '7px', alignItems: 'center', background: `${flyer.accent}16`, borderRadius: '6px', padding: '4px 8px' }}>
+                  <span style={{ fontSize: '8px', color: flyer.accent, flexShrink: 0, lineHeight: 1 }}>♥</span>
                   <span style={{ fontSize: '7.5px', color: '#5a4a3a', lineHeight: 1.4 }}>{u}</span>
                 </div>
               ))}
             </div>
           )}
+          {/* CTA button */}
+          <div style={{ background: flyer.accent, borderRadius: '20px', padding: '6px 14px', display: 'inline-block' }}>
+            <span style={{ fontSize: '8px', fontWeight: 800, color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>{ctaText}</span>
+          </div>
         </div>
         {/* Footer */}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 16px', borderTop: `2px solid ${flyer.accent}50`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {flyer.website && <span style={{ fontSize: '7px', color: '#888', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
-          {flyer.logoData
-            ? <img src={flyer.logoData} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain', borderRadius: '4px' }} />
-            : <div style={{ width: '22px', height: '22px', background: flyer.accent, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: 800, color: flyer.kleur }}>{initials}</div>
-          }
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '6px 16px', borderTop: `1px solid ${flyer.accent}40`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {flyer.website && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
+          {flyer.telefoon && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.telefoon}</span>}
         </div>
       </div>
     );
@@ -508,48 +585,54 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
     const bg = '#0A0A12';
     return (
       <div style={{ ...base, background: bg }}>
-        {/* Glow blob */}
-        <div style={{ position: 'absolute', top: '-40px', left: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: flyer.accent, opacity: 0.08, filter: 'blur(40px)', pointerEvents: 'none' }} />
+        {/* Glow blobs */}
+        <div style={{ position: 'absolute', top: '-40px', left: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: flyer.accent, opacity: 0.07, filter: 'blur(40px)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '40px', right: '-60px', width: '160px', height: '160px', borderRadius: '50%', background: flyer.kleur, opacity: 0.06, filter: 'blur(40px)', pointerEvents: 'none' }} />
         {/* Top glowing border */}
-        <div style={{ height: '3px', background: `linear-gradient(90deg, transparent, ${flyer.accent}, transparent)`, boxShadow: `0 0 12px ${flyer.accent}` }} />
-        <div style={{ padding: '16px 18px' }}>
-          {/* Label */}
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', letterSpacing: '0.2em', color: flyer.accent, textTransform: 'uppercase', marginBottom: '10px', opacity: 0.9 }}>
-            ⬡ Nieuwe bewoners — welkomstaanbieding
+        <div style={{ height: '2px', background: `linear-gradient(90deg, transparent 0%, ${flyer.accent} 40%, ${flyer.accent} 60%, transparent 100%)`, boxShadow: `0 0 10px ${flyer.accent}` }} />
+        <div style={{ padding: '14px 16px' }}>
+          {/* Label — no emoji */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+            <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: flyer.accent, boxShadow: `0 0 6px ${flyer.accent}`, flexShrink: 0 }} />
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', letterSpacing: '0.2em', color: flyer.accent, textTransform: 'uppercase', opacity: 0.9 }}>Nieuwe bewoners</div>
           </div>
           {/* Hero image */}
           {flyer.heroImageUrl && (
-            <div style={{ position: 'relative', marginBottom: '10px', borderRadius: '4px', overflow: 'hidden', border: `1px solid ${flyer.accent}40` }}>
-              <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('75px') }} onMouseDown={handleHeroDrag} />
-              <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 40%, ${bg}80)`, pointerEvents: 'none' }} />
-              {onHeroOffsetChange && <div style={{ position: 'absolute', inset: 0, border: '1.5px dashed rgba(255,255,255,0.4)', borderRadius: '4px', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-mono)', background: 'rgba(0,0,0,0.5)', padding: '1px 5px', borderRadius: '2px' }}>sleep om te verschuiven</span></div>}
+            <div style={{ position: 'relative', marginBottom: '10px', borderRadius: '4px', overflow: 'hidden', border: `1px solid ${flyer.accent}35` }}>
+              <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('72px') }} onMouseDown={handleHeroDrag} />
+              <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 35%, ${bg}70)`, pointerEvents: 'none' }} />
+              {dragOverlay}
             </div>
           )}
           {/* Headline */}
-          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: '#fff', lineHeight: 1.1, marginBottom: '8px', letterSpacing: '-0.02em', textShadow: `0 0 20px ${flyer.accent}60` }}>{headline}</div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: '#fff', lineHeight: 1.05, marginBottom: '6px', letterSpacing: '-0.02em', textShadow: `0 0 20px ${flyer.accent}55` }}>{headline}</div>
           {/* Glowing divider */}
-          <div style={{ height: '1px', background: `linear-gradient(90deg, ${flyer.accent}, transparent)`, marginBottom: '10px', boxShadow: `0 0 6px ${flyer.accent}` }} />
-          <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.65, marginBottom: '12px' }}>{tekst}</div>
+          <div style={{ height: '1px', background: `linear-gradient(90deg, ${flyer.accent} 0%, transparent 100%)`, marginBottom: '8px', boxShadow: `0 0 5px ${flyer.accent}` }} />
+          <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.50)', lineHeight: 1.65, marginBottom: '8px' }}>{tekst}</div>
           {usps.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '10px' }}>
               {usps.map((u, i) => (
                 <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <span style={{ color: flyer.accent, fontSize: '10px', fontWeight: 900, textShadow: `0 0 8px ${flyer.accent}` }}>›</span>
-                  <span style={{ fontSize: '7.5px', color: 'rgba(255,255,255,0.75)' }}>{u}</span>
+                  <span style={{ color: flyer.accent, fontSize: '9px', fontWeight: 900, textShadow: `0 0 8px ${flyer.accent}`, lineHeight: 1 }}>›</span>
+                  <span style={{ fontSize: '7.5px', color: 'rgba(255,255,255,0.72)' }}>{u}</span>
                 </div>
               ))}
             </div>
           )}
+          {/* Neon CTA */}
+          <div style={{ display: 'inline-block', border: `1px solid ${flyer.accent}`, borderRadius: '3px', padding: '4px 10px', boxShadow: `0 0 8px ${flyer.accent}40, inset 0 0 8px ${flyer.accent}10` }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '8px', fontWeight: 700, color: flyer.accent, textShadow: `0 0 8px ${flyer.accent}` }}>{ctaText}</span>
+          </div>
         </div>
         {/* Footer */}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, borderTop: `1px solid ${flyer.accent}30`, padding: '8px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: `${bg}ee` }}>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, borderTop: `1px solid ${flyer.accent}25`, padding: '7px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: `${bg}f0` }}>
           <div>
-            <div style={{ fontWeight: 700, fontSize: '8px', color: flyer.accent, fontFamily: 'var(--font-mono)', textShadow: `0 0 8px ${flyer.accent}80` }}>{naam}</div>
-            {flyer.website && <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', marginTop: '1px' }}>{flyer.website}</div>}
+            <div style={{ fontWeight: 700, fontSize: '8px', color: flyer.accent, fontFamily: 'var(--font-mono)', textShadow: `0 0 6px ${flyer.accent}70` }}>{naam}</div>
+            {flyer.website && <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.28)', fontFamily: 'var(--font-mono)', marginTop: '1px' }}>{flyer.website}</div>}
           </div>
           {flyer.logoData
-            ? <img src={flyer.logoData} alt="" style={{ width: '24px', height: '24px', objectFit: 'contain', filter: 'brightness(1.2)' }} />
-            : <div style={{ width: '24px', height: '24px', border: `1px solid ${flyer.accent}`, borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 800, color: flyer.accent, boxShadow: `0 0 6px ${flyer.accent}40` }}>{initials}</div>
+            ? <img src={flyer.logoData} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain', filter: 'brightness(1.3)' }} />
+            : <div style={{ width: '22px', height: '22px', border: `1px solid ${flyer.accent}`, borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: 800, color: flyer.accent, boxShadow: `0 0 5px ${flyer.accent}35` }}>{initials}</div>
           }
         </div>
       </div>
@@ -561,16 +644,16 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
     const headline = flyer.headline || 'Welkom in de buurt.';
     return (
       <div style={{ ...base, background: '#fff' }}>
-        {/* Navy header */}
-        <div style={{ background: flyer.kleur, padding: '14px 18px 12px' }}>
+        {/* Header */}
+        <div style={{ background: flyer.kleur, padding: '13px 16px 11px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: flyer.accent, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '6px' }}>Welkomstaanbieding</div>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', color: '#fff', fontWeight: 400, lineHeight: 1.2 }}>{naam}</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '6.5px', color: flyer.accent, letterSpacing: '0.20em', textTransform: 'uppercase', marginBottom: '5px', opacity: 0.9 }}>Welkomstaanbieding</div>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '15px', color: '#fff', fontWeight: 400, lineHeight: 1.2, letterSpacing: '-0.01em' }}>{naam}</div>
             </div>
             {flyer.logoData
-              ? <img src={flyer.logoData} alt="" style={{ width: '30px', height: '30px', objectFit: 'contain', borderRadius: '4px', background: 'rgba(255,255,255,0.1)', padding: '3px' }} />
-              : <div style={{ width: '30px', height: '30px', background: flyer.accent, borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: flyer.kleur }}>{initials}</div>
+              ? <img src={flyer.logoData} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain', borderRadius: '3px', background: 'rgba(255,255,255,0.1)', padding: '3px' }} />
+              : <div style={{ width: '28px', height: '28px', background: flyer.accent, borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 900, color: flyer.kleur }}>{initials}</div>
             }
           </div>
         </div>
@@ -578,33 +661,37 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
         <div style={{ height: '3px', background: flyer.accent }} />
         {/* Hero or headline */}
         {flyer.heroImageUrl ? (
-          <div style={{ position: 'relative', height: '80px', overflow: 'hidden' }}>
-            <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('80px') }} onMouseDown={handleHeroDrag} />
-            {onHeroOffsetChange && <div style={{ position: 'absolute', inset: 0, border: '1.5px dashed rgba(255,255,255,0.5)', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-mono)', background: 'rgba(0,0,0,0.4)', padding: '1px 5px', borderRadius: '2px' }}>sleep om te verschuiven</span></div>}
+          <div style={{ position: 'relative', height: '82px', overflow: 'hidden' }}>
+            <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('82px') }} onMouseDown={handleHeroDrag} />
+            {dragOverlay}
           </div>
         ) : (
-          <div style={{ padding: '12px 18px 0' }}>
-            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', color: flyer.kleur, lineHeight: 1.15, marginBottom: '0' }}>{headline}</div>
+          <div style={{ padding: '12px 16px 0' }}>
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', color: flyer.kleur, lineHeight: 1.1 }}>{headline}</div>
           </div>
         )}
-        <div style={{ padding: '12px 18px' }}>
-          {flyer.heroImageUrl && <div style={{ fontFamily: 'var(--font-serif)', fontSize: '15px', color: flyer.kleur, lineHeight: 1.2, marginBottom: '8px' }}>{headline}</div>}
-          <div style={{ width: '28px', height: '2px', background: flyer.accent, marginBottom: '8px' }} />
-          <div style={{ fontSize: '7.5px', color: '#444', lineHeight: 1.65, marginBottom: '10px' }}>{tekst}</div>
+        <div style={{ padding: '10px 16px' }}>
+          {flyer.heroImageUrl && <div style={{ fontFamily: 'var(--font-serif)', fontSize: '14px', color: flyer.kleur, lineHeight: 1.2, marginBottom: '6px' }}>{headline}</div>}
+          <div style={{ width: '24px', height: '2px', background: flyer.accent, marginBottom: '7px' }} />
+          <div style={{ fontSize: '7.5px', color: '#444', lineHeight: 1.65, marginBottom: '8px' }}>{tekst}</div>
           {usps.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '8px' }}>
               {usps.map((u, i) => (
-                <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', borderLeft: `2px solid ${flyer.accent}`, paddingLeft: '8px' }}>
+                <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', borderLeft: `2px solid ${flyer.accent}`, paddingLeft: '7px' }}>
                   <span style={{ fontSize: '7.5px', color: '#333', fontWeight: 500 }}>{u}</span>
                 </div>
               ))}
             </div>
           )}
+          {/* CTA — corporate style */}
+          <div style={{ background: flyer.kleur, borderRadius: '2px', padding: '5px 10px', display: 'inline-block' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '7.5px', fontWeight: 700, color: '#fff', letterSpacing: '0.06em' }}>{ctaText}</span>
+          </div>
         </div>
         {/* Footer */}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: '#f5f5f5', borderTop: '1px solid #e8e8e8', padding: '7px 18px', display: 'flex', justifyContent: 'space-between' }}>
-          {flyer.website && <span style={{ fontSize: '7px', color: '#888', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
-          {flyer.telefoon && <span style={{ fontSize: '7px', color: '#888', fontFamily: 'var(--font-mono)' }}>{flyer.telefoon}</span>}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: '#f4f4f4', borderTop: `2px solid ${flyer.accent}`, padding: '6px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {flyer.website && <span style={{ fontSize: '7px', color: '#777', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
+          {flyer.telefoon && <span style={{ fontSize: '7px', color: '#777', fontFamily: 'var(--font-mono)' }}>{flyer.telefoon}</span>}
         </div>
       </div>
     );
@@ -613,46 +700,50 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
   // ── Design 9: PLAYFUL (fun, rounded, vibrant) ─────────────────────────────
   if (flyer.design === 'playful') {
     const headline = flyer.headline || 'Hoi nieuwe buurman!';
+    const bg = '#FFFBF0';
     return (
-      <div style={{ ...base, background: '#FFFBF0' }}>
-        {/* Colorful wavy top */}
-        <div style={{ background: flyer.accent, padding: '14px 16px 18px', borderRadius: '0 0 30px 0', position: 'relative', overflow: 'hidden' }}>
-          {/* Decorative dots */}
-          <div style={{ position: 'absolute', top: '4px', right: '8px', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)' }} />
-          <div style={{ position: 'absolute', bottom: '-10px', left: '50%', width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)' }} />
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', letterSpacing: '0.1em', color: flyer.kleur, opacity: 0.75, marginBottom: '6px', textTransform: 'uppercase' }}>Nieuw in de buurt? Hiiii!</div>
-          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', color: flyer.kleur, lineHeight: 1.15, fontWeight: 700 }}>{headline}</div>
+      <div style={{ ...base, background: bg }}>
+        {/* Gradient top banner */}
+        <div style={{ background: `linear-gradient(125deg, ${flyer.kleur} 0%, ${flyer.accent} 100%)`, padding: '13px 16px 16px', borderRadius: '0 0 28px 0', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: '-10px', right: '-10px', width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)' }} />
+          <div style={{ position: 'absolute', bottom: '-15px', right: '20px', width: '35px', height: '35px', borderRadius: '50%', background: 'rgba(255,255,255,0.10)' }} />
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.75)', marginBottom: '5px', textTransform: 'uppercase' }}>Nieuw in de buurt?</div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: '#fff', lineHeight: 1.05, fontWeight: 700, letterSpacing: '-0.01em' }}>{headline}</div>
         </div>
         {/* Content */}
-        <div style={{ padding: '14px 16px' }}>
+        <div style={{ padding: '12px 16px' }}>
           {/* Business name badge */}
-          <div style={{ display: 'inline-block', background: flyer.kleur, borderRadius: '20px', padding: '4px 12px', marginBottom: '10px' }}>
-            <span style={{ fontSize: '9px', fontWeight: 800, color: '#fff', fontFamily: 'var(--font-mono)' }}>{naam}</span>
+          <div style={{ display: 'inline-block', background: flyer.kleur, borderRadius: '20px', padding: '4px 11px', marginBottom: '8px' }}>
+            <span style={{ fontSize: '8.5px', fontWeight: 800, color: '#fff', fontFamily: 'var(--font-mono)' }}>{naam}</span>
           </div>
           {flyer.heroImageUrl && (
-            <div style={{ position: 'relative', marginBottom: '8px', borderRadius: '12px', overflow: 'hidden' }}>
-              <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('55px'), borderRadius: '12px' }} onMouseDown={handleHeroDrag} />
-              {onHeroOffsetChange && <div style={{ position: 'absolute', inset: 0, border: '1.5px dashed rgba(255,255,255,0.5)', borderRadius: '12px', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-mono)', background: 'rgba(0,0,0,0.4)', padding: '1px 5px', borderRadius: '2px' }}>sleep om te verschuiven</span></div>}
+            <div style={{ position: 'relative', marginBottom: '8px', borderRadius: '10px', overflow: 'hidden' }}>
+              <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('55px'), borderRadius: '10px' }} onMouseDown={handleHeroDrag} />
+              {dragOverlay}
             </div>
           )}
-          <div style={{ fontSize: '8px', color: '#555', lineHeight: 1.65, marginBottom: '10px' }}>{tekst}</div>
+          <div style={{ fontSize: '8px', color: '#555', lineHeight: 1.65, marginBottom: '8px' }}>{tekst}</div>
           {usps.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '8px' }}>
               {usps.map((u, i) => (
-                <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', background: `${flyer.accent}20`, borderRadius: '8px', padding: '4px 10px' }}>
-                  <span style={{ fontSize: '10px', color: flyer.accent }}>★</span>
+                <div key={i} style={{ display: 'flex', gap: '7px', alignItems: 'center', background: `${flyer.accent}18`, borderRadius: '8px', padding: '4px 9px' }}>
+                  <span style={{ fontSize: '9px', color: flyer.accent, lineHeight: 1 }}>★</span>
                   <span style={{ fontSize: '7.5px', color: '#444', fontWeight: 500 }}>{u}</span>
                 </div>
               ))}
             </div>
           )}
+          {/* CTA — rounded pill */}
+          <div style={{ background: `linear-gradient(90deg, ${flyer.kleur}, ${flyer.accent})`, borderRadius: '20px', padding: '6px 14px', display: 'inline-block' }}>
+            <span style={{ fontSize: '8px', fontWeight: 800, color: '#fff', fontFamily: 'var(--font-mono)' }}>{ctaText}</span>
+          </div>
         </div>
         {/* Footer */}
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '7px 16px', background: `${flyer.kleur}0a`, borderTop: '1px solid rgba(0,0,0,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {flyer.website && <span style={{ fontSize: '7px', color: '#888', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '6px 16px', background: `${flyer.kleur}08`, borderTop: '1px solid rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {flyer.website && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
           {flyer.logoData
-            ? <img src={flyer.logoData} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain', borderRadius: '50%' }} />
-            : <div style={{ width: '22px', height: '22px', background: flyer.kleur, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: 800, color: '#fff' }}>{initials}</div>
+            ? <img src={flyer.logoData} alt="" style={{ width: '20px', height: '20px', objectFit: 'contain', borderRadius: '50%' }} />
+            : <div style={{ width: '20px', height: '20px', background: flyer.kleur, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '7px', fontWeight: 900, color: '#fff' }}>{initials}</div>
           }
         </div>
       </div>
@@ -1394,7 +1485,7 @@ export default function LokaalKabaal() {
     bedrijfsnaam: '', slogan: '', telefoon: '', email: '', website: '',
     usp: '', tekst: '', logoData: null,
     websiteUrl: '', websiteScan: null, design: 'editorial',
-    heroImageUrl: null, heroOffsetX: 50, heroOffsetY: 50, headline: '', cta: '', pdfUrl: null,
+    heroImageUrl: null, heroOffsetX: 50, heroOffsetY: 50, heroScale: 100, headline: '', cta: '', pdfUrl: null,
     adres: '', openingstijden: '', backTekst: '',
   };
 
@@ -1426,6 +1517,7 @@ export default function LokaalKabaal() {
   const [orderError, setOrderError] = useState('');
   const wizardFlyerRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLInputElement>(null);
+  const heroRef = useRef<HTMLInputElement>(null);
   const flyerPreviewRef = useRef<HTMLDivElement>(null);
 
   const updateFlyer = useCallback((patch: Partial<FlyerState>) => {
@@ -1520,6 +1612,14 @@ export default function LokaalKabaal() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => updateFlyer({ logoData: ev.target?.result as string });
+    reader.readAsDataURL(file);
+  }, [updateFlyer]);
+
+  const handleHeroUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => updateFlyer({ heroImageUrl: ev.target?.result as string, heroScale: 100, heroOffsetX: 50, heroOffsetY: 50 });
     reader.readAsDataURL(file);
   }, [updateFlyer]);
 
@@ -2586,6 +2686,76 @@ export default function LokaalKabaal() {
                     </div>
                   </div>
                 </>
+              )}
+            </div>
+
+            {/* Foto */}
+            <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Foto</div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>Hoofdafbeelding op je flyer — sleep in de preview om te herpositioneren</div>
+              <input ref={heroRef} type="file" accept="image/*" onChange={handleHeroUpload} style={{ display: 'none' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+                {flyer.heroImageUrl ? (
+                  <img src={flyer.heroImageUrl} alt="hero" style={{ width: '72px', height: '54px', objectFit: 'cover', borderRadius: 'var(--radius)', border: '1px solid var(--line)' }} />
+                ) : (
+                  <div style={{ width: '72px', height: '54px', border: '2px dashed var(--line)', borderRadius: 'var(--radius)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '22px', flexShrink: 0 }}>+</div>
+                )}
+                <div>
+                  <button onClick={() => heroRef.current?.click()} style={{ padding: '8px 16px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper)', cursor: 'pointer', fontSize: '13px', display: 'block', marginBottom: '6px' }}>
+                    {flyer.heroImageUrl ? 'Andere foto' : 'Upload foto'}
+                  </button>
+                  {flyer.heroImageUrl && (
+                    <button onClick={() => updateFlyer({ heroImageUrl: null })} style={{ fontSize: '12px', color: 'var(--red)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--font-mono)' }}>Verwijderen</button>
+                  )}
+                </div>
+              </div>
+              {flyer.heroImageUrl && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>AFBEELDINGSGROOTTE</label>
+                      <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--ink)', fontWeight: 700 }}>{flyer.heroScale ?? 100}%</span>
+                    </div>
+                    <input
+                      type="range" min={50} max={200} step={5}
+                      value={flyer.heroScale ?? 100}
+                      onChange={e => updateFlyer({ heroScale: Number(e.target.value) })}
+                      style={{ width: '100%', accentColor: 'var(--green)' }}
+                    />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
+                      <span>50%</span><span>200%</span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>LINKS–RECHTS</label>
+                        <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--ink)', fontWeight: 700 }}>{flyer.heroOffsetX}%</span>
+                      </div>
+                      <input
+                        type="range" min={0} max={100} step={1}
+                        value={flyer.heroOffsetX}
+                        onChange={e => updateFlyer({ heroOffsetX: Number(e.target.value) })}
+                        style={{ width: '100%', accentColor: 'var(--green)' }}
+                      />
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>BOVEN–ONDER</label>
+                        <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--ink)', fontWeight: 700 }}>{flyer.heroOffsetY}%</span>
+                      </div>
+                      <input
+                        type="range" min={0} max={100} step={1}
+                        value={flyer.heroOffsetY}
+                        onChange={e => updateFlyer({ heroOffsetY: Number(e.target.value) })}
+                        style={{ width: '100%', accentColor: 'var(--green)' }}
+                      />
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                    Tip: je kunt ook direct in de preview slepen om de positie aan te passen.
+                  </div>
+                </div>
               )}
             </div>
 

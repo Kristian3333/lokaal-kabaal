@@ -116,19 +116,20 @@ async function scrapeBasic(url: string) {
       meta = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i)?.[1]?.trim()
         || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i)?.[1]?.trim()
         || '';
-      // Try to find og:image as hero
       const ogImage = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1]
         || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)?.[1]
         || null;
       logo = html.match(/<img[^>]+alt=["'][^"']*logo[^"']*["'][^>]+src=["']([^"']+)["']/i)?.[1] || null;
 
-      return { kleuren: [], logo, fotos: ogImage ? [ogImage] : [], h1, meta };
+      const scrapedOk = !!(h1 || meta);
+      return { kleuren: [], logo, fotos: ogImage ? [ogImage] : [], h1, meta, scrapedOk };
     }
+    // Non-200 response (bijv. 403 Cloudflare, 429 rate limit)
+    return { kleuren: [], logo: null, fotos: [], h1: '', meta: '', scrapedOk: false, httpStatus: res.status };
   } catch {
-    // proceed with empty
+    // Timeout of netwerk fout
+    return { kleuren: [], logo: null, fotos: [], h1: '', meta: '', scrapedOk: false, httpStatus: 0 };
   }
-
-  return { kleuren: [], logo: null, fotos: [], h1: '', meta: '' };
 }
 
 // ─── Sub-functie B: selecteerBesteFoto ───────────────────────────────────────
@@ -357,7 +358,18 @@ Geef terug als JSON met exact deze velden:
     ? response.content[0].text.replace(/```json|```/g, '').trim()
     : '{}';
 
-  return JSON.parse(raw);
+  // Probeer direct te parsen; extraheer anders het JSON-blok uit de response
+  try {
+    return JSON.parse(raw);
+  } catch {
+    try {
+      const match = raw.match(/\{[\s\S]*\}/);
+      if (match) return JSON.parse(match[0]);
+    } catch { /* val door naar fallback */ }
+  }
+
+  // Fallback: lege structuur zodat de pipeline niet crasht
+  return { headline: data.bedrijfsnaam, bodytekst: '', usps: [], cta: 'Kom langs' };
 }
 
 // ─── Sub-functie E: buildFlyerHTML ────────────────────────────────────────────
@@ -499,7 +511,21 @@ export async function POST(req: NextRequest) {
 
     // Stap 1: scrape
     const scraped = await scrapeSite(normalizedUrl);
-    console.log('[flyer] scrape klaar — fotos:', scraped.fotos?.length, 'logo:', scraped.logo, 'h1:', scraped.h1?.slice(0, 50));
+    console.log('[flyer] scrape klaar — ok:', scraped.scrapedOk, 'status:', scraped.httpStatus, 'fotos:', scraped.fotos?.length);
+
+    if (!scraped.scrapedOk) {
+      const status = scraped.httpStatus;
+      let uitleg = 'Deze website kon niet worden uitgelezen.';
+      if (status === 403 || status === 429 || status === 503) {
+        uitleg = `De website blokkeert automatische verzoeken (HTTP ${status}). Dit is gebruikelijk bij grote webshops en retailers.`;
+      } else if (status === 0) {
+        uitleg = 'De website was niet bereikbaar — controleer of de URL klopt en de site online is.';
+      }
+      return NextResponse.json(
+        { error: `${uitleg} Vul je bedrijfsnaam en branche handmatig in en gebruik de AI-knop om alsnog een flyertekst te genereren.` },
+        { status: 422 }
+      );
+    }
 
     // Stap 2: foto + tekst parallel
     const [besteFoto, tekst] = await Promise.all([
