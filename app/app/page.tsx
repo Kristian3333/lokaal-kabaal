@@ -137,6 +137,10 @@ interface FlyerState {
   websiteUrl: string;
   websiteScan: { primaryColor?: string; accentColor?: string; brandName?: string } | null;
   design: 'editorial' | 'geometric' | 'minimal';
+  heroImageUrl: string | null;
+  headline: string;
+  cta: string;
+  pdfUrl: string | null;
 }
 
 type Page = 'dashboard' | 'wizard' | 'flyer' | 'credits' | 'profiel';
@@ -157,6 +161,7 @@ function FlyerPreview({ flyer }: { flyer: FlyerState }) {
 
   // ── Design 1: EDITORIAL (magazine split-layout) ──────────────────────────
   if (flyer.design === 'editorial') {
+    const headline = flyer.headline || 'Welkom in de buurt.';
     return (
       <div style={{ ...base, background: flyer.kleur }}>
         {/* Left color stripe */}
@@ -167,10 +172,23 @@ function FlyerPreview({ flyer }: { flyer: FlyerState }) {
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', letterSpacing: '0.15em', color: flyer.accent, textTransform: 'uppercase', marginBottom: '10px' }}>
             Nieuwe bewoners — Welkomstaanbieding
           </div>
-          {/* Big headline */}
-          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 400, color: '#fff', lineHeight: 1.05, marginBottom: '10px', letterSpacing: '-0.02em' }}>
-            Welkom<br /><em style={{ color: flyer.accent }}>in de buurt.</em>
-          </div>
+          {/* Hero image or headline */}
+          {flyer.heroImageUrl ? (
+            <>
+              <img src={flyer.heroImageUrl} alt="" style={{ width: '100%', height: '80px', objectFit: 'cover', borderRadius: '3px', marginBottom: '8px', display: 'block' }} />
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', fontWeight: 700, color: '#fff', lineHeight: 1.1, marginBottom: '6px', letterSpacing: '-0.02em' }}>
+                {headline}
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 400, color: '#fff', lineHeight: 1.05, marginBottom: '10px', letterSpacing: '-0.02em' }}>
+                {headline.includes(' ') ? (
+                  <>{headline.split(' ').slice(0, 2).join(' ')}<br /><em style={{ color: flyer.accent }}>{headline.split(' ').slice(2).join(' ') || 'in de buurt.'}</em></>
+                ) : <><em style={{ color: flyer.accent }}>{headline}</em></>}
+              </div>
+            </>
+          )}
           {/* Divider */}
           <div style={{ width: '32px', height: '2px', background: flyer.accent, marginBottom: '10px' }} />
           {/* Body */}
@@ -469,6 +487,7 @@ export default function LokaalKabaal() {
     bedrijfsnaam: '', slogan: '', telefoon: '', email: '', website: '',
     usp: '', tekst: '', logoData: null,
     websiteUrl: '', websiteScan: null, design: 'editorial',
+    heroImageUrl: null, headline: '', cta: '', pdfUrl: null,
   });
 
   const [aiLoading, setAiLoading] = useState(false);
@@ -485,7 +504,60 @@ export default function LokaalKabaal() {
     setWiz(w => ({ ...w, ...patch }));
   }, []);
 
+  const runFlyerPipeline = useCallback(async (url: string) => {
+    setScanLoading(true);
+    setAiLoading(true);
+    setScanMsg('Website ophalen en flyer genereren...');
+    try {
+      const res = await fetch('/api/flyer/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url,
+          branche: wiz.spec || 'Lokale retailer',
+          bedrijfsnaam: flyer.bedrijfsnaam || '',
+          telefoon: flyer.telefoon || '',
+          email: flyer.email || '',
+          website: flyer.website || url,
+          slogan: flyer.slogan || '',
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (data.error) { setScanMsg(data.error); return; }
+
+      const patch: Partial<FlyerState> = {
+        websiteScan: { primaryColor: data.kleuren?.primair, accentColor: data.kleuren?.accent },
+        heroImageUrl: data.besteFotoUrl || null,
+        pdfUrl: data.pdfUrl || null,
+      };
+      if (data.kleuren?.primair) patch.kleur = data.kleuren.primair;
+      if (data.kleuren?.accent) patch.accent = data.kleuren.accent;
+      if (data.logoUrl) patch.logoData = data.logoUrl;
+      if (data.tekst?.bodytekst) patch.tekst = data.tekst.bodytekst;
+      if (data.tekst?.usps?.length) patch.usp = data.tekst.usps.join('\n');
+      if (data.tekst?.headline) patch.headline = data.tekst.headline;
+      if (data.tekst?.cta) patch.cta = data.tekst.cta;
+
+      updateFlyer(patch);
+      setScanMsg(data.pdfUrl ? 'Flyer gegenereerd — PDF klaar!' : 'Kleuren en tekst overgenomen!');
+    } catch (e) {
+      setScanMsg('Generatie mislukt — controleer de URL en probeer opnieuw.');
+      console.error(e);
+    } finally {
+      setScanLoading(false);
+      setAiLoading(false);
+      setTimeout(() => setScanMsg(''), 6000);
+    }
+  }, [wiz.spec, flyer.bedrijfsnaam, flyer.slogan, flyer.telefoon, flyer.email, flyer.website, updateFlyer]);
+
   const generateAI = useCallback(async () => {
+    const url = flyer.websiteUrl;
+    if (url) {
+      await runFlyerPipeline(url);
+      return;
+    }
+    // Fallback zonder URL: alleen tekst via /api/ai
     setAiLoading(true);
     try {
       const res = await fetch('/api/ai', {
@@ -494,7 +566,7 @@ export default function LokaalKabaal() {
         body: JSON.stringify({
           spec: wiz.spec, bedrijfsnaam: flyer.bedrijfsnaam,
           slogan: flyer.slogan,
-        })
+        }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -505,42 +577,12 @@ export default function LokaalKabaal() {
     } finally {
       setAiLoading(false);
     }
-  }, [wiz.spec, flyer.bedrijfsnaam, flyer.slogan, updateFlyer]);
+  }, [wiz.spec, flyer.bedrijfsnaam, flyer.slogan, flyer.websiteUrl, runFlyerPipeline, updateFlyer]);
 
   const scanWebsite = useCallback(async () => {
     if (!flyer.websiteUrl) return;
-    setScanLoading(true);
-    setScanMsg('Website analyseren...');
-    try {
-      const res = await fetch('/api/scrape', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: flyer.websiteUrl })
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (data.error) {
-        setScanMsg(data.error);
-        return;
-      }
-      const patch: Partial<FlyerState> = {};
-      if (data.scan?.primaryColor) patch.kleur = data.scan.primaryColor;
-      if (data.scan?.accentColor) patch.accent = data.scan.accentColor;
-      if (data.scan?.brandName) patch.bedrijfsnaam = data.scan.brandName;
-      if (data.scan?.slogan) patch.slogan = data.scan.slogan;
-      if (data.tekst) patch.tekst = data.tekst;
-      if (data.usp) patch.usp = data.usp;
-      patch.websiteScan = data.scan || null;
-      updateFlyer(patch);
-      setScanMsg('Kleuren, naam en flyertekst overgenomen!');
-    } catch (e) {
-      setScanMsg('Fout bij verbinden. Controleer de URL en probeer opnieuw.');
-      console.error(e);
-    } finally {
-      setScanLoading(false);
-      setTimeout(() => setScanMsg(''), 5000);
-    }
-  }, [flyer.websiteUrl, flyer.kleur, flyer.accent, flyer.bedrijfsnaam, updateFlyer]);
+    await runFlyerPipeline(flyer.websiteUrl);
+  }, [flyer.websiteUrl, runFlyerPipeline]);
 
   const handleLogoUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1199,6 +1241,22 @@ export default function LokaalKabaal() {
               formaat={(flyer.afmeting as 'a6' | 'a5' | 'a4') || 'a5'}
               bedrijfsnaam={flyer.bedrijfsnaam || 'flyer'}
             />
+            {flyer.pdfUrl && (
+              <a
+                href={flyer.pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'block', width: '100%', padding: '10px',
+                  background: 'var(--green-bg)', color: 'var(--green-dim)',
+                  border: '1px solid rgba(0,232,122,0.3)', borderRadius: 'var(--radius)',
+                  fontWeight: 700, fontSize: '12px', textAlign: 'center',
+                  textDecoration: 'none', fontFamily: 'var(--font-mono)', boxSizing: 'border-box',
+                }}
+              >
+                ↓ Print-ready PDF downloaden
+              </a>
+            )}
             <button onClick={() => setPage('wizard')} style={{ width: '100%', padding: '12px', background: 'var(--ink)', color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>Campagne starten →</button>
           </div>
         </div>

@@ -1,5 +1,9 @@
 {
-"crons": [
+  "functions": {
+    "app/api/flyer/generate/route.ts": { "maxDuration": 30 },
+    "app/api/scrape/route.ts": { "maxDuration": 30 }
+  },
+  "crons": [
     {
       "path": "/api/cron/addresses",
       "schedule": "0 5 25 * *"
