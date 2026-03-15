@@ -81,7 +81,7 @@ export default function FlyerExport({ flyerRef, formaat, bedrijfsnaam }: FlyerEx
       // Note in PDF metadata
       pdf.setProperties({
         title: `Flyer – ${bedrijfsnaam}`,
-        subject: `${dims.label} flyer met 3mm bleed – geschikt voor PrintAPI.nl`,
+        subject: `${dims.label} flyer met 3mm bleed – LokaalKabaal`,
         creator: 'LokaalKabaal',
         keywords: 'flyer, print, drukwerk',
       });
@@ -114,19 +114,6 @@ export default function FlyerExport({ flyerRef, formaat, bedrijfsnaam }: FlyerEx
           <>↓ Download print-klaar PDF</>
         )}
       </button>
-      <div style={{
-        background: 'var(--paper2)', border: '1px solid var(--line)',
-        borderRadius: 'var(--radius)', padding: '10px 12px',
-        fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--muted)',
-        lineHeight: 1.6,
-      }}>
-        <div style={{ fontWeight: 600, color: 'var(--ink)', marginBottom: '4px' }}>PrintAPI.nl specificaties</div>
-        <div>✓ Formaat: {dims.label} ({dims.trimW}×{dims.trimH}mm)</div>
-        <div>✓ Bleed: 3mm rondom inbegrepen</div>
-        <div>✓ Snijmarken: aanwezig in PDF</div>
-        <div>✓ Resolutie: 300 DPI equivalent</div>
-        <div style={{ color: '#e8a020', marginTop: '4px' }}>⚠ Converteer naar CMYK in Acrobat of Affinity vóór upload</div>
-      </div>
     </div>
   );
 }

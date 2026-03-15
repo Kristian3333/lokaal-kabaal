@@ -456,6 +456,10 @@ function RoiCalc({ kluswaarde, onChange }: { kluswaarde: number; onChange: (v: n
 export default function LokaalKabaal() {
   const router = useRouter();
   const [page, setPage] = useState<Page>('dashboard');
+  const [pendingCampaign, setPendingCampaign] = useState<{
+    spec: string; datum: string; centrum: string; aantalFlyers: number;
+    formaat: string; proefAdres: string;
+  } | null>(null);
   const [user, setUser] = useState<{ email: string; naam: string } | null>(null);
 
   useEffect(() => {
@@ -614,6 +618,41 @@ export default function LokaalKabaal() {
   function renderDashboard() {
     return (
       <div className="fade-in">
+
+        {/* Proef flyer — wacht op goedkeuring */}
+        {pendingCampaign && (
+          <div style={{
+            background: '#fff', border: '2px solid var(--green)', borderRadius: 'var(--radius)',
+            padding: '20px 24px', marginBottom: '20px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap',
+          }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <span style={{ width: '8px', height: '8px', background: '#e8a020', borderRadius: '50%', display: 'inline-block' }} />
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: '#e8a020', fontWeight: 700 }}>WACHT OP JOUW GOEDKEURING</span>
+              </div>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', marginBottom: '4px' }}>
+                Proef flyer onderweg naar {pendingCampaign.proefAdres.split(',')[0]}
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                {pendingCampaign.spec} · {pendingCampaign.aantalFlyers.toLocaleString('nl')} flyers/mnd · {pendingCampaign.formaat.toUpperCase()} · start {pendingCampaign.datum ? new Date(pendingCampaign.datum).toLocaleDateString('nl', { month: 'long', year: 'numeric' }) : '—'}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '10px', flexShrink: 0 }}>
+              <button
+                onClick={() => { setPage('flyer'); }}
+                style={{ padding: '9px 18px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper)', cursor: 'pointer', fontSize: '13px' }}>
+                Flyer aanpassen
+              </button>
+              <button
+                onClick={() => setPendingCampaign(null)}
+                style={{ padding: '9px 18px', background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: '13px', fontWeight: 700 }}>
+                Campagne goedkeuren →
+              </button>
+            </div>
+          </div>
+        )}
+
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginBottom: '20px' }}>
           {[
             { label: 'Actieve campagnes', val: '0', delta: 'Start je eerste' },
@@ -654,7 +693,7 @@ export default function LokaalKabaal() {
     const availableMonths = getAvailableMonths();
     const stats = estimeerDekkingsgebied(straal);
     const prijs = berekenPrijs(aantalFlyers, formaat, dubbelzijdig);
-    const proefPrijs = 4.95;
+    const proefPrijs = 5.00;
     const totaal = prijs + (proefFlyer ? proefPrijs : 0);
 
     const canNext = (
@@ -969,28 +1008,43 @@ export default function LokaalKabaal() {
           {/* STAP 7: Bevestiging */}
           {step === 7 && (
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '64px', color: 'var(--green)', marginBottom: '12px', lineHeight: 1 }}>✓</div>
-              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '32px', marginBottom: '8px' }}>Campagne geactiveerd!</h2>
-              <p style={{ color: 'var(--muted)', marginBottom: '8px', maxWidth: '420px', margin: '0 auto 8px', lineHeight: 1.6 }}>
-                Je flyers gaan elke maand op de 25e de deur uit naar nieuwe bewoners in <strong>{centrum || 'jouw werkgebied'}</strong>.
-              </p>
-              <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '28px', fontFamily: 'var(--font-mono)' }}>
-                Eerste bezorging: {datum ? new Date(datum).toLocaleDateString('nl', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
-              </p>
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <button onClick={() => setPage('dashboard')} style={{
-                  padding: '12px 24px', background: 'var(--ink)', color: 'var(--paper)',
-                  border: 'none', borderRadius: 'var(--radius)', fontWeight: 700, cursor: 'pointer', fontSize: '14px'
-                }}>Naar dashboard</button>
-                <button onClick={() => setPage('flyer')} style={{
-                  padding: '12px 24px', background: 'var(--paper)', color: 'var(--ink)',
-                  border: '1px solid var(--line)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: '14px'
-                }}>Flyer aanpassen</button>
-                <button onClick={() => updateWiz({ step: 1, spec: '', specQ: '', datum: '', centrum: '', aantalFlyers: 500, formaat: 'a5', dubbelzijdig: false, proefFlyer: false, proefAdres: '', akkoord: { av: false, privacy: false } })} style={{
-                  padding: '12px 24px', background: 'var(--paper)', color: 'var(--ink)',
-                  border: '1px solid var(--line)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: '14px'
-                }}>Nieuwe campagne</button>
-              </div>
+              {proefFlyer ? (
+                <>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '56px', color: 'var(--green)', marginBottom: '12px', lineHeight: 1 }}>✉</div>
+                  <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '32px', marginBottom: '8px' }}>Proef flyer onderweg!</h2>
+                  <p style={{ color: 'var(--muted)', maxWidth: '420px', margin: '0 auto 8px', lineHeight: 1.6 }}>
+                    Je proef flyer wordt verstuurd naar <strong>{proefAdres}</strong>. Zodra je hem ontvangen hebt, kun je de campagne goedkeuren of je flyer nog aanpassen.
+                  </p>
+                  <p style={{ color: 'var(--muted)', fontSize: '12px', marginBottom: '28px', fontFamily: 'var(--font-mono)' }}>
+                    Betaald: €5,00 incl. verzending
+                  </p>
+                  <button onClick={() => { setPage('dashboard'); }} style={{
+                    padding: '12px 28px', background: 'var(--ink)', color: 'var(--paper)',
+                    border: 'none', borderRadius: 'var(--radius)', fontWeight: 700, cursor: 'pointer', fontSize: '14px'
+                  }}>Naar dashboard →</button>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '64px', color: 'var(--green)', marginBottom: '12px', lineHeight: 1 }}>✓</div>
+                  <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '32px', marginBottom: '8px' }}>Campagne geactiveerd!</h2>
+                  <p style={{ color: 'var(--muted)', maxWidth: '420px', margin: '0 auto 8px', lineHeight: 1.6 }}>
+                    Je flyers gaan elke maand op de 25e de deur uit naar nieuwe bewoners in <strong>{centrum || 'jouw werkgebied'}</strong>.
+                  </p>
+                  <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '28px', fontFamily: 'var(--font-mono)' }}>
+                    Eerste bezorging: {datum ? new Date(datum).toLocaleDateString('nl', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
+                  </p>
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <button onClick={() => setPage('dashboard')} style={{
+                      padding: '12px 24px', background: 'var(--ink)', color: 'var(--paper)',
+                      border: 'none', borderRadius: 'var(--radius)', fontWeight: 700, cursor: 'pointer', fontSize: '14px'
+                    }}>Naar dashboard</button>
+                    <button onClick={() => setPage('flyer')} style={{
+                      padding: '12px 24px', background: 'var(--paper)', color: 'var(--ink)',
+                      border: '1px solid var(--line)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: '14px'
+                    }}>Flyer aanpassen</button>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -1005,14 +1059,19 @@ export default function LokaalKabaal() {
             </button>
             <button
               disabled={!canNext}
-              onClick={() => updateWiz({ step: step + 1 })}
+              onClick={() => {
+                if (step === 6 && proefFlyer) {
+                  setPendingCampaign({ spec, datum, centrum, aantalFlyers, formaat, proefAdres });
+                }
+                updateWiz({ step: step + 1 });
+              }}
               style={{
                 padding: '10px 24px', background: canNext ? 'var(--ink)' : 'var(--line)',
                 color: canNext ? 'var(--paper)' : 'var(--muted)', border: 'none',
                 borderRadius: 'var(--radius)', cursor: canNext ? 'pointer' : 'not-allowed',
                 fontWeight: 700, fontSize: '13px', transition: 'all 0.15s'
               }}>
-              {step === 6 ? 'Activeren →' : 'Volgende →'}
+              {step === 6 ? (proefFlyer ? 'Proef bestellen — €5,00 →' : 'Campagne activeren →') : 'Volgende →'}
             </button>
           </div>
         )}
