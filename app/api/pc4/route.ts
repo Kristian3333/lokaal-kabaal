@@ -35,43 +35,73 @@ const PC4_SAMPLE: [string, number, number][] = [
   ['2026', 52.374, 4.648], ['2027', 52.367, 4.655],
 ];
 
-// Geocode via Nominatim (server-side, gecached 30 dagen door Next.js fetch cache)
+// In-memory geocode cache — overleeft meerdere requests op dezelfde Vercel instance
+const GEOCODE_CACHE = new Map<string, { lat: number; lon: number }>();
+
+function isNLCoord(lat: number, lon: number) {
+  return lat > 50.5 && lat < 54 && lon > 3 && lon < 7.6;
+}
+
+async function nominatimQuery(url: string): Promise<{ lat: number; lon: number } | null> {
+  try {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'LokaalKabaal/1.0 (lokaalkabaal.vercel.app)' },
+      cache: 'no-store', // eigen in-memory cache vervangt Next.js fetch cache
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    for (const r of Array.isArray(data) ? data : []) {
+      const lat = parseFloat(r.lat), lon = parseFloat(r.lon);
+      if (isNLCoord(lat, lon)) return { lat, lon };
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
 async function geocodePC4(pc4: string): Promise<{ lat: number; lon: number } | null> {
+  // 1. Hardcoded sample
   const inSample = PC4_SAMPLE.find(([p]) => p === pc4);
   if (inSample) return { lat: inSample[1], lon: inSample[2] };
 
-  try {
-    const url = `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(pc4)}&countrycodes=nl&format=json&limit=1`;
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'LokaalKabaal/1.0 (lokaalkabaal.vercel.app)' },
-      next: { revalidate: 86400 * 30 },
-    } as RequestInit);
-    if (res.ok) {
-      const data = await res.json();
-      if (data[0]?.lat && data[0]?.lon) {
-        const lat = parseFloat(data[0].lat);
-        const lon = parseFloat(data[0].lon);
-        // Sanity check: Nederland 50.7–53.6°N, 3.3–7.3°O
-        if (lat > 50.5 && lat < 54 && lon > 3 && lon < 7.5) {
-          return { lat, lon };
-        }
-      }
-    }
-  } catch { /* valt door naar formule */ }
+  // 2. In-memory cache
+  if (GEOCODE_CACHE.has(pc4)) return GEOCODE_CACHE.get(pc4)!;
 
-  // Formule-schatting als laatste redmiddel
-  const num = parseInt(pc4, 10);
-  if (num >= 1000 && num <= 1299) return { lat: 52.370 + (num - 1000) * 0.001, lon: 4.900 };
-  if (num >= 2000 && num <= 2999) return { lat: 52.090 + (num - 2000) * 0.001, lon: 4.350 };
-  if (num >= 3000 && num <= 3599) return { lat: 51.920 + (num - 3000) * 0.0005, lon: 4.500 };
-  if (num >= 3600 && num <= 3999) return { lat: 52.090 + (num - 3600) * 0.001, lon: 5.100 };
-  if (num >= 4000 && num <= 4999) return { lat: 51.700 + (num - 4000) * 0.0003, lon: 4.600 };
-  if (num >= 5000 && num <= 5999) return { lat: 51.580 + (num - 5000) * 0.0002, lon: 5.100 };
-  if (num >= 6000 && num <= 6999) return { lat: 51.500 + (num - 6000) * 0.0003, lon: 5.800 };
-  if (num >= 7000 && num <= 7999) return { lat: 52.300 + (num - 7000) * 0.0002, lon: 6.700 };
-  if (num >= 8000 && num <= 8999) return { lat: 52.500 + (num - 8000) * 0.0002, lon: 5.900 };
-  if (num >= 9000 && num <= 9999) return { lat: 53.000 + (num - 9000) * 0.0001, lon: 6.550 };
-  return null;
+  // 3. Nominatim gestructureerde query
+  let result = await nominatimQuery(
+    `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(pc4)}&countrycodes=nl&format=json&limit=3`
+  );
+
+  // 4. Nominatim vrije-tekst query als fallback (werkt beter voor kleine PC4s)
+  if (!result) {
+    result = await nominatimQuery(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(pc4 + ' Nederland')}&format=json&limit=5&countrycodes=nl`
+    );
+  }
+
+  if (result) {
+    GEOCODE_CACHE.set(pc4, result);
+    return result;
+  }
+
+  // 5. Formule per PC4-subbereik als laatste redmiddel
+  const n = parseInt(pc4, 10);
+  let coords: { lat: number; lon: number } | null = null;
+  if (n >= 1000 && n <= 1299) coords = { lat: 52.370 + (n - 1000) * 0.001, lon: 4.900 };
+  else if (n >= 1300 && n <= 1999) coords = { lat: 52.380 + (n - 1300) * 0.0005, lon: 4.750 };
+  else if (n >= 2000 && n <= 2599) coords = { lat: 52.090 + (n - 2000) * 0.001, lon: 4.350 };
+  else if (n >= 2600 && n <= 2999) coords = { lat: 52.010 + (n - 2600) * 0.0004, lon: 4.380 };
+  else if (n >= 3000 && n <= 3599) coords = { lat: 51.920 + (n - 3000) * 0.0005, lon: 4.500 };
+  else if (n >= 3600 && n <= 3999) coords = { lat: 52.090 + (n - 3600) * 0.001, lon: 5.100 };
+  else if (n >= 4000 && n <= 4999) coords = { lat: 51.700 + (n - 4000) * 0.0003, lon: 4.600 };
+  else if (n >= 5000 && n <= 5999) coords = { lat: 51.580 + (n - 5000) * 0.0002, lon: 5.100 };
+  else if (n >= 6000 && n <= 6999) coords = { lat: 51.500 + (n - 6000) * 0.0003, lon: 5.800 };
+  else if (n >= 7000 && n <= 7699) coords = { lat: 52.220 + (n - 7000) * 0.0002, lon: 6.180 };
+  else if (n >= 7700 && n <= 7799) coords = { lat: 52.570 + (n - 7700) * 0.0003, lon: 6.590 }; // Hardenberg/Coevorden
+  else if (n >= 7800 && n <= 7999) coords = { lat: 52.770 + (n - 7800) * 0.0001, lon: 6.890 }; // Emmen
+  else if (n >= 8000 && n <= 8999) coords = { lat: 52.500 + (n - 8000) * 0.0002, lon: 5.900 };
+  else if (n >= 9000 && n <= 9999) coords = { lat: 53.000 + (n - 9000) * 0.0001, lon: 6.550 };
+  if (coords) GEOCODE_CACHE.set(pc4, coords);
+  return coords;
 }
 
 export async function POST(req: NextRequest) {

@@ -119,6 +119,7 @@ interface WizState {
   dubbelzijdig: boolean;
   proefFlyer: boolean;
   proefAdres: string;
+  pc4Lijst: string[];
 }
 
 interface FlyerState {
@@ -322,9 +323,12 @@ interface Pc4Stats {
   dataBron: string;
 }
 
-function CoverageVisual({ centrum, straalKm }: { centrum: string; straalKm: number }) {
+function CoverageVisual({ centrum, straalKm, onPc4sChange }: {
+  centrum: string; straalKm: number; onPc4sChange?: (pc4s: string[]) => void;
+}) {
   const [apiStats, setApiStats] = useState<Pc4Stats | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pc4List, setPc4List] = useState<string[]>([]);
 
   useEffect(() => {
     if (!centrum || centrum.length < 4) { setApiStats(null); return; }
@@ -342,6 +346,11 @@ function CoverageVisual({ centrum, straalKm }: { centrum: string; straalKm: numb
     return () => { cancelled = true; };
   }, [centrum, straalKm]);
 
+  const handlePc4sFound = (pc4s: string[]) => {
+    setPc4List(pc4s);
+    onPc4sChange?.(pc4s);
+  };
+
   const fallback = estimeerDekkingsgebied(straalKm);
   const totalAdressen = apiStats?.totalAdressen ?? Math.round(Math.PI * straalKm * straalKm * 580);
   const estAdressenMaand = apiStats?.estAdressenMaand ?? fallback.estAdressenMaand;
@@ -352,7 +361,7 @@ function CoverageVisual({ centrum, straalKm }: { centrum: string; straalKm: numb
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <NLMap center={apiStats?.center ?? null} straalKm={straalKm} />
+      <NLMap center={apiStats?.center ?? null} straalKm={straalKm} onPc4sFound={handlePc4sFound} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
         <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '12px' }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', marginBottom: '3px' }}>ADRESSEN IN WERKGEBIED</div>
@@ -372,6 +381,26 @@ function CoverageVisual({ centrum, straalKm }: { centrum: string; straalKm: numb
           <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>nieuwe bewoners om te bereiken</div>
         </div>
       </div>
+      {pc4List.length > 0 && (
+        <div style={{
+          background: 'var(--white)', border: '1px solid var(--line)',
+          borderRadius: 'var(--radius)', padding: '10px 12px',
+        }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', marginBottom: '6px' }}>
+            PC4-GEBIEDEN IN BEZORGGEBIED ({pc4List.length})
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+            {pc4List.map(pc4 => (
+              <span key={pc4} style={{
+                fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 700,
+                color: 'var(--green)', background: 'var(--green-bg)',
+                border: '1px solid rgba(0,232,122,0.25)',
+                borderRadius: '3px', padding: '2px 6px',
+              }}>{pc4}</span>
+            ))}
+          </div>
+        </div>
+      )}
       <div style={{
         background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.25)',
         borderRadius: 'var(--radius)', padding: '10px 12px',
@@ -517,6 +546,7 @@ export default function LokaalKabaal() {
     aantalFlyers: 500,
     formaat: 'a5', dubbelzijdig: false,
     proefFlyer: false, proefAdres: '',
+    pc4Lijst: [],
   });
 
   const [flyer, setFlyer] = useState<FlyerState>({
@@ -878,7 +908,7 @@ export default function LokaalKabaal() {
                 </div>
               </div>
 
-              <CoverageVisual centrum={centrum} straalKm={straal} />
+              <CoverageVisual centrum={centrum} straalKm={straal} onPc4sChange={list => updateWiz({ pc4Lijst: list })} />
             </div>
           )}
 
@@ -982,7 +1012,8 @@ export default function LokaalKabaal() {
                 {[
                   { l: 'Branche', v: spec || '—' },
                   { l: 'Startdatum', v: datum ? new Date(datum).toLocaleDateString('nl', { month: 'long', year: 'numeric' }) : '—' },
-                  { l: 'Werkgebied', v: centrum ? `${centrum} · ${straal} km · ${stats.pc4Count} PC4-gebieden` : '—' },
+                  { l: 'Werkgebied', v: centrum ? `${centrum} · ${straal} km` : '—' },
+                  { l: 'PC4-gebieden', v: wiz.pc4Lijst.length > 0 ? wiz.pc4Lijst.join(', ') : `~${stats.pc4Count} gebieden` },
                   { l: 'Formaat', v: `${formaat.toUpperCase()}${dubbelzijdig ? ' dubbelzijdig' : ' enkelvoudig'}` },
                   { l: 'Aantal flyers', v: `${aantalFlyers.toLocaleString('nl')} / maand` },
                   { l: 'Bezorging', v: 'Elke 25e van de maand' },

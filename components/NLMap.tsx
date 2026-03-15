@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 interface NLMapProps {
   center: { lat: number; lon: number } | null;
   straalKm: number;
+  onPc4sFound?: (pc4s: string[]) => void;
 }
 
 type OverpassElement = {
@@ -77,7 +78,7 @@ function isGrensgebied(lat: number, lon: number): boolean {
   return lon > 6.4 || lat < 51.5;
 }
 
-export default function NLMap({ center, straalKm }: NLMapProps) {
+export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<unknown>(null);
   const layersRef = useRef<unknown[]>([]);
@@ -146,6 +147,7 @@ export default function NLMap({ center, straalKm }: NLMapProps) {
     fetchPC4Grenzen(center.lat, center.lon, straalKm, controller.signal)
       .then(gebieden => {
         if (!leafletMapRef.current || controller.signal.aborted) return;
+        if (onPc4sFound) onPc4sFound(gebieden.map(g => g.pc4).sort());
         for (const { pc4, rings } of gebieden) {
           for (const ring of rings) {
             const poly = L.polygon(ring as [number, number][], {
