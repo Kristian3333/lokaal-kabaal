@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { put } from '@vercel/blob';
+import { generateVerificationCode, buildQRUrl, buildQRImageUrl } from '@/lib/verification';
+import { db } from '@/lib/db';
+import { flyerVerifications } from '@/lib/schema';
 
 export const maxDuration = 30;
 
@@ -387,6 +390,13 @@ function buildFlyerHTML(d: {
   telefoon?: string;
   email?: string;
   website?: string;
+  // Verificatie
+  qrUrl?: string;
+  code?: string;
+  adres?: string;
+  postcode?: string;
+  stad?: string;
+  geldigTot?: Date;
 }): string {
   const rgb = d.primairKleur.match(/\d+/g)?.map(Number) || [255, 255, 255];
   const luminantie = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
@@ -428,6 +438,10 @@ function buildFlyerHTML(d: {
   .footer{border-top:.4mm solid ${d.accentKleur}33;padding-top:3mm;display:flex;justify-content:space-between;align-items:flex-end}
   .contact{font-size:7pt;color:${mutedKleur};line-height:1.8;font-family:'DM Mono',monospace}
   .watermark{font-size:5.5pt;color:${mutedKleur};font-family:'DM Mono',monospace;opacity:.4}
+  .qr-section{position:absolute;bottom:8mm;right:8mm;display:flex;flex-direction:column;align-items:center;gap:1.5mm}
+  .qr-code{width:18mm;height:18mm}
+  .qr-label{font-size:5.5pt;color:${mutedKleur};font-family:'DM Mono',monospace;text-align:center;letter-spacing:.04em}
+  .adres-block{margin-top:3mm;padding:2.5mm 3mm;background:${d.accentKleur}18;border-left:1.5mm solid ${d.accentKleur};border-radius:.5mm}
 </style>
 </head>
 <body>
@@ -447,6 +461,12 @@ function buildFlyerHTML(d: {
   <div class="usps">
     ${d.usps.map(u => `<div class="usp"><div class="dot"></div>${u}</div>`).join('')}
   </div>
+  ${d.adres && d.code ? `
+  <div class="adres-block">
+    <div style="font-size:7pt;color:${tekstKleur};font-weight:700;margin-bottom:.5mm">Speciaal voor de nieuwe bewoners van</div>
+    <div style="font-size:8pt;color:${tekstKleur};font-family:'DM Mono',monospace;font-weight:500">${d.adres}, ${d.postcode} ${d.stad}</div>
+    <div style="font-size:6.5pt;color:${mutedKleur};margin-top:1mm">Geldig t/m ${d.geldigTot ? d.geldigTot.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' }) : '30 dagen'} · Eenmalig inwisselbaar</div>
+  </div>` : ''}
   <div class="footer">
     <div class="contact">
       ${d.telefoon ? `${d.telefoon}<br/>` : ''}
@@ -456,6 +476,12 @@ function buildFlyerHTML(d: {
     <div class="watermark">lokaalkabaal.agency</div>
   </div>
 </div>
+${d.qrUrl && d.code ? `
+<div class="qr-section">
+  <img class="qr-code" src="${buildQRImageUrl(d.qrUrl)}" alt="Scan voor verificatie"/>
+  <div class="qr-label">Scan bij kassa</div>
+  <div class="qr-label" style="opacity:.5">${d.code}</div>
+</div>` : ''}
 </body>
 </html>`;
 }
@@ -497,7 +523,11 @@ async function renderPDF(html: string): Promise<Buffer | null> {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { url, branche, bedrijfsnaam, telefoon, email, website, slogan } = body;
+    const {
+      url, branche, bedrijfsnaam, telefoon, email, website, slogan,
+      // Verificatie-velden (optioneel — alleen bij echte campagne-verzending)
+      adres, postcode, stad, retailerId, campagneId, overdrachtDatum,
+    } = body;
 
     if (!url || !branche || !bedrijfsnaam) {
       return NextResponse.json(
@@ -545,6 +575,34 @@ export async function POST(req: NextRequest) {
       ?? (besteFoto ? await dominanteKleuren(besteFoto) : { primair: '#0A0A0A', accent: '#00E87A' });
     console.log('[flyer] kleuren:', kleuren);
 
+    // Stap 3b: verificatiecode genereren + in DB opslaan (optioneel — als adres + retailer meegegeven)
+    let verificationCode: string | undefined;
+    let qrUrl: string | undefined;
+    const geldigTot = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 dagen
+
+    if (adres && postcode && stad && retailerId && campagneId) {
+      verificationCode = generateVerificationCode();
+      qrUrl = buildQRUrl(verificationCode);
+
+      if (db) {
+        try {
+          await db.insert(flyerVerifications).values({
+            code: verificationCode,
+            adres,
+            postcode,
+            stad,
+            retailerId,
+            campagneId: String(campagneId),
+            overdrachtDatum: overdrachtDatum ?? new Date().toISOString().slice(0, 10),
+            geldigTot,
+          });
+          console.log('[flyer] verificatiecode opgeslagen:', verificationCode);
+        } catch (dbErr) {
+          console.warn('[flyer] DB insert mislukt (code wordt toch op flyer gezet):', dbErr);
+        }
+      }
+    }
+
     // Stap 4: flyer HTML bouwen
     const html = buildFlyerHTML({
       bedrijfsnaam,
@@ -556,6 +614,13 @@ export async function POST(req: NextRequest) {
       email,
       website: website || normalizedUrl,
       ...tekst,
+      // Verificatie
+      qrUrl,
+      code: verificationCode,
+      adres,
+      postcode,
+      stad,
+      geldigTot: verificationCode ? geldigTot : undefined,
     });
 
     // Stap 5: PDF renderen + opslaan in Blob (parallel waar mogelijk)
@@ -581,6 +646,8 @@ export async function POST(req: NextRequest) {
       besteFotoUrl: besteFoto,
       logoUrl: scraped.logo || null,
       tekst,
+      verificationCode: verificationCode ?? null,
+      qrUrl: qrUrl ?? null,
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Onbekende fout';

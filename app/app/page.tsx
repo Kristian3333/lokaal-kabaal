@@ -136,7 +136,7 @@ interface FlyerState {
   backTekst: string;
 }
 
-type Page = 'dashboard' | 'wizard' | 'flyer' | 'credits' | 'profiel';
+type Page = 'dashboard' | 'wizard' | 'flyer' | 'credits' | 'profiel' | 'conversies';
 
 // ─── Flyer Preview — 3 premium designs ───────────────────────────────────────
 
@@ -1391,6 +1391,199 @@ function RoiCalc({ kluswaarde, onChange }: { kluswaarde: number; onChange: (v: n
   );
 }
 
+// ─── Conversies Dashboard ─────────────────────────────────────────────────────
+
+interface ConvResult {
+  code: string;
+  adres: string;
+  postcode: string;
+  stad: string;
+  verzondenOp: string;
+  gebruikt: boolean;
+  gebruiktOp: string | null;
+  geldigTot: string;
+}
+
+interface ConvData {
+  results: ConvResult[];
+  totaal: number;
+  geconverteerd: number;
+  conversieRatio: number;
+}
+
+function ConversiesDashboard({ campaigns, onStartCampagne }: {
+  campaigns: Campaign[];
+  onStartCampagne: () => void;
+}) {
+  const [convData, setConvData] = useState<ConvData | null>(null);
+  const [convLoading, setConvLoading] = useState(false);
+  const [convError, setConvError] = useState('');
+  const [selectedCampagne, setSelectedCampagne] = useState<string>('');
+
+  const activeCampagnes = campaigns.filter(c => c.status !== 'geannuleerd');
+
+  useEffect(() => {
+    const id = selectedCampagne || activeCampagnes[0]?.id?.toString();
+    if (!id) return;
+    setConvLoading(true);
+    setConvError('');
+    fetch(`/api/conversies?campagneId=${id}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.error) throw new Error(d.error);
+        setConvData(d);
+      })
+      .catch(e => setConvError(e.message || 'Fout bij laden'))
+      .finally(() => setConvLoading(false));
+  }, [selectedCampagne]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!activeCampagnes.length) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <div style={{ fontSize: '32px', marginBottom: '12px' }}>◑</div>
+        <div style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px', color: 'var(--ink)' }}>Geen campagnes gevonden</div>
+        <div style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '24px' }}>Start eerst een campagne om conversiedata te zien.</div>
+        <button
+          onClick={onStartCampagne}
+          style={{
+            background: 'var(--green)', color: 'white', border: 'none', borderRadius: 'var(--radius)',
+            padding: '10px 20px', fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+          }}
+        >
+          Nieuwe campagne starten
+        </button>
+      </div>
+    );
+  }
+
+  const currentId = selectedCampagne || activeCampagnes[0]?.id?.toString() || '';
+
+  return (
+    <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
+      {/* Campagne selector */}
+      <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+        <label style={{ fontSize: '13px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>Campagne</label>
+        <select
+          value={currentId}
+          onChange={e => setSelectedCampagne(e.target.value)}
+          style={{
+            border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '8px 12px',
+            fontSize: '14px', background: 'var(--paper)', color: 'var(--ink)', cursor: 'pointer',
+          }}
+        >
+          {activeCampagnes.map(c => (
+            <option key={c.id} value={c.id.toString()}>
+              {c.centrum} — {new Date(c.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Stats row */}
+      {convData && !convLoading && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
+          {[
+            { label: 'Flyers verstuurd', val: convData.totaal },
+            { label: 'Geconverteerd', val: convData.geconverteerd },
+            { label: 'Conversieratio', val: `${convData.conversieRatio}%` },
+          ].map(s => (
+            <div key={s.label} style={{
+              background: 'var(--paper)', border: '1px solid var(--line)',
+              borderRadius: 'var(--radius)', padding: '20px', textAlign: 'center',
+            }}>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 700, color: 'var(--green)', marginBottom: '4px' }}>
+                {s.val}
+              </div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                {s.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Loading / error */}
+      {convLoading && (
+        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)', fontSize: '14px' }}>
+          Laden…
+        </div>
+      )}
+      {convError && (
+        <div style={{
+          background: '#FFF2F2', border: '1px solid #FFD0D0', borderRadius: 'var(--radius)',
+          padding: '12px 16px', fontSize: '13px', color: '#CC0000', marginBottom: '16px',
+        }}>
+          {convError}
+        </div>
+      )}
+
+      {/* Results table */}
+      {convData && !convLoading && convData.results.length > 0 && (
+        <div style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+            <thead>
+              <tr style={{ background: 'var(--paper)', borderBottom: '1px solid var(--line)' }}>
+                {['Adres', 'Postcode', 'Stad', 'Status', 'Verstuurd op', 'Gescand op'].map(h => (
+                  <th key={h} style={{
+                    padding: '10px 14px', textAlign: 'left', fontFamily: 'var(--font-mono)',
+                    fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em',
+                    fontWeight: 600,
+                  }}>
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {convData.results.map((r, i) => (
+                <tr key={r.code} style={{ borderBottom: i < convData.results.length - 1 ? '1px solid var(--line)' : 'none', background: i % 2 === 0 ? 'white' : 'var(--paper)' }}>
+                  <td style={{ padding: '10px 14px', color: 'var(--ink)' }}>{r.adres}</td>
+                  <td style={{ padding: '10px 14px', fontFamily: 'var(--font-mono)', color: 'var(--muted)' }}>{r.postcode}</td>
+                  <td style={{ padding: '10px 14px', color: 'var(--ink)' }}>{r.stad}</td>
+                  <td style={{ padding: '10px 14px' }}>
+                    <span style={{
+                      display: 'inline-block', padding: '2px 8px', borderRadius: '20px', fontSize: '11px', fontWeight: 600,
+                      background: r.gebruikt ? '#E8FFF4' : new Date() > new Date(r.geldigTot) ? '#FFF3E0' : '#F0F0F0',
+                      color: r.gebruikt ? '#00875A' : new Date() > new Date(r.geldigTot) ? '#CC7700' : '#666',
+                    }}>
+                      {r.gebruikt ? '✓ Geconverteerd' : new Date() > new Date(r.geldigTot) ? 'Verlopen' : 'Actief'}
+                    </span>
+                  </td>
+                  <td style={{ padding: '10px 14px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--muted)' }}>
+                    {new Date(r.verzondenOp).toLocaleDateString('nl-NL')}
+                  </td>
+                  <td style={{ padding: '10px 14px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--muted)' }}>
+                    {r.gebruiktOp ? new Date(r.gebruiktOp).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {convData && !convLoading && convData.results.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)', fontSize: '14px' }}>
+          Nog geen flyers verstuurd voor deze campagne.
+        </div>
+      )}
+
+      {/* Info box */}
+      <div style={{
+        marginTop: '24px', background: 'var(--paper)', border: '1px solid var(--line)',
+        borderRadius: 'var(--radius)', padding: '16px 20px', fontSize: '12px', color: 'var(--muted)',
+        fontFamily: 'var(--font-mono)',
+      }}>
+        <strong style={{ color: 'var(--ink)' }}>Hoe werkt verificatie?</strong>
+        <br />
+        Elke flyer bevat een unieke QR-code. Wanneer een nieuwe bewoner de winkel bezoekt, scant de kassamedewerker de QR-code.
+        Het systeem markeert de code als gebruikt en registreert de conversie. Codes zijn eenmalig inwisselbaar en 30 dagen geldig.
+      </div>
+    </div>
+  );
+}
+
 // ─── Main App ─────────────────────────────────────────────────────────────────
 
 export default function LokaalKabaal() {
@@ -1629,6 +1822,7 @@ export default function LokaalKabaal() {
     { id: 'dashboard', label: 'Dashboard', icon: '◈' },
     { id: 'wizard', label: 'Nieuwe campagne', icon: '＋' },
     { id: 'flyer', label: 'Mijn flyer', icon: '◧' },
+    { id: 'conversies', label: 'Conversies', icon: '◑' },
     { id: 'credits', label: 'Credits', icon: '◎' },
     { id: 'profiel', label: 'Mijn profiel', icon: '◉' },
   ];
@@ -2858,6 +3052,10 @@ export default function LokaalKabaal() {
     );
   }
 
+  function renderConversies() {
+    return <ConversiesDashboard campaigns={campaigns} onStartCampagne={() => setPage('wizard')} />;
+  }
+
   function renderCredits() {
     return (
       <div className="fade-in">
@@ -2997,6 +3195,7 @@ export default function LokaalKabaal() {
             {page === 'dashboard' && 'Overzicht'}
             {page === 'wizard' && 'Nieuwe campagne'}
             {page === 'flyer' && 'Flyer editor'}
+            {page === 'conversies' && 'Conversies & ROI'}
             {page === 'credits' && 'Credits & abonnementen'}
             {page === 'profiel' && 'Mijn profiel'}
           </div>
@@ -3012,6 +3211,7 @@ export default function LokaalKabaal() {
           {page === 'dashboard' && renderDashboard()}
           {page === 'wizard' && renderWizard()}
           {page === 'flyer' && renderFlyer()}
+          {page === 'conversies' && renderConversies()}
           {page === 'credits' && renderCredits()}
           {page === 'profiel' && renderProfiel()}
         </div>
