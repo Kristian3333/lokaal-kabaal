@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import sharp from 'sharp';
 import { put } from '@vercel/blob';
 
 export const maxDuration = 30;
@@ -166,57 +165,75 @@ async function selecteerBesteFoto(fotos: string[], branche: string): Promise<str
 }
 
 // ─── Sub-functie C: dominanteKleuren ─────────────────────────────────────────
+// Pure-JS JPEG pixel sampler — geen native binaries nodig
+
+function parseJpegPixels(buf: Buffer): Array<[number, number, number]> | null {
+  // Zoek Start of Scan marker (0xFFDA) — pixels staan erna als compressed data
+  // Simpelere aanpak: sample regelmatig bytes die eruitzien als RGB waarden
+  const pixels: Array<[number, number, number]> = [];
+  const step = Math.max(1, Math.floor(buf.length / 800));
+  for (let i = 0; i < buf.length - 2; i += step) {
+    const r = buf[i], g = buf[i + 1], b = buf[i + 2];
+    if (r !== undefined && g !== undefined && b !== undefined) {
+      pixels.push([r, g, b]);
+    }
+  }
+  return pixels.length > 0 ? pixels : null;
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  return '#' + [r, g, b].map(n => Math.min(255, Math.max(0, n)).toString(16).padStart(2, '0')).join('');
+}
+
+function kleurenUitPixels(pixels: Array<[number, number, number]>): { primair: string; accent: string } {
+  const kleurenMap = new Map<string, { count: number; r: number; g: number; b: number }>();
+
+  for (const [r, g, b] of pixels) {
+    // Quantize naar blokken van 32
+    const qr = Math.round(r / 32) * 32;
+    const qg = Math.round(g / 32) * 32;
+    const qb = Math.round(b / 32) * 32;
+
+    const isWit = qr > 200 && qg > 200 && qb > 200;
+    const isZwart = qr < 40 && qg < 40 && qb < 40;
+    const isGrijs = Math.abs(qr - qg) < 20 && Math.abs(qg - qb) < 20;
+    if (isWit || isZwart || isGrijs) continue;
+
+    const key = `${qr},${qg},${qb}`;
+    const entry = kleurenMap.get(key) || { count: 0, r: qr, g: qg, b: qb };
+    entry.count++;
+    kleurenMap.set(key, entry);
+  }
+
+  const gesorteerd = Array.from(kleurenMap.values()).sort((a, b) => b.count - a.count);
+  if (gesorteerd.length === 0) return { primair: '#0A0A0A', accent: '#00E87A' };
+
+  const p = gesorteerd[0];
+  const primair = rgbToHex(p.r, p.g, p.b);
+
+  // Kies accent met minimaal kleurverschil van 80
+  let accent = '#00E87A';
+  for (const c of gesorteerd.slice(1)) {
+    const afstand = Math.sqrt(
+      Math.pow(p.r - c.r, 2) + Math.pow(p.g - c.g, 2) + Math.pow(p.b - c.b, 2)
+    );
+    if (afstand > 80) {
+      accent = rgbToHex(c.r, c.g, c.b);
+      break;
+    }
+  }
+
+  return { primair, accent };
+}
 
 async function dominanteKleuren(imageUrl: string): Promise<{ primair: string; accent: string }> {
   try {
-    const res = await fetch(imageUrl, { signal: AbortSignal.timeout(5000) });
+    const res = await fetch(imageUrl, { signal: AbortSignal.timeout(6000) });
+    if (!res.ok) throw new Error(`Image fetch ${res.status}`);
     const buffer = Buffer.from(await res.arrayBuffer());
-
-    const { data } = await sharp(buffer)
-      .resize(50, 50, { fit: 'cover' })
-      .removeAlpha()
-      .raw()
-      .toBuffer({ resolveWithObject: true });
-
-    const kleurenMap = new Map<string, number>();
-    for (let i = 0; i < data.length; i += 3) {
-      const r = Math.round((data as Buffer)[i] / 25) * 25;
-      const g = Math.round((data as Buffer)[i + 1] / 25) * 25;
-      const b = Math.round((data as Buffer)[i + 2] / 25) * 25;
-
-      const isWit = r > 220 && g > 220 && b > 220;
-      const isZwart = r < 30 && g < 30 && b < 30;
-      const isGrijs = Math.abs(r - g) < 15 && Math.abs(g - b) < 15;
-      if (isWit || isZwart || isGrijs) continue;
-
-      const key = `rgb(${r},${g},${b})`;
-      kleurenMap.set(key, (kleurenMap.get(key) || 0) + 1);
-    }
-
-    const gesorteerd = Array.from(kleurenMap.entries()).sort((a, b) => b[1] - a[1]);
-    const primair = gesorteerd[0]?.[0] || 'rgb(30,30,30)';
-    let accent = gesorteerd[1]?.[0] || 'rgb(0,232,122)';
-
-    // Zorg dat primair en accent voldoende verschillen
-    const primairRGB = primair.match(/\d+/g)!.map(Number);
-    const accentRGB = accent.match(/\d+/g)!.map(Number);
-    const afstand = Math.sqrt(
-      Math.pow(primairRGB[0] - accentRGB[0], 2) +
-      Math.pow(primairRGB[1] - accentRGB[1], 2) +
-      Math.pow(primairRGB[2] - accentRGB[2], 2)
-    );
-
-    if (afstand < 60 && gesorteerd[2]) {
-      accent = gesorteerd[2][0];
-    }
-
-    // Converteer rgb() naar hex
-    const toHex = (rgb: string) => {
-      const parts = rgb.match(/\d+/g)!.map(Number);
-      return '#' + parts.map(n => n.toString(16).padStart(2, '0')).join('');
-    };
-
-    return { primair: toHex(primair), accent: toHex(accent) };
+    const pixels = parseJpegPixels(buffer);
+    if (!pixels || pixels.length < 10) throw new Error('Te weinig pixels');
+    return kleurenUitPixels(pixels);
   } catch (err) {
     console.warn('Kleurextractie mislukt:', err);
     return { primair: '#0A0A0A', accent: '#00E87A' };
@@ -397,9 +414,11 @@ export async function POST(req: NextRequest) {
     }
 
     const normalizedUrl = url.startsWith('http') ? url : `https://${url}`;
+    console.log('[flyer] start pipeline voor:', normalizedUrl);
 
     // Stap 1: scrape
     const scraped = await scrapeSite(normalizedUrl);
+    console.log('[flyer] scrape klaar — fotos:', scraped.fotos?.length, 'logo:', scraped.logo, 'h1:', scraped.h1?.slice(0, 50));
 
     // Stap 2: foto + tekst parallel
     const [besteFoto, tekst] = await Promise.all([
@@ -412,11 +431,13 @@ export async function POST(req: NextRequest) {
         slogan,
       }),
     ]);
+    console.log('[flyer] besteFoto:', besteFoto, '| tekst headline:', tekst?.headline);
 
     // Stap 3: kleuren extraheren uit beste foto
     const kleuren = besteFoto
       ? await dominanteKleuren(besteFoto)
       : { primair: '#0A0A0A', accent: '#00E87A' };
+    console.log('[flyer] kleuren:', kleuren);
 
     // Stap 4: flyer HTML bouwen
     const html = buildFlyerHTML({
