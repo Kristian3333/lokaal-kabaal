@@ -312,39 +312,72 @@ function FlyerPreview({ flyer }: { flyer: FlyerState }) {
 
 // ─── Coverage Visual (now uses real NL map) ──────────────────────────────────
 
+interface Pc4Stats {
+  center: { lat: number; lon: number };
+  pc4Count: number;
+  totalAdressen: number;
+  estAdressenMaand: number;
+  referentieVorigjaar: number;
+  verhuisgraadPct: number;
+  dataBron: string;
+}
+
 function CoverageVisual({ centrum, straalKm }: { centrum: string; straalKm: number }) {
-  const stats = estimeerDekkingsgebied(straalKm);
+  const [apiStats, setApiStats] = useState<Pc4Stats | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!centrum || centrum.length < 4) { setApiStats(null); return; }
+    let cancelled = false;
+    setLoading(true);
+    fetch('/api/pc4', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ centrumPc4: centrum, straalKm }),
+    })
+      .then(r => r.json())
+      .then(data => { if (!cancelled && !data.error) setApiStats(data); })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [centrum, straalKm]);
+
+  const fallback = estimeerDekkingsgebied(straalKm);
+  const totalAdressen = apiStats?.totalAdressen ?? Math.round(Math.PI * straalKm * straalKm * 580);
+  const estAdressenMaand = apiStats?.estAdressenMaand ?? fallback.estAdressenMaand;
+  const verhuisgraadPct = apiStats?.verhuisgraadPct ?? 5.5;
+  const cbsBron = apiStats?.dataBron?.startsWith('CBS') ?? false;
+  const suggestieFlyers = Math.max(250, Math.min(2000, Math.round(estAdressenMaand / 50) * 50));
+  const t = (v: string) => loading ? '...' : v;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <NLMap centrum={centrum} straalKm={straalKm} />
+      <NLMap center={apiStats?.center ?? null} straalKm={straalKm} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-        {[
-          { label: 'PC4-gebieden', val: String(stats.pc4Count), sub: 'in dekking' },
-          { label: 'Nieuwe huishoudens/mnd', val: `~${stats.estAdressenMaand}`, sub: 'schatting CBS 5,5% jaarlijkse verhuisgraad' },
-          { label: 'Verhuisbewegingen/jaar', val: `~${stats.referentieVorigjaar}`, sub: `≈ ${stats.estAdressenMaand}/mnd × 12 (CBS-schatting)` },
-        ].map(s => (
-          <div key={s.label} style={{
-            background: 'var(--white)', border: '1px solid var(--line)',
-            borderRadius: 'var(--radius)', padding: '12px',
-          }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', marginBottom: '3px' }}>
-              {s.label.toUpperCase()}
-            </div>
-            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: 'var(--green)', lineHeight: 1 }}>
-              {s.val}
-            </div>
-            <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
-              {s.sub}
-            </div>
+        <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '12px' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', marginBottom: '3px' }}>ADRESSEN IN WERKGEBIED</div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: 'var(--green)', lineHeight: 1 }}>{t(`~${totalAdressen.toLocaleString('nl')}`)}</div>
+          <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>totaal bereik · {straalKm} km straal</div>
+        </div>
+        <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '12px' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', marginBottom: '3px' }}>NIEUWE BEWONERS/MND</div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: 'var(--green)', lineHeight: 1 }}>{t(`~${estAdressenMaand}`)}</div>
+          <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
+            {loading ? 'laden...' : `${verhuisgraadPct}% instroom/jaar${cbsBron ? ' (CBS 2023)' : ' (schatting)'}`}
           </div>
-        ))}
+        </div>
+        <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '12px' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', marginBottom: '3px' }}>DOELGROEP PER JAAR</div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: 'var(--green)', lineHeight: 1 }}>{t(`~${(estAdressenMaand * 12).toLocaleString('nl')}`)}</div>
+          <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>nieuwe bewoners om te bereiken</div>
+        </div>
       </div>
       <div style={{
         background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.25)',
         borderRadius: 'var(--radius)', padding: '10px 12px',
         fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)',
       }}>
-        💡 Suggestie: {stats.suggestieFlyers} flyers/mnd op basis van dit gebied
+        💡 Suggestie: {suggestieFlyers} flyers/mnd op basis van dit werkgebied
       </div>
     </div>
   );

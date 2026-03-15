@@ -1,301 +1,103 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
-
-// Uitgebreide PC4 → lat/lng voor Nederland
-// Gebaseerd op CBS/Kadaster centroids
-const PC4_COORDS: Record<string, [number, number]> = {
-  // Amsterdam 1000-1109
-  '1011': [52.374, 4.901], '1012': [52.370, 4.897], '1013': [52.384, 4.879],
-  '1014': [52.390, 4.853], '1015': [52.379, 4.881], '1016': [52.366, 4.880],
-  '1017': [52.358, 4.895], '1018': [52.362, 4.910], '1019': [52.362, 4.930],
-  '1021': [52.386, 4.922], '1022': [52.381, 4.935], '1023': [52.374, 4.941],
-  '1024': [52.368, 4.952], '1025': [52.381, 4.951], '1026': [52.395, 4.954],
-  '1027': [52.397, 4.969], '1031': [52.400, 4.922], '1032': [52.404, 4.935],
-  '1033': [52.406, 4.918], '1034': [52.407, 4.903], '1035': [52.410, 4.886],
-  '1036': [52.420, 4.871], '1043': [52.386, 4.847], '1054': [52.368, 4.871],
-  '1055': [52.380, 4.857], '1056': [52.373, 4.855], '1057': [52.365, 4.861],
-  '1058': [52.359, 4.855], '1059': [52.354, 4.849], '1060': [52.349, 4.849],
-  '1061': [52.356, 4.836], '1062': [52.349, 4.839], '1063': [52.354, 4.824],
-  '1064': [52.360, 4.820], '1065': [52.346, 4.833], '1066': [52.340, 4.841],
-  '1067': [52.338, 4.828], '1068': [52.331, 4.849], '1069': [52.336, 4.862],
-  '1071': [52.355, 4.880], '1072': [52.352, 4.893], '1073': [52.347, 4.886],
-  '1074': [52.343, 4.880], '1075': [52.347, 4.870], '1076': [52.340, 4.873],
-  '1077': [52.337, 4.879], '1078': [52.340, 4.896], '1079': [52.334, 4.896],
-  '1081': [52.332, 4.884], '1082': [52.335, 4.873], '1083': [52.327, 4.874],
-  '1087': [52.353, 4.951], '1091': [52.349, 4.910], '1092': [52.345, 4.923],
-  '1093': [52.352, 4.920], '1094': [52.356, 4.926], '1095': [52.359, 4.942],
-  '1096': [52.343, 4.936], '1097': [52.340, 4.920], '1098': [52.337, 4.913],
-  '1099': [52.332, 4.903], '1101': [52.315, 4.972], '1102': [52.319, 4.962],
-  '1103': [52.314, 4.954], '1104': [52.309, 4.962], '1106': [52.322, 4.946],
-  // Rotterdam 3000-3089
-  '3011': [51.921, 4.480], '3012': [51.916, 4.488], '3013': [51.913, 4.480],
-  '3014': [51.908, 4.475], '3015': [51.905, 4.487], '3016': [51.907, 4.496],
-  '3021': [51.921, 4.466], '3022': [51.924, 4.456], '3023': [51.919, 4.450],
-  '3024': [51.913, 4.446], '3025': [51.906, 4.449], '3026': [51.901, 4.459],
-  '3027': [51.897, 4.464], '3028': [51.893, 4.473], '3029': [51.888, 4.476],
-  '3031': [51.929, 4.493], '3032': [51.933, 4.489], '3033': [51.937, 4.493],
-  '3034': [51.940, 4.500], '3035': [51.939, 4.509], '3036': [51.936, 4.517],
-  '3037': [51.933, 4.524], '3038': [51.930, 4.531], '3039': [51.933, 4.537],
-  '3041': [51.926, 4.508], '3042': [51.921, 4.520], '3043': [51.915, 4.526],
-  '3044': [51.910, 4.533], '3045': [51.907, 4.541], '3046': [51.903, 4.548],
-  '3047': [51.899, 4.554], '3051': [51.928, 4.551], '3052': [51.923, 4.560],
-  '3053': [51.916, 4.562], '3054': [51.911, 4.557], '3055': [51.905, 4.560],
-  '3056': [51.898, 4.566], '3057': [51.891, 4.570], '3061': [51.938, 4.548],
-  '3062': [51.934, 4.555], '3063': [51.929, 4.570], '3064': [51.923, 4.577],
-  '3065': [51.917, 4.577], '3066': [51.911, 4.573], '3067': [51.906, 4.574],
-  '3068': [51.900, 4.579], '3069': [51.895, 4.576], '3071': [51.891, 4.541],
-  '3072': [51.886, 4.548], '3073': [51.880, 4.554], '3074': [51.875, 4.554],
-  '3075': [51.869, 4.557], '3076': [51.863, 4.558], '3077': [51.856, 4.558],
-  '3078': [51.849, 4.556], '3079': [51.893, 4.528], '3081': [51.886, 4.516],
-  '3082': [51.880, 4.512], '3083': [51.875, 4.507], '3084': [51.869, 4.505],
-  '3085': [51.863, 4.502], '3086': [51.857, 4.499], '3087': [51.851, 4.497],
-  '3088': [51.845, 4.494], '3089': [51.839, 4.492],
-  // Den Haag 2490-2599
-  '2491': [52.057, 4.274], '2492': [52.052, 4.278], '2493': [52.046, 4.282],
-  '2494': [52.040, 4.286], '2495': [52.034, 4.290], '2496': [52.028, 4.294],
-  '2497': [52.022, 4.298], '2498': [52.016, 4.302], '2499': [52.010, 4.306],
-  '2501': [52.074, 4.300], '2502': [52.076, 4.308], '2503': [52.079, 4.315],
-  '2504': [52.082, 4.322], '2505': [52.085, 4.329], '2506': [52.088, 4.336],
-  '2507': [52.091, 4.343], '2508': [52.094, 4.350], '2509': [52.069, 4.294],
-  '2511': [52.072, 4.312], '2512': [52.067, 4.306], '2513': [52.062, 4.310],
-  '2514': [52.057, 4.313], '2515': [52.062, 4.320], '2516': [52.067, 4.322],
-  '2517': [52.072, 4.319], '2518': [52.077, 4.323], '2521': [52.068, 4.294],
-  '2522': [52.064, 4.298], '2523': [52.060, 4.300], '2524': [52.055, 4.302],
-  '2525': [52.051, 4.304], '2526': [52.047, 4.307], '2527': [52.043, 4.310],
-  '2528': [52.038, 4.312], '2531': [52.087, 4.318], '2532': [52.082, 4.323],
-  '2533': [52.077, 4.328], '2541': [52.093, 4.355], '2542': [52.087, 4.360],
-  '2543': [52.081, 4.365], '2544': [52.075, 4.369], '2545': [52.069, 4.373],
-  '2546': [52.063, 4.377], '2547': [52.057, 4.381], '2548': [52.051, 4.385],
-  '2551': [52.097, 4.372], '2552': [52.091, 4.377], '2553': [52.085, 4.382],
-  '2554': [52.079, 4.387], '2555': [52.073, 4.392], '2556': [52.067, 4.396],
-  '2562': [52.074, 4.275], '2563': [52.069, 4.280], '2564': [52.064, 4.285],
-  '2565': [52.059, 4.290], '2566': [52.054, 4.295], '2571': [52.054, 4.254],
-  '2572': [52.049, 4.259], '2573': [52.044, 4.264], '2574': [52.039, 4.268],
-  '2575': [52.034, 4.273], '2581': [52.065, 4.266], '2582': [52.060, 4.271],
-  '2583': [52.055, 4.276], '2584': [52.050, 4.281], '2585': [52.045, 4.286],
-  '2586': [52.040, 4.290], '2587': [52.035, 4.295], '2591': [52.080, 4.262],
-  '2592': [52.075, 4.267], '2593': [52.070, 4.272], '2594': [52.065, 4.277],
-  '2595': [52.060, 4.282], '2596': [52.055, 4.287], '2597': [52.050, 4.292],
-  // Utrecht 3500-3584
-  '3511': [52.093, 5.111], '3512': [52.090, 5.122], '3513': [52.087, 5.132],
-  '3514': [52.084, 5.142], '3515': [52.081, 5.152], '3516': [52.078, 5.162],
-  '3521': [52.077, 5.142], '3522': [52.074, 5.150], '3523': [52.071, 5.158],
-  '3524': [52.068, 5.166], '3525': [52.065, 5.174], '3526': [52.062, 5.182],
-  '3527': [52.059, 5.190], '3528': [52.056, 5.198], '3531': [52.098, 5.134],
-  '3532': [52.095, 5.144], '3533': [52.092, 5.154], '3534': [52.089, 5.164],
-  '3541': [52.104, 5.107], '3542': [52.107, 5.117], '3543': [52.110, 5.127],
-  '3544': [52.113, 5.137], '3545': [52.116, 5.147], '3551': [52.104, 5.081],
-  '3552': [52.108, 5.091], '3553': [52.112, 5.101], '3554': [52.116, 5.111],
-  '3561': [52.080, 5.086], '3562': [52.084, 5.096], '3563': [52.088, 5.106],
-  '3564': [52.092, 5.116], '3565': [52.096, 5.126], '3566': [52.100, 5.136],
-  '3571': [52.070, 5.094], '3572': [52.074, 5.104], '3573': [52.078, 5.114],
-  '3574': [52.082, 5.124], '3575': [52.086, 5.134], '3576': [52.090, 5.144],
-  '3581': [52.060, 5.108], '3582': [52.064, 5.118], '3583': [52.068, 5.128],
-  '3584': [52.072, 5.138],
-  // Eindhoven 5600-5659
-  '5611': [51.441, 5.479], '5612': [51.445, 5.486], '5613': [51.449, 5.493],
-  '5614': [51.453, 5.500], '5615': [51.457, 5.507], '5616': [51.461, 5.514],
-  '5617': [51.465, 5.521], '5621': [51.435, 5.472], '5622': [51.431, 5.465],
-  '5623': [51.427, 5.458], '5624': [51.423, 5.451], '5625': [51.419, 5.444],
-  '5626': [51.415, 5.437], '5631': [51.452, 5.466], '5632': [51.456, 5.473],
-  '5633': [51.460, 5.480], '5641': [51.450, 5.495], '5642': [51.454, 5.502],
-  '5643': [51.458, 5.509], '5644': [51.462, 5.516], '5645': [51.466, 5.523],
-  '5651': [51.433, 5.488], '5652': [51.429, 5.495], '5653': [51.425, 5.502],
-  '5654': [51.421, 5.509], '5655': [51.417, 5.516], '5656': [51.413, 5.523],
-  // Arnhem/Rheden 6800-6999
-  '6811': [51.986, 5.920], '6812': [51.982, 5.930], '6813': [51.978, 5.940],
-  '6814': [51.974, 5.950], '6815': [51.970, 5.960], '6816': [51.966, 5.970],
-  '6821': [51.996, 5.908], '6822': [51.992, 5.918], '6823': [51.988, 5.928],
-  '6824': [51.984, 5.938], '6825': [51.980, 5.948], '6826': [51.976, 5.958],
-  '6827': [51.972, 5.968], '6828': [51.968, 5.978], '6831': [52.006, 5.898],
-  '6832': [52.002, 5.908], '6833': [51.998, 5.918], '6834': [51.994, 5.928],
-  '6835': [51.990, 5.938], '6836': [51.986, 5.948], '6881': [51.991, 5.878],
-  '6882': [51.987, 5.888], '6883': [51.983, 5.898], '6884': [51.979, 5.908],
-  '6991': [51.994, 6.052], '6992': [51.990, 6.062], '6994': [51.982, 6.082],
-  '6996': [51.974, 6.102], '6997': [51.970, 6.112], '6998': [51.966, 6.122],
-  // Groningen 9700-9779
-  '9701': [53.218, 6.558], '9711': [53.219, 6.566], '9712': [53.215, 6.576],
-  '9713': [53.211, 6.585], '9714': [53.207, 5.575], '9715': [53.226, 6.548],
-  '9716': [53.229, 6.538], '9717': [53.235, 6.528], '9718': [53.241, 6.518],
-  '9721': [53.209, 6.603], '9722': [53.205, 6.613], '9723': [53.201, 6.623],
-  '9724': [53.197, 6.633], '9725': [53.193, 6.643], '9726': [53.189, 6.653],
-  '9727': [53.185, 6.663], '9728': [53.181, 6.673], '9731': [53.235, 6.598],
-  '9732': [53.239, 6.588], '9733': [53.243, 6.578], '9734': [53.247, 6.568],
-  '9735': [53.251, 6.558], '9741': [53.245, 6.538], '9742': [53.249, 6.528],
-  '9743': [53.253, 6.518], '9744': [53.257, 6.508], '9745': [53.261, 6.498],
-  '9746': [53.265, 6.488], '9747': [53.269, 6.478], '9748': [53.273, 6.468],
-  // Maastricht 6200-6229
-  '6200': [50.851, 5.688], '6201': [50.855, 5.695], '6211': [50.854, 5.695],
-  '6212': [50.858, 5.702], '6213': [50.862, 5.709], '6214': [50.866, 5.716],
-  '6215': [50.870, 5.723], '6216': [50.874, 5.730], '6217': [50.878, 5.737],
-  '6218': [50.882, 5.744], '6219': [50.886, 5.751], '6221': [50.847, 5.698],
-  '6222': [50.843, 5.705], '6223': [50.839, 5.712], '6224': [50.835, 5.719],
-  '6225': [50.831, 5.726], '6226': [50.827, 5.733], '6227': [50.823, 5.740],
-  // Haarlem 2000-2099
-  '2011': [52.384, 4.636], '2012': [52.379, 4.630], '2013': [52.375, 4.622],
-  '2014': [52.369, 4.614], '2015': [52.363, 4.606], '2021': [52.393, 4.646],
-  '2022': [52.397, 4.656], '2023': [52.401, 4.666], '2024': [52.405, 4.676],
-  '2025': [52.409, 4.686], '2031': [52.370, 4.650], '2032': [52.366, 4.657],
-  '2033': [52.362, 4.664], '2034': [52.358, 4.671], '2035': [52.354, 4.678],
-  '2036': [52.350, 4.685], '2037': [52.346, 4.692], '2038': [52.342, 4.699],
-  '2041': [52.388, 4.658], '2042': [52.392, 4.668], '2043': [52.396, 4.678],
-  // Breda 4800-4849
-  '4811': [51.589, 4.777], '4812': [51.593, 4.784], '4813': [51.597, 4.791],
-  '4814': [51.601, 4.798], '4815': [51.605, 4.805], '4816': [51.609, 4.812],
-  '4817': [51.613, 4.819], '4818': [51.617, 4.826], '4819': [51.621, 4.833],
-  '4821': [51.585, 4.784], '4822': [51.581, 4.791], '4823': [51.577, 4.798],
-  '4824': [51.573, 4.805], '4825': [51.569, 4.812], '4826': [51.565, 4.819],
-  '4827': [51.561, 4.826], '4828': [51.557, 4.833], '4831': [51.597, 4.764],
-  '4832': [51.601, 4.757], '4833': [51.605, 4.750], '4834': [51.609, 4.743],
-  '4835': [51.613, 4.736], '4836': [51.617, 4.729], '4837': [51.621, 4.722],
-  '4838': [51.625, 4.715], '4841': [51.580, 4.761], '4842': [51.576, 4.768],
-  '4843': [51.572, 4.775], '4844': [51.568, 4.782], '4845': [51.564, 4.789],
-  // Tilburg 5000-5049
-  '5011': [51.563, 5.077], '5012': [51.567, 5.084], '5013': [51.571, 5.091],
-  '5014': [51.575, 5.098], '5015': [51.579, 5.105], '5016': [51.583, 5.112],
-  '5017': [51.587, 5.119], '5018': [51.591, 5.126], '5021': [51.557, 5.070],
-  '5022': [51.553, 5.063], '5023': [51.549, 5.056], '5024': [51.545, 5.049],
-  '5025': [51.541, 5.042], '5026': [51.537, 5.035], '5031': [51.569, 5.063],
-  '5032': [51.573, 5.056], '5033': [51.577, 5.049], '5034': [51.581, 5.042],
-  '5035': [51.585, 5.035], '5036': [51.589, 5.028], '5037': [51.593, 5.021],
-  '5038': [51.597, 5.014], '5041': [51.553, 5.077], '5042': [51.549, 5.084],
-  '5043': [51.545, 5.091], '5044': [51.541, 5.098], '5045': [51.537, 5.105],
-  // Nijmegen 6500-6549
-  '6511': [51.845, 5.866], '6512': [51.849, 5.873], '6513': [51.853, 5.880],
-  '6514': [51.857, 5.887], '6515': [51.861, 5.894], '6516': [51.865, 5.901],
-  '6521': [51.839, 5.875], '6522': [51.835, 5.882], '6523': [51.831, 5.889],
-  '6524': [51.827, 5.896], '6525': [51.823, 5.903], '6526': [51.819, 5.910],
-  '6531': [51.855, 5.856], '6532': [51.859, 5.849], '6533': [51.863, 5.842],
-  '6534': [51.867, 5.835], '6535': [51.871, 5.828], '6541': [51.841, 5.857],
-  '6542': [51.845, 5.850], '6543': [51.849, 5.843], '6544': [51.853, 5.836],
-  // Enschede 7500-7549
-  '7511': [52.224, 6.903], '7512': [52.220, 6.895], '7513': [52.216, 6.887],
-  '7514': [52.212, 6.879], '7521': [52.232, 6.897], '7522': [52.236, 5.891],
-  '7523': [52.240, 6.885], '7524': [52.244, 6.879], '7531': [52.228, 6.911],
-  '7532': [52.232, 6.921], '7533': [52.236, 6.931], '7534': [52.240, 6.941],
-  '7541': [52.214, 6.909], '7542': [52.210, 6.917], '7543': [52.206, 6.925],
-  '7544': [52.202, 6.933], '7545': [52.198, 6.941], '7546': [52.194, 6.949],
-  // Leiden 2300-2339
-  '2311': [52.163, 4.490], '2312': [52.159, 4.497], '2313': [52.155, 4.504],
-  '2314': [52.151, 4.511], '2315': [52.147, 4.518], '2316': [52.143, 4.525],
-  '2317': [52.139, 4.532], '2318': [52.135, 4.539], '2321': [52.169, 4.483],
-  '2322': [52.173, 4.476], '2323': [52.177, 4.469], '2324': [52.181, 4.462],
-  '2325': [52.185, 4.455], '2331': [52.157, 4.476], '2332': [52.153, 4.483],
-  '2333': [52.149, 4.490], '2334': [52.145, 4.497], '2335': [52.141, 4.504],
-  // Delft 2600-2629
-  '2611': [52.009, 4.360], '2612': [52.013, 4.367], '2613': [52.017, 4.374],
-  '2614': [52.021, 4.381], '2615': [52.025, 4.388], '2616': [52.029, 4.395],
-  '2617': [52.033, 4.402], '2618': [52.037, 4.409], '2621': [52.003, 4.368],
-  '2622': [51.999, 4.375], '2623': [51.995, 4.382], '2624': [51.991, 4.389],
-  '2625': [51.987, 4.396], '2626': [51.983, 4.403], '2627': [51.979, 4.410],
-  // Zwolle 8000-8049
-  '8011': [52.514, 6.095], '8012': [52.510, 6.103], '8013': [52.506, 6.111],
-  '8014': [52.502, 6.119], '8015': [52.498, 6.127], '8021': [52.520, 6.088],
-  '8022': [52.524, 6.081], '8023': [52.528, 6.074], '8024': [52.532, 6.067],
-  '8025': [52.536, 6.060], '8031': [52.508, 6.088], '8032': [52.504, 6.081],
-  '8041': [52.522, 6.100], '8042': [52.526, 6.107], '8043': [52.530, 6.114],
-  // Leeuwarden 8900-8939
-  '8911': [53.202, 5.799], '8912': [53.206, 5.806], '8913': [53.210, 5.813],
-  '8914': [53.214, 5.820], '8915': [53.218, 5.827], '8921': [53.196, 5.806],
-  '8922': [53.192, 5.813], '8923': [53.188, 5.820], '8924': [53.184, 5.827],
-  '8925': [53.180, 5.834], '8931': [53.208, 5.792], '8932': [53.212, 5.785],
-  '8933': [53.216, 5.778], '8934': [53.220, 5.771],
-  // Apeldoorn 7300-7339
-  '7311': [52.219, 5.965], '7312': [52.215, 5.972], '7313': [52.211, 5.979],
-  '7314': [52.207, 5.986], '7315': [52.203, 5.993], '7316': [52.199, 6.000],
-  '7317': [52.195, 6.007], '7321': [52.225, 5.958], '7322': [52.229, 5.951],
-  '7323': [52.233, 5.944], '7324': [52.237, 5.937], '7325': [52.241, 5.930],
-  // Amersfoort 3800-3839
-  '3811': [52.149, 5.384], '3812': [52.153, 5.391], '3813': [52.157, 5.398],
-  '3814': [52.161, 5.405], '3815': [52.165, 5.412], '3816': [52.169, 5.419],
-  '3817': [52.173, 5.426], '3818': [52.177, 5.433], '3821': [52.143, 5.391],
-  '3822': [52.139, 5.398], '3823': [52.135, 5.405], '3824': [52.131, 5.412],
-  '3825': [52.127, 5.419], '3826': [52.123, 5.426], '3827': [52.119, 5.433],
-  // Dordrecht 3300-3329
-  '3311': [51.806, 4.677], '3312': [51.810, 4.684], '3313': [51.814, 4.691],
-  '3314': [51.818, 4.698], '3315': [51.822, 4.705], '3316': [51.826, 4.712],
-  '3317': [51.830, 4.719], '3318': [51.834, 4.726], '3321': [51.800, 4.684],
-  '3322': [51.796, 4.691], '3323': [51.792, 4.698],
-};
+import { useEffect, useRef } from 'react';
 
 interface NLMapProps {
-  centrum: string;
+  center: { lat: number; lon: number } | null;
   straalKm: number;
 }
 
-export default function NLMap({ centrum, straalKm }: NLMapProps) {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const leafletMapRef = useRef<unknown>(null);
-  const circleRef = useRef<unknown>(null);
-  const [coords, setCoords] = useState<[number, number]>([52.25, 5.25]);
-  const [hasCenter, setHasCenter] = useState(false);
-  const [label, setLabel] = useState('');
+type OverpassElement = {
+  type: 'relation' | 'way';
+  tags?: Record<string, string>;
+  members?: { role: string; geometry?: { lat: number; lon: number }[] }[];
+  geometry?: { lat: number; lon: number }[];
+};
 
-  // Postcode → coordinaten
-  useEffect(() => {
-    if (!centrum || centrum.trim().length < 4) return;
-    const pc4 = centrum.trim().replace(/\D/g, '').slice(0, 4);
+// Haal PC4-grenzen op via Overpass (OpenStreetMap)
+// Zoekt zowel relations als ways met een 4-cijferig postal_code tag
+async function fetchPC4Grenzen(
+  lat: number,
+  lon: number,
+  radiusKm: number,
+  signal: AbortSignal
+): Promise<{ pc4: string; rings: [number, number][][] }[]> {
+  const radiusM = Math.round(radiusKm * 1000 * 1.3);
+  // Zoek zowel relations (standaard) als ways (kleinere gebieden) met 4-cijferig pc4
+  const query = `[out:json][timeout:30];
+(
+  relation["postal_code"~"^[0-9]{4}$"](around:${radiusM},${lat},${lon});
+  way["postal_code"~"^[0-9]{4}$"](around:${radiusM},${lat},${lon});
+);
+out geom;`;
 
-    // Directe lookup
-    const match = PC4_COORDS[pc4];
-    if (match) {
-      setCoords(match);
-      setHasCenter(true);
-      setLabel(pc4);
-      return;
-    }
+  const res = await fetch('https://overpass-api.de/api/interpreter', {
+    method: 'POST',
+    body: 'data=' + encodeURIComponent(query),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    signal,
+  });
+  if (!res.ok) return [];
+  const data = await res.json();
 
-    // Interpoleer: zoek dichtstbijzijnde bekende PC4 in dezelfde range
-    const num = parseInt(pc4);
-    let best: [number, number] | null = null;
-    let bestDiff = Infinity;
-    for (const [key, val] of Object.entries(PC4_COORDS)) {
-      const diff = Math.abs(parseInt(key) - num);
-      if (diff < bestDiff) { bestDiff = diff; best = val; }
-    }
-    if (best && bestDiff < 50) {
-      setCoords(best);
-      setHasCenter(true);
-      setLabel(pc4);
-      return;
-    }
+  const results: { pc4: string; rings: [number, number][][] }[] = [];
 
-    // Nominatim fallback — ALTIJD countrycodes=nl zodat we niet in Amerika belanden
-    fetch(
-      `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(pc4)}&country=nl&format=json&limit=1&countrycodes=nl`,
-      { headers: { 'Accept-Language': 'nl' } }
-    )
-      .then(r => r.json())
-      .then(data => {
-        if (data?.[0]) {
-          const lat = parseFloat(data[0].lat);
-          const lon = parseFloat(data[0].lon);
-          // Sanity check: Nederland ligt tussen 50.7–53.6°N en 3.3–7.3°O
-          if (lat > 50.5 && lat < 54 && lon > 3 && lon < 7.5) {
-            setCoords([lat, lon]);
-            setHasCenter(true);
-            setLabel(pc4);
+  for (const el of (data.elements ?? []) as OverpassElement[]) {
+    const pc4 = el.tags?.postal_code;
+    if (!pc4 || !/^\d{4}$/.test(pc4)) continue;
+
+    const rings: [number, number][][] = [];
+
+    if (el.type === 'relation') {
+      for (const m of el.members ?? []) {
+        if (m.role === 'outer' && Array.isArray(m.geometry) && m.geometry.length > 2) {
+          rings.push(m.geometry.map(pt => [pt.lat, pt.lon]));
+        }
+      }
+      // Als geen outer ring gevonden, gebruik alle members
+      if (rings.length === 0) {
+        for (const m of el.members ?? []) {
+          if (Array.isArray(m.geometry) && m.geometry.length > 2) {
+            rings.push(m.geometry.map(pt => [pt.lat, pt.lon]));
           }
         }
-      })
-      .catch(() => {});
-  }, [centrum]);
+      }
+    } else if (el.type === 'way' && Array.isArray(el.geometry) && el.geometry.length > 2) {
+      rings.push(el.geometry.map(pt => [pt.lat, pt.lon]));
+    }
 
-  // Leaflet initialiseren
+    if (rings.length) results.push({ pc4, rings });
+  }
+
+  return results;
+}
+
+// Controleer of het centrum nabij de grens ligt (< 30km van DE of BE)
+function isGrensgebied(lat: number, lon: number): boolean {
+  // Ruwe bounding: oostgrens (lon > 6.5), zuidgrens (lat < 51.5)
+  return lon > 6.4 || lat < 51.5;
+}
+
+export default function NLMap({ center, straalKm }: NLMapProps) {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const leafletMapRef = useRef<unknown>(null);
+  const layersRef = useRef<unknown[]>([]);
+
+  // Kaart initialiseren (eenmalig)
   useEffect(() => {
     if (!mapRef.current || typeof window === 'undefined') return;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const L = require('leaflet') as typeof import('leaflet');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     require('leaflet/dist/leaflet.css');
 
     if (!leafletMapRef.current) {
       const map = L.map(mapRef.current, {
-        center: [52.25, 5.25],
-        zoom: 7,
-        scrollWheelZoom: false,
-        zoomControl: true,
+        center: [52.25, 5.25], zoom: 7,
+        scrollWheelZoom: false, zoomControl: true,
       });
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19,
       }).addTo(map);
       leafletMapRef.current = map;
     }
@@ -304,38 +106,114 @@ export default function NLMap({ centrum, straalKm }: NLMapProps) {
       if (leafletMapRef.current) {
         (leafletMapRef.current as import('leaflet').Map).remove();
         leafletMapRef.current = null;
-        circleRef.current = null;
+        layersRef.current = [];
       }
     };
   }, []);
 
-  // Cirkel updaten
+  // Cirkel + PC4-grenzen updaten als center of straal wijzigt
   useEffect(() => {
-    if (!leafletMapRef.current || !hasCenter) return;
+    if (!leafletMapRef.current || !center) return;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const L = require('leaflet') as typeof import('leaflet');
     const map = leafletMapRef.current as import('leaflet').Map;
+    const coords: [number, number] = [center.lat, center.lon];
 
-    if (circleRef.current) {
-      (circleRef.current as import('leaflet').Circle).remove();
-    }
+    // Verwijder alle vorige lagen
+    layersRef.current.forEach(l => (l as import('leaflet').Layer).remove());
+    layersRef.current = [];
+
+    // Dekkingscirkel — altijd getekend, ook over grens
     const circle = L.circle(coords, {
       radius: straalKm * 1000,
-      color: '#00E87A', fillColor: '#00E87A', fillOpacity: 0.12, weight: 2,
+      color: '#00E87A', fillColor: '#00E87A',
+      fillOpacity: 0.07, weight: 2, dashArray: '8 5',
     }).addTo(map);
-    circleRef.current = circle;
-    map.flyTo(coords, Math.max(8, 13 - Math.floor(straalKm / 8)), { duration: 0.8 });
-  }, [coords, straalKm, hasCenter]);
+    layersRef.current.push(circle);
+
+    // Centrum-stip
+    const dot = L.circleMarker(coords, {
+      radius: 5, color: '#00E87A', fillColor: '#00E87A', fillOpacity: 1, weight: 2,
+    }).addTo(map);
+    layersRef.current.push(dot);
+
+    // Zoom naar het gebied
+    const zoom = straalKm <= 5 ? 12 : straalKm <= 10 ? 11 : straalKm <= 20 ? 10 : 9;
+    map.flyTo(coords, zoom, { duration: 0.8 });
+
+    // PC4-polygonen asynchroon laden via Overpass
+    const controller = new AbortController();
+    fetchPC4Grenzen(center.lat, center.lon, straalKm, controller.signal)
+      .then(gebieden => {
+        if (!leafletMapRef.current || controller.signal.aborted) return;
+        for (const { pc4, rings } of gebieden) {
+          for (const ring of rings) {
+            const poly = L.polygon(ring as [number, number][], {
+              color: '#00E87A', weight: 1.5, opacity: 0.8,
+              fillColor: '#00E87A', fillOpacity: 0.05,
+            }).addTo(map);
+            layersRef.current.push(poly);
+
+            // PC4-label op centroid van de bounding box
+            const polyCenter = poly.getBounds().getCenter();
+            const label = L.marker(polyCenter, {
+              interactive: false,
+              icon: L.divIcon({
+                html: `<span style="font:700 9px/1 monospace;color:#00E87A;background:rgba(10,10,10,0.75);padding:2px 5px;border-radius:2px;white-space:nowrap;pointer-events:none">${pc4}</span>`,
+                iconAnchor: [18, 7], className: '',
+              }),
+            }).addTo(map);
+            layersRef.current.push(label);
+          }
+        }
+      })
+      .catch(() => {}); // stil falen als Overpass niet bereikbaar is
+
+    return () => { controller.abort(); };
+  }, [center, straalKm]);
+
+  const toonGrensWaarschuwing = center && isGrensgebied(center.lat, center.lon);
 
   return (
-    <div style={{ position: 'relative' }}>
-      <div ref={mapRef} style={{ height: '280px', width: '100%', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--line)' }} />
-      {!hasCenter ? (
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(250,250,248,0.75)', borderRadius: '6px', pointerEvents: 'none' }}>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--muted)' }}>Voer een postcode in om het gebied te zien</span>
-        </div>
-      ) : (
-        <div style={{ position: 'absolute', bottom: '8px', left: '8px', background: 'rgba(10,10,10,0.75)', color: '#fff', fontSize: '10px', fontFamily: 'var(--font-mono)', padding: '3px 8px', borderRadius: '3px', pointerEvents: 'none' }}>
-          PC4 {label} · {straalKm} km straal
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <div style={{ position: 'relative' }}>
+        <div
+          ref={mapRef}
+          style={{ height: '280px', width: '100%', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--line)' }}
+        />
+        {!center ? (
+          <div style={{
+            position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
+            justifyContent: 'center', background: 'rgba(250,250,248,0.8)',
+            borderRadius: '6px', pointerEvents: 'none',
+          }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--muted)' }}>
+              Voer een postcode in om het gebied te zien
+            </span>
+          </div>
+        ) : (
+          <div style={{
+            position: 'absolute', bottom: '8px', left: '8px',
+            background: 'rgba(10,10,10,0.75)', color: '#fff',
+            fontSize: '10px', fontFamily: 'var(--font-mono)',
+            padding: '3px 8px', borderRadius: '3px', pointerEvents: 'none',
+          }}>
+            {straalKm} km straal · PC4-grenzen laden…
+          </div>
+        )}
+      </div>
+      {toonGrensWaarschuwing && (
+        <div style={{
+          background: 'rgba(255,200,50,0.08)', border: '1px solid rgba(255,200,50,0.3)',
+          borderRadius: 'var(--radius)', padding: '7px 10px',
+          fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'rgba(200,160,0,0.9)',
+          display: 'flex', alignItems: 'center', gap: '6px',
+        }}>
+          <span>⚠</span>
+          <span>
+            De cirkel kan over de grens vallen. LokaalKabaal bezorgt uitsluitend in Nederland —
+            adressen in Duitsland en België worden automatisch uitgesloten.
+          </span>
         </div>
       )}
     </div>
