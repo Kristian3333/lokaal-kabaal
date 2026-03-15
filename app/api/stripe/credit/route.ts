@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-02-25.clover' });
+function getStripe() { return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-02-25.clover' }); }
 
 // POST /api/stripe/credit — verwerk credit of rollover na gedeeltelijke bezorging
 // Dit endpoint wordt aangeroepen vanuit het dashboard als klant kiest voor credit of rollover.
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
     if (resolution === 'credit') {
       // Voeg saldo toe aan Stripe klantbalans (negatief = credit voor klant)
-      await stripe.customers.createBalanceTransaction(customerId, {
+      await getStripe().customers.createBalanceTransaction(customerId, {
         amount: -surplusCents, // negatief = credit
         currency: 'eur',
         description: `Credit: ${notSentFlyers} niet-verstuurde flyers (automatisch verrekend op volgende factuur)`,
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     if (resolution === 'rollover') {
       // Sla rollover op als metadata van de subscription
       // In productie: sla dit op in je eigen DB zodat de 25e-logica dit verwerkt
-      await stripe.subscriptions.update(subscriptionId, {
+      await getStripe().subscriptions.update(subscriptionId, {
         metadata: {
           rolloverFlyers: String(notSentFlyers),
           rolloverFromPeriod: new Date().toISOString().slice(0, 7), // YYYY-MM
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
   if (!customerId) return NextResponse.json({ error: 'customerId verplicht' }, { status: 400 });
 
   try {
-    const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+    const customer = await getStripe().customers.retrieve(customerId) as Stripe.Customer;
     const balanceCents = customer.balance; // negatief = credit voor klant
 
     return NextResponse.json({

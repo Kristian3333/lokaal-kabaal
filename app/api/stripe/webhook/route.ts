@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-02-25.clover' });
+function getStripe() { return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-02-25.clover' }); }
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 // In productie: vervang door echte database (Supabase / PlanetScale / etc.)
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+    event = getStripe().webhooks.constructEvent(body, sig, webhookSecret);
   } catch (err) {
     console.error('[webhook] signature mismatch:', err);
     return NextResponse.json({ error: 'Ongeldige signature' }, { status: 400 });
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session;
       if (session.mode === 'subscription' && session.subscription) {
-        const sub = await stripe.subscriptions.retrieve(session.subscription as string);
+        const sub = await getStripe().subscriptions.retrieve(session.subscription as string);
         const meta = sub.metadata;
         campaignStore[sub.id] = {
           subscriptionId: sub.id,
