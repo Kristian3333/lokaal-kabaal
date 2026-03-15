@@ -184,43 +184,61 @@ function cssRgbToRgb(css: string): [number, number, number] | null {
   return [parseInt(m[1]), parseInt(m[2]), parseInt(m[3])];
 }
 
+function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, l];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h = 0;
+  if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+  else if (max === g) h = ((b - r) / d + 2) / 6;
+  else h = ((r - g) / d + 4) / 6;
+  return [h * 360, s, l];
+}
+
 function kleurenUitCSSArray(cssKleuren: string[]): { primair: string; accent: string } | null {
   if (!cssKleuren || cssKleuren.length === 0) return null;
 
-  // Telfrequentie per kleur
-  const freq = new Map<string, { rgb: [number,number,number]; count: number }>();
+  // Verzamel unieke kleuren met hun saturatie
+  const uniek = new Map<string, { rgb: [number,number,number]; sat: number; lum: number }>();
   for (const css of cssKleuren) {
     const rgb = cssRgbToRgb(css);
     if (!rgb) continue;
     const [r, g, b] = rgb;
-    // Sla wit, zwart, lichtgrijs en transparant over
-    if (r > 235 && g > 235 && b > 235) continue; // wit
-    if (r < 20 && g < 20 && b < 20) continue;    // zwart
-    if (Math.abs(r-g) < 15 && Math.abs(g-b) < 15 && r < 220) continue; // grijs
-
-    // Quantize
-    const key = `${Math.round(r/10)*10},${Math.round(g/10)*10},${Math.round(b/10)*10}`;
-    const e = freq.get(key) || { rgb, count: 0 };
-    e.count++;
-    freq.set(key, e);
+    const key = `${Math.round(r/12)*12},${Math.round(g/12)*12},${Math.round(b/12)*12}`;
+    if (uniek.has(key)) continue;
+    const [, sat, lum] = rgbToHsl(r, g, b);
+    uniek.set(key, { rgb, sat, lum });
   }
 
-  const sorted = Array.from(freq.values()).sort((a, b) => b.count - a.count);
-  if (sorted.length === 0) return null;
+  // Gesatureerde kleuren (echte merkkleuren) gesorteerd op saturatie
+  const merkKleuren = Array.from(uniek.values())
+    .filter(c => c.sat > 0.25 && c.lum > 0.1 && c.lum < 0.92)
+    .sort((a, b) => b.sat - a.sat);
 
-  const p = sorted[0].rgb;
-  const primair = rgbToHex(p[0], p[1], p[2]);
+  // Donkere kleuren (voor achtergrond)
+  const donkereKleuren = Array.from(uniek.values())
+    .filter(c => c.lum < 0.25 && c.sat < 0.4)
+    .sort((a, b) => a.lum - b.lum);
 
-  // Accent: zoek kleur met genoeg contrast tov primair én niet te licht
-  let accent = '#00E87A';
-  for (const { rgb: c } of sorted.slice(1)) {
-    const afstand = Math.sqrt(
-      Math.pow(p[0]-c[0],2) + Math.pow(p[1]-c[1],2) + Math.pow(p[2]-c[2],2)
-    );
-    const isNietTeWit = !(c[0] > 235 && c[1] > 235 && c[2] > 235);
-    if (afstand > 70 && isNietTeWit) {
-      accent = rgbToHex(c[0], c[1], c[2]);
-      break;
+  if (merkKleuren.length === 0) return null;
+
+  // De meest gesatureerde kleur = accent (de "pop" kleur van het merk)
+  const accentRgb = merkKleuren[0].rgb;
+  const accent = rgbToHex(accentRgb[0], accentRgb[1], accentRgb[2]);
+
+  // Primair = donkere achtergrondkleur, of bijna-zwart als fallback
+  let primair = '#0f0f0f';
+  if (donkereKleuren.length > 0) {
+    const p = donkereKleuren[0].rgb;
+    primair = rgbToHex(p[0], p[1], p[2]);
+  } else if (merkKleuren.length > 1) {
+    // Tweede merk kleur als primair, mits donker genoeg
+    const tweede = merkKleuren[1];
+    if (tweede.lum < 0.5) {
+      primair = rgbToHex(tweede.rgb[0], tweede.rgb[1], tweede.rgb[2]);
     }
   }
 
