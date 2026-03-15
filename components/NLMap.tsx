@@ -94,7 +94,10 @@ function isGrensgebied(lat: number, lon: number): boolean {
 export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<unknown>(null);
-  const layersRef = useRef<unknown[]>([]);
+  const baseLayersRef = useRef<unknown[]>([]);   // cirkel + stip — update direct
+  const pc4LayersRef = useRef<unknown[]>([]);    // polygonen + labels — bewaar tot nieuwe klaar
+  // Keep backward compat alias used elsewhere in the component
+  const layersRef = { current: [] as unknown[] }; // unused stub
 
   // Kaart initialiseren (eenmalig)
   useEffect(() => {
@@ -120,7 +123,8 @@ export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
       if (leafletMapRef.current) {
         (leafletMapRef.current as import('leaflet').Map).remove();
         leafletMapRef.current = null;
-        layersRef.current = [];
+        baseLayersRef.current = [];
+        pc4LayersRef.current = [];
       }
     };
   }, []);
@@ -133,9 +137,9 @@ export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
     const map = leafletMapRef.current as import('leaflet').Map;
     const coords: [number, number] = [center.lat, center.lon];
 
-    // Verwijder alle vorige lagen
-    layersRef.current.forEach(l => (l as import('leaflet').Layer).remove());
-    layersRef.current = [];
+    // Verwijder alleen base lagen (cirkel + stip) — PC4 blijft staan tot nieuwe klaar zijn
+    baseLayersRef.current.forEach(l => (l as import('leaflet').Layer).remove());
+    baseLayersRef.current = [];
 
     // Dekkingscirkel
     const circle = L.circle(coords, {
@@ -143,31 +147,36 @@ export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
       color: '#00E87A', fillColor: '#00E87A',
       fillOpacity: 0.07, weight: 2, dashArray: '8 5',
     }).addTo(map);
-    layersRef.current.push(circle);
+    baseLayersRef.current.push(circle);
 
     // Centrum-stip
     const dot = L.circleMarker(coords, {
       radius: 5, color: '#00E87A', fillColor: '#00E87A', fillOpacity: 1, weight: 2,
     }).addTo(map);
-    layersRef.current.push(dot);
+    baseLayersRef.current.push(dot);
 
-    // Zoom naar het gebied
+    // Zoom naar het gebied (geen animatie — voorkomt flicker bij snel aanpassen)
     const zoom = straalKm <= 5 ? 12 : straalKm <= 10 ? 11 : straalKm <= 20 ? 10 : 9;
-    map.flyTo(coords, zoom, { duration: 0.8 });
+    map.setView(coords, zoom);
 
-    // PC4-polygonen asynchroon laden via PDOK Kadaster
+    // PC4-polygonen asynchroon laden — pas vervangen als nieuwe data klaar is
     const controller = new AbortController();
     fetchPC4Grenzen(center.lat, center.lon, straalKm, controller.signal)
       .then(gebieden => {
         if (!leafletMapRef.current || controller.signal.aborted) return;
+
+        // Nu pas oude PC4 lagen verwijderen en nieuwe toevoegen (geen flicker)
+        pc4LayersRef.current.forEach(l => (l as import('leaflet').Layer).remove());
+        pc4LayersRef.current = [];
+
         if (onPc4sFound) onPc4sFound(gebieden.map(g => g.pc4).sort());
         for (const { pc4, rings } of gebieden) {
           for (const ring of rings) {
             const poly = L.polygon(ring as [number, number][], {
-              color: '#00E87A', weight: 1.5, opacity: 0.8,
-              fillColor: '#00E87A', fillOpacity: 0.05,
+              color: '#00E87A', weight: 1.5, opacity: 0.9,
+              fillColor: '#00E87A', fillOpacity: 0.08,
             }).addTo(map);
-            layersRef.current.push(poly);
+            pc4LayersRef.current.push(poly);
 
             // PC4-label op centroid van de bounding box
             const polyCenter = poly.getBounds().getCenter();
@@ -178,11 +187,11 @@ export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
                 iconAnchor: [18, 7], className: '',
               }),
             }).addTo(map);
-            layersRef.current.push(label);
+            pc4LayersRef.current.push(label);
           }
         }
       })
-      .catch(() => {}); // stil falen als PDOK niet bereikbaar is
+      .catch(() => {});
 
     return () => { controller.abort(); };
   }, [center, straalKm, onPc4sFound]);

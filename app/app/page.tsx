@@ -68,6 +68,25 @@ function formatPrijs(x: number): string {
   return '€' + x.toLocaleString('nl', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+function roundUp50(n: number): number {
+  return Math.ceil(n / 50) * 50;
+}
+
+interface Campaign {
+  id: number;
+  spec: string;
+  datum: string;
+  centrum: string;
+  aantalFlyers: number;
+  formaat: string;
+  dubbelzijdig: boolean;
+  maxBudget: number;
+  status: 'actief' | 'gepauzeerd' | 'geannuleerd';
+  stripeSessionId?: string;
+  createdAt: string;
+  proefAdres?: string;
+}
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface WizState {
@@ -1288,8 +1307,15 @@ export default function LokaalKabaal() {
   const [page, setPage] = useState<Page>('dashboard');
   const [pendingCampaign, setPendingCampaign] = useState<{
     spec: string; datum: string; centrum: string; aantalFlyers: number;
-    formaat: string; proefAdres: string;
+    formaat: string; dubbelzijdig: boolean; maxBudget: number; proefAdres: string;
   } | null>(null);
+  const [campaigns, setCampaigns] = useState<Campaign[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try { const s = localStorage.getItem('lk_campaigns'); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
+  useEffect(() => {
+    if (typeof window !== 'undefined') localStorage.setItem('lk_campaigns', JSON.stringify(campaigns));
+  }, [campaigns]);
   const [user, setUser] = useState<{ email: string; naam: string } | null>(null);
 
   useEffect(() => {
@@ -1304,11 +1330,33 @@ export default function LokaalKabaal() {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     if (params.get('payment') === 'success') {
+      const stored = sessionStorage.getItem('lk_pending_campaign');
+      if (stored) {
+        try {
+          const pc = JSON.parse(stored) as NonNullable<typeof pendingCampaign>;
+          const newCampaign: Campaign = {
+            id: Date.now(),
+            spec: pc.spec,
+            datum: pc.datum,
+            centrum: pc.centrum,
+            aantalFlyers: pc.aantalFlyers,
+            formaat: pc.formaat,
+            dubbelzijdig: pc.dubbelzijdig,
+            maxBudget: pc.maxBudget,
+            status: 'actief',
+            stripeSessionId: params.get('session_id') ?? undefined,
+            createdAt: new Date().toISOString(),
+            proefAdres: pc.proefAdres || undefined,
+          };
+          setCampaigns(prev => [...prev, newCampaign]);
+          sessionStorage.removeItem('lk_pending_campaign');
+          setPendingCampaign(null);
+        } catch {}
+      }
       setPage('dashboard');
-      // Clean up URL
       window.history.replaceState({}, '', '/app');
     } else if (params.get('payment') === 'cancelled') {
-      setPage('wizard');
+      setPage('dashboard');
       window.history.replaceState({}, '', '/app');
     }
   }, []);
@@ -1527,9 +1575,28 @@ export default function LokaalKabaal() {
                 Flyer aanpassen
               </button>
               <button
-                onClick={() => setPendingCampaign(null)}
+                onClick={async () => {
+                  if (!pendingCampaign) return;
+                  sessionStorage.setItem('lk_pending_campaign', JSON.stringify(pendingCampaign));
+                  const res = await fetch('/api/stripe/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      maxFlyers: pendingCampaign.aantalFlyers,
+                      formaat: pendingCampaign.formaat,
+                      dubbelzijdig: pendingCampaign.dubbelzijdig,
+                      spec: pendingCampaign.spec,
+                      datum: pendingCampaign.datum,
+                      centrum: pendingCampaign.centrum,
+                      email: user?.email || 'klant@lokaalkabaal.nl',
+                      bedrijfsnaam: flyer.bedrijfsnaam || 'Klant',
+                    }),
+                  });
+                  const data = await res.json();
+                  if (data.url) window.location.href = data.url;
+                }}
                 style={{ padding: '9px 18px', background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: '13px', fontWeight: 700 }}>
-                Campagne goedkeuren →
+                Betalen & activeren →
               </button>
             </div>
           </div>
@@ -1537,10 +1604,10 @@ export default function LokaalKabaal() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginBottom: '20px' }}>
           {[
-            { label: 'Actieve campagnes', val: '0', delta: 'Start je eerste' },
-            { label: 'Flyers verstuurd', val: '0', delta: 'deze maand' },
-            { label: 'Gem. conversie', val: '—', delta: 'geen data nog' },
-            { label: 'Credits over', val: '0', delta: 'koop credits →' },
+            { label: 'Actieve campagnes', val: String(campaigns.filter(c => c.status === 'actief').length), delta: campaigns.length === 0 ? 'Start je eerste' : 'lopend' },
+            { label: 'Max flyers/mnd', val: campaigns.length ? campaigns.filter(c=>c.status==='actief').reduce((s,c)=>s+c.aantalFlyers,0).toLocaleString('nl') : '0', delta: 'afgerond naar boven' },
+            { label: 'Max budget/mnd', val: campaigns.length ? formatPrijs(campaigns.filter(c=>c.status==='actief').reduce((s,c)=>s+c.maxBudget,0)) : '—', delta: 'betaal alleen actual' },
+            { label: 'Rollover', val: '0', delta: 'flyers volgende mnd' },
           ].map(s => (
             <div key={s.label} style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px' }}>
               <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>{s.label}</div>
@@ -1550,20 +1617,48 @@ export default function LokaalKabaal() {
           ))}
         </div>
 
-        {/* Empty state */}
-        <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '60px 40px', textAlign: 'center', marginBottom: '20px' }}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', marginBottom: '16px', color: 'var(--line)' }}>◈</div>
-          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', marginBottom: '10px' }}>Nog geen campagnes</div>
-          <p style={{ color: 'var(--muted)', fontSize: '13px', lineHeight: 1.65, maxWidth: '380px', margin: '0 auto 24px' }}>
-            Maak je eerste campagne en bereik nieuwe bewoners in jouw werkgebied — automatisch elke maand.
-          </p>
-          <button onClick={startNieuweCampagne} style={{
-            padding: '12px 28px', background: 'var(--ink)', color: 'var(--paper)',
-            border: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px', cursor: 'pointer'
-          }}>
-            + Eerste campagne starten
-          </button>
-        </div>
+        {/* Campaigns list or empty state */}
+        {campaigns.length === 0 ? (
+          <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '60px 40px', textAlign: 'center', marginBottom: '20px' }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', marginBottom: '16px', color: 'var(--line)' }}>◈</div>
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', marginBottom: '10px' }}>Nog geen campagnes</div>
+            <p style={{ color: 'var(--muted)', fontSize: '13px', lineHeight: 1.65, maxWidth: '380px', margin: '0 auto 24px' }}>
+              Maak je eerste campagne en bereik nieuwe bewoners in jouw werkgebied — automatisch elke maand.
+            </p>
+            <button onClick={startNieuweCampagne} style={{ padding: '12px 28px', background: 'var(--ink)', color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}>
+              + Eerste campagne starten
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+            {campaigns.map(c => (
+              <div key={c.id} style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: c.status === 'actief' ? 'var(--green)' : '#888', flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '2px' }}>{c.spec}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                      {c.centrum} · max {c.aantalFlyers.toLocaleString('nl')} flyers · {c.formaat.toUpperCase()}{c.dubbelzijdig ? ' dubbelzijdig' : ''} · start {c.datum ? new Date(c.datum).toLocaleDateString('nl', { month: 'long', year: 'numeric' }) : '—'}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px' }}>{formatPrijs(c.maxBudget)}<span style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>/mnd max</span></div>
+                    <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--muted)' }}>factuur op de 25e</div>
+                  </div>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', padding: '3px 8px', borderRadius: '3px', background: c.status === 'actief' ? 'var(--green-bg)' : 'var(--paper2)', color: c.status === 'actief' ? 'var(--green-dim)' : 'var(--muted)', border: `1px solid ${c.status === 'actief' ? 'rgba(0,232,122,0.3)' : 'var(--line)'}`, fontWeight: 700 }}>
+                    {c.status.toUpperCase()}
+                  </span>
+                  <button onClick={() => setCampaigns(prev => prev.map(x => x.id === c.id ? { ...x, status: x.status === 'actief' ? 'gepauzeerd' : 'actief' } : x))}
+                    style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', padding: '5px 10px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper)', cursor: 'pointer' }}>
+                    {c.status === 'actief' ? 'Pauzeren' : 'Hervatten'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <Ticker />
       </div>
@@ -1591,14 +1686,10 @@ export default function LokaalKabaal() {
     const specFiltered = SPECS.filter(s => s.toLowerCase().includes(specQ.toLowerCase()));
 
     return (
-      <div className="fade-in">
-        {/* Progress — sticky */}
-        <div style={{
-          position: 'sticky', top: 0, zIndex: 20,
-          background: 'var(--paper)', paddingTop: '12px', paddingBottom: '12px',
-          marginBottom: '8px', borderBottom: '1px solid var(--line)',
-        }}>
-          <div style={{ display: 'flex', gap: '4px', marginBottom: '8px' }}>
+      <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - var(--topbar))', overflow: 'hidden' }}>
+        {/* Progress bar — fixed top */}
+        <div style={{ flexShrink: 0, background: 'var(--paper)', padding: '12px 24px 10px', borderBottom: '1px solid var(--line)' }}>
+          <div style={{ display: 'flex', gap: '4px', marginBottom: '6px', maxWidth: '680px' }}>
             {Array.from({ length: 7 }, (_, i) => (
               <div key={i} style={{ flex: 1, height: '3px', borderRadius: '2px', background: i + 1 <= step ? 'var(--green)' : 'var(--line)', transition: 'background 0.3s' }} />
             ))}
@@ -1608,7 +1699,9 @@ export default function LokaalKabaal() {
           </div>
         </div>
 
-        <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '28px', marginBottom: '16px' }}>
+        {/* Scrollable content */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+        <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '28px', marginBottom: '0', maxWidth: '680px', margin: '0 auto' }}>
 
           {/* STAP 1: Akkoord */}
           {step === 1 && (
@@ -1719,7 +1812,7 @@ export default function LokaalKabaal() {
                   </label>
                   <input
                     type="range" min={5} max={50} step={5} value={straal}
-                    onChange={e => updateWiz({ straal: Number(e.target.value), aantalFlyers: Math.max(250, estimeerDekkingsgebied(Number(e.target.value)).suggestieFlyers) })}
+                    onChange={e => updateWiz({ straal: Number(e.target.value), aantalFlyers: roundUp50(Math.max(250, estimeerDekkingsgebied(Number(e.target.value)).suggestieFlyers)) })}
                     style={{ width: '100%', accentColor: 'var(--green)', marginTop: '8px' }}
                   />
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
@@ -1728,7 +1821,7 @@ export default function LokaalKabaal() {
                 </div>
               </div>
 
-              <CoverageVisual centrum={centrum} straalKm={straal} onPc4sChange={list => updateWiz({ pc4Lijst: list })} onEstChange={est => updateWiz({ aantalFlyers: Math.max(250, est) })} />
+              <CoverageVisual centrum={centrum} straalKm={straal} onPc4sChange={list => updateWiz({ pc4Lijst: list })} onEstChange={est => updateWiz({ aantalFlyers: roundUp50(Math.max(250, est)) })} />
             </div>
           )}
 
@@ -2130,9 +2223,11 @@ export default function LokaalKabaal() {
           )}
         </div>
 
-        {/* Nav knoppen */}
+        </div>{/* end scrollable content */}
+
+        {/* Nav knoppen — pinned to bottom */}
         {step < 7 && (
-          <div>
+          <div style={{ flexShrink: 0, borderTop: '1px solid var(--line)', background: 'var(--paper)', padding: '12px 24px' }}>
           {orderError && (
             <div style={{ marginBottom: '10px', padding: '10px 14px', background: 'rgba(231,76,60,0.08)', border: '1px solid rgba(231,76,60,0.3)', borderRadius: 'var(--radius)', fontSize: '12px', color: '#c0392b', fontFamily: 'var(--font-mono)' }}>
               ✗ {orderError}
@@ -2191,7 +2286,7 @@ export default function LokaalKabaal() {
                       setOrderLoading(false);
                       return;
                     }
-                    setPendingCampaign({ spec, datum, centrum, aantalFlyers, formaat, proefAdres });
+                    setPendingCampaign({ spec, datum, centrum, aantalFlyers, formaat, dubbelzijdig, maxBudget: berekenPrijs(aantalFlyers, formaat, dubbelzijdig), proefAdres });
                     updateWiz({ step: step + 1 });
                   } catch {
                     setOrderError('Verbindingsfout — probeer opnieuw');
@@ -2726,7 +2821,7 @@ export default function LokaalKabaal() {
       </nav>
 
       {/* Main */}
-      <main style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+      <main style={{ flex: 1, overflowY: page === 'wizard' ? 'hidden' : 'auto', display: 'flex', flexDirection: 'column' }}>
         <div style={{ height: 'var(--topbar)', flexShrink: 0, background: 'var(--white)', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', position: 'sticky', top: 0, zIndex: 10 }}>
           <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontStyle: 'italic', color: 'var(--muted)' }}>
             {page === 'dashboard' && 'Overzicht'}
