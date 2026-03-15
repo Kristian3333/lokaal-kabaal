@@ -515,16 +515,15 @@ export default function LokaalKabaal() {
         body: JSON.stringify({
           url,
           branche: wiz.spec || 'Lokale retailer',
-          bedrijfsnaam: flyer.bedrijfsnaam || '',
+          bedrijfsnaam: flyer.bedrijfsnaam || new URL(url.startsWith('http') ? url : `https://${url}`).hostname.replace('www.', '').split('.')[0],
           telefoon: flyer.telefoon || '',
           email: flyer.email || '',
           website: flyer.website || url,
           slogan: flyer.slogan || '',
         }),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      if (data.error) { setScanMsg(data.error); return; }
+      if (!res.ok || data.error) { setScanMsg(data.error || `Fout (${res.status})`); return; }
 
       const patch: Partial<FlyerState> = {
         websiteScan: { primaryColor: data.kleuren?.primair, accentColor: data.kleuren?.accent },
