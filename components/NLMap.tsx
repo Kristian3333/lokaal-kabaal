@@ -7,74 +7,87 @@ interface NLMapProps {
   onPc4sFound?: (pc4s: string[]) => void;
 }
 
-type OverpassElement = {
-  type: 'relation' | 'way';
-  tags?: Record<string, string>;
-  members?: { role: string; geometry?: { lat: number; lon: number }[] }[];
-  geometry?: { lat: number; lon: number }[];
-};
+const PDOK_ITEMS = 'https://api.pdok.nl/cbs/postcode4/ogc/v1/collections/postcode4/items';
+const CRS84 = 'http://www.opengis.net/def/crs/OGC/1.3/CRS84';
 
-// Haal PC4-grenzen op via Overpass (OpenStreetMap)
-// Zoekt zowel relations als ways met een 4-cijferig postal_code tag
+// Bereken bbox in graden vanuit centrum + straal
+function bboxFromCenter(lat: number, lon: number, radiusKm: number) {
+  const dLat = radiusKm / 111;
+  const dLon = radiusKm / (111 * Math.cos(lat * Math.PI / 180));
+  return {
+    minLon: lon - dLon, minLat: lat - dLat,
+    maxLon: lon + dLon, maxLat: lat + dLat,
+  };
+}
+
+// Haal Leaflet rings ([lat,lon]) op uit GeoJSON Polygon of MultiPolygon
+function ringsFromGeometry(geometry: { type: string; coordinates: unknown }): [number, number][][] {
+  const rings: [number, number][][] = [];
+
+  function processRing(ring: unknown[]): [number, number][] {
+    return (ring as number[][]).map(([lon, lat]) => [lat, lon]);
+  }
+
+  if (geometry.type === 'Polygon') {
+    const coords = geometry.coordinates as unknown[][];
+    if (coords[0]) rings.push(processRing(coords[0]));
+  } else if (geometry.type === 'MultiPolygon') {
+    const polys = geometry.coordinates as unknown[][][];
+    for (const poly of polys) {
+      if (poly[0]) rings.push(processRing(poly[0]));
+    }
+  }
+
+  return rings;
+}
+
+// Haal PC4-grenzen op via PDOK Kadaster OGC API Features (CBS postcode4 dataset)
 async function fetchPC4Grenzen(
   lat: number,
   lon: number,
   radiusKm: number,
   signal: AbortSignal
 ): Promise<{ pc4: string; rings: [number, number][][] }[]> {
-  const radiusM = Math.round(radiusKm * 1000 * 1.3);
-  // Zoek zowel relations (standaard) als ways (kleinere gebieden) met 4-cijferig pc4
-  const query = `[out:json][timeout:30];
-(
-  relation["postal_code"~"^[0-9]{4}$"](around:${radiusM},${lat},${lon});
-  way["postal_code"~"^[0-9]{4}$"](around:${radiusM},${lat},${lon});
-);
-out geom;`;
+  const { minLon, minLat, maxLon, maxLat } = bboxFromCenter(lat, lon, radiusKm * 1.25);
+  const url =
+    `${PDOK_ITEMS}?bbox=${minLon},${minLat},${maxLon},${maxLat}` +
+    `&f=json&limit=500&crs=${encodeURIComponent(CRS84)}`;
 
-  const res = await fetch('https://overpass-api.de/api/interpreter', {
-    method: 'POST',
-    body: 'data=' + encodeURIComponent(query),
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  const res = await fetch(url, {
+    headers: { Accept: 'application/geo+json' },
     signal,
   });
   if (!res.ok) return [];
+
   const data = await res.json();
+  const features = (data.features ?? []) as Array<{
+    geometry: { type: string; coordinates: unknown } | null;
+    properties: Record<string, unknown>;
+  }>;
+
+  // Dedupliceer: per postcode de meest recente jaarcode bewaren
+  const byPc4 = new Map<string, typeof features[0]>();
+  for (const f of features) {
+    const pc4 = String(f.properties.postcode).padStart(4, '0');
+    if (!/^\d{4}$/.test(pc4)) continue;
+    const existing = byPc4.get(pc4);
+    if (!existing || Number(f.properties.jaarcode) > Number(existing.properties.jaarcode)) {
+      byPc4.set(pc4, f);
+    }
+  }
 
   const results: { pc4: string; rings: [number, number][][] }[] = [];
-
-  for (const el of (data.elements ?? []) as OverpassElement[]) {
-    const pc4 = el.tags?.postal_code;
-    if (!pc4 || !/^\d{4}$/.test(pc4)) continue;
-
-    const rings: [number, number][][] = [];
-
-    if (el.type === 'relation') {
-      for (const m of el.members ?? []) {
-        if (m.role === 'outer' && Array.isArray(m.geometry) && m.geometry.length > 2) {
-          rings.push(m.geometry.map(pt => [pt.lat, pt.lon]));
-        }
-      }
-      // Als geen outer ring gevonden, gebruik alle members
-      if (rings.length === 0) {
-        for (const m of el.members ?? []) {
-          if (Array.isArray(m.geometry) && m.geometry.length > 2) {
-            rings.push(m.geometry.map(pt => [pt.lat, pt.lon]));
-          }
-        }
-      }
-    } else if (el.type === 'way' && Array.isArray(el.geometry) && el.geometry.length > 2) {
-      rings.push(el.geometry.map(pt => [pt.lat, pt.lon]));
-    }
-
+  for (const [pc4, feature] of Array.from(byPc4)) {
+    if (!feature.geometry) continue;
+    const rings = ringsFromGeometry(feature.geometry);
     if (rings.length) results.push({ pc4, rings });
   }
 
   return results;
 }
 
-// Controleer of het centrum nabij de grens ligt (< 30km van DE of BE)
+// Controleer of het centrum nabij de grens ligt (< 30 km van DE of BE)
 function isGrensgebied(lat: number, lon: number): boolean {
-  // Ruwe bounding: oostgrens (lon > 6.5), zuidgrens (lat < 51.5)
   return lon > 6.4 || lat < 51.5;
 }
 
@@ -124,7 +137,7 @@ export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
     layersRef.current.forEach(l => (l as import('leaflet').Layer).remove());
     layersRef.current = [];
 
-    // Dekkingscirkel — altijd getekend, ook over grens
+    // Dekkingscirkel
     const circle = L.circle(coords, {
       radius: straalKm * 1000,
       color: '#00E87A', fillColor: '#00E87A',
@@ -142,7 +155,7 @@ export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
     const zoom = straalKm <= 5 ? 12 : straalKm <= 10 ? 11 : straalKm <= 20 ? 10 : 9;
     map.flyTo(coords, zoom, { duration: 0.8 });
 
-    // PC4-polygonen asynchroon laden via Overpass
+    // PC4-polygonen asynchroon laden via PDOK Kadaster
     const controller = new AbortController();
     fetchPC4Grenzen(center.lat, center.lon, straalKm, controller.signal)
       .then(gebieden => {
@@ -169,10 +182,10 @@ export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
           }
         }
       })
-      .catch(() => {}); // stil falen als Overpass niet bereikbaar is
+      .catch(() => {}); // stil falen als PDOK niet bereikbaar is
 
     return () => { controller.abort(); };
-  }, [center, straalKm]);
+  }, [center, straalKm, onPc4sFound]);
 
   const toonGrensWaarschuwing = center && isGrensgebied(center.lat, center.lon);
 

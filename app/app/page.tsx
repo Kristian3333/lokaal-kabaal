@@ -27,41 +27,6 @@ const SPECS = [
 const MAANDEN = ["Januari","Februari","Maart","April","Mei","Juni",
   "Juli","Augustus","September","Oktober","November","December"];
 
-const FLYER_TEMPLATES = [
-  {
-    id: 'koffie',
-    label: 'Koffiebar',
-    icon: '☕',
-    kleur: '#1C0F0A',
-    accent: '#E8A020',
-    bedrijfsnaam: 'Koffiehuis de Hoek',
-    slogan: 'Elke dag vers.',
-    tekst: 'Net ingetrokken? Welkom in de buurt! Kom kennismaken en geniet van de beste koffie in de wijk. Bij een besteding van €20 of meer, krijg jij €5 korting. Onze barista staat voor je klaar.',
-    usp: '€5 welkomstkorting bij €20\nVers gezette specialty koffie\nJe nieuwe stamkroeg'
-  },
-  {
-    id: 'meubel',
-    label: 'Meubelwinkel',
-    icon: '🛋️',
-    kleur: '#14213D',
-    accent: '#C8A97E',
-    bedrijfsnaam: 'Wonen & Zo',
-    slogan: 'Jouw thuis, jouw stijl.',
-    tekst: 'Een nieuw huis verdient een nieuw begin. Als nieuwe bewoner krijg je 10% welkomstkorting op je eerste aankoop. Kom langs en laat je verrassen door onze collectie — van bank tot slaapkamer.',
-    usp: '10% welkomstkorting\nGrote showroom, altijd open\nGratis levering binnen de regio'
-  },
-  {
-    id: 'stucadoor',
-    label: 'Stucadoor',
-    icon: '🔨',
-    kleur: '#0D0D0D',
-    accent: '#FF6B35',
-    bedrijfsnaam: 'StucPro Regio',
-    slogan: 'Strak. Snel. Lokaal.',
-    tekst: 'Nieuwe woning, nieuwe muren. Of je nu wil stucen, schilderen of verbouwen — wij zijn dé vakman in jouw regio. Snel, netjes en eerlijke prijs. Vraag vrijblijvend een gratis offerte aan.',
-    usp: 'Gratis offerte aan huis\nLokale vakman, kort op de bal\nBinnen 2 weken op locatie'
-  },
-];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -119,7 +84,9 @@ interface WizState {
   dubbelzijdig: boolean;
   proefFlyer: boolean;
   proefAdres: string;
+  email: string;
   pc4Lijst: string[];
+  flyerIndex: number;
 }
 
 interface FlyerState {
@@ -137,13 +104,16 @@ interface FlyerState {
   logoData: string | null;
   websiteUrl: string;
   websiteScan: { primaryColor?: string; accentColor?: string; brandName?: string } | null;
-  design: 'editorial' | 'geometric' | 'minimal' | 'bold' | 'retro' | 'warm';
+  design: 'editorial' | 'geometric' | 'minimal' | 'bold' | 'retro' | 'warm' | 'neon' | 'corporate' | 'playful';
   heroImageUrl: string | null;
   heroOffsetX: number;
   heroOffsetY: number;
   headline: string;
   cta: string;
   pdfUrl: string | null;
+  adres: string;
+  openingstijden: string;
+  backTekst: string;
 }
 
 type Page = 'dashboard' | 'wizard' | 'flyer' | 'credits' | 'profiel';
@@ -513,8 +483,596 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
     );
   }
 
+  // ── Design 7: NEON (dark futuristic, glowing accent) ─────────────────────
+  if (flyer.design === 'neon') {
+    const headline = flyer.headline || 'Welkom in de buurt.';
+    const bg = '#0A0A12';
+    return (
+      <div style={{ ...base, background: bg }}>
+        {/* Glow blob */}
+        <div style={{ position: 'absolute', top: '-40px', left: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: flyer.accent, opacity: 0.08, filter: 'blur(40px)', pointerEvents: 'none' }} />
+        {/* Top glowing border */}
+        <div style={{ height: '3px', background: `linear-gradient(90deg, transparent, ${flyer.accent}, transparent)`, boxShadow: `0 0 12px ${flyer.accent}` }} />
+        <div style={{ padding: '16px 18px' }}>
+          {/* Label */}
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', letterSpacing: '0.2em', color: flyer.accent, textTransform: 'uppercase', marginBottom: '10px', opacity: 0.9 }}>
+            ⬡ Nieuwe bewoners — welkomstaanbieding
+          </div>
+          {/* Hero image */}
+          {flyer.heroImageUrl && (
+            <div style={{ position: 'relative', marginBottom: '10px', borderRadius: '4px', overflow: 'hidden', border: `1px solid ${flyer.accent}40` }}>
+              <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('75px') }} onMouseDown={handleHeroDrag} />
+              <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 40%, ${bg}80)`, pointerEvents: 'none' }} />
+              {onHeroOffsetChange && <div style={{ position: 'absolute', inset: 0, border: '1.5px dashed rgba(255,255,255,0.4)', borderRadius: '4px', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-mono)', background: 'rgba(0,0,0,0.5)', padding: '1px 5px', borderRadius: '2px' }}>sleep om te verschuiven</span></div>}
+            </div>
+          )}
+          {/* Headline */}
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: '#fff', lineHeight: 1.1, marginBottom: '8px', letterSpacing: '-0.02em', textShadow: `0 0 20px ${flyer.accent}60` }}>{headline}</div>
+          {/* Glowing divider */}
+          <div style={{ height: '1px', background: `linear-gradient(90deg, ${flyer.accent}, transparent)`, marginBottom: '10px', boxShadow: `0 0 6px ${flyer.accent}` }} />
+          <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.65, marginBottom: '12px' }}>{tekst}</div>
+          {usps.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {usps.map((u, i) => (
+                <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <span style={{ color: flyer.accent, fontSize: '10px', fontWeight: 900, textShadow: `0 0 8px ${flyer.accent}` }}>›</span>
+                  <span style={{ fontSize: '7.5px', color: 'rgba(255,255,255,0.75)' }}>{u}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        {/* Footer */}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, borderTop: `1px solid ${flyer.accent}30`, padding: '8px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: `${bg}ee` }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: '8px', color: flyer.accent, fontFamily: 'var(--font-mono)', textShadow: `0 0 8px ${flyer.accent}80` }}>{naam}</div>
+            {flyer.website && <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', marginTop: '1px' }}>{flyer.website}</div>}
+          </div>
+          {flyer.logoData
+            ? <img src={flyer.logoData} alt="" style={{ width: '24px', height: '24px', objectFit: 'contain', filter: 'brightness(1.2)' }} />
+            : <div style={{ width: '24px', height: '24px', border: `1px solid ${flyer.accent}`, borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 800, color: flyer.accent, boxShadow: `0 0 6px ${flyer.accent}40` }}>{initials}</div>
+          }
+        </div>
+      </div>
+    );
+  }
+
+  // ── Design 8: CORPORATE (professional, clean business) ────────────────────
+  if (flyer.design === 'corporate') {
+    const headline = flyer.headline || 'Welkom in de buurt.';
+    return (
+      <div style={{ ...base, background: '#fff' }}>
+        {/* Navy header */}
+        <div style={{ background: flyer.kleur, padding: '14px 18px 12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: flyer.accent, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: '6px' }}>Welkomstaanbieding</div>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', color: '#fff', fontWeight: 400, lineHeight: 1.2 }}>{naam}</div>
+            </div>
+            {flyer.logoData
+              ? <img src={flyer.logoData} alt="" style={{ width: '30px', height: '30px', objectFit: 'contain', borderRadius: '4px', background: 'rgba(255,255,255,0.1)', padding: '3px' }} />
+              : <div style={{ width: '30px', height: '30px', background: flyer.accent, borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: flyer.kleur }}>{initials}</div>
+            }
+          </div>
+        </div>
+        {/* Accent stripe */}
+        <div style={{ height: '3px', background: flyer.accent }} />
+        {/* Hero or headline */}
+        {flyer.heroImageUrl ? (
+          <div style={{ position: 'relative', height: '80px', overflow: 'hidden' }}>
+            <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('80px') }} onMouseDown={handleHeroDrag} />
+            {onHeroOffsetChange && <div style={{ position: 'absolute', inset: 0, border: '1.5px dashed rgba(255,255,255,0.5)', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-mono)', background: 'rgba(0,0,0,0.4)', padding: '1px 5px', borderRadius: '2px' }}>sleep om te verschuiven</span></div>}
+          </div>
+        ) : (
+          <div style={{ padding: '12px 18px 0' }}>
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', color: flyer.kleur, lineHeight: 1.15, marginBottom: '0' }}>{headline}</div>
+          </div>
+        )}
+        <div style={{ padding: '12px 18px' }}>
+          {flyer.heroImageUrl && <div style={{ fontFamily: 'var(--font-serif)', fontSize: '15px', color: flyer.kleur, lineHeight: 1.2, marginBottom: '8px' }}>{headline}</div>}
+          <div style={{ width: '28px', height: '2px', background: flyer.accent, marginBottom: '8px' }} />
+          <div style={{ fontSize: '7.5px', color: '#444', lineHeight: 1.65, marginBottom: '10px' }}>{tekst}</div>
+          {usps.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              {usps.map((u, i) => (
+                <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', borderLeft: `2px solid ${flyer.accent}`, paddingLeft: '8px' }}>
+                  <span style={{ fontSize: '7.5px', color: '#333', fontWeight: 500 }}>{u}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        {/* Footer */}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: '#f5f5f5', borderTop: '1px solid #e8e8e8', padding: '7px 18px', display: 'flex', justifyContent: 'space-between' }}>
+          {flyer.website && <span style={{ fontSize: '7px', color: '#888', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
+          {flyer.telefoon && <span style={{ fontSize: '7px', color: '#888', fontFamily: 'var(--font-mono)' }}>{flyer.telefoon}</span>}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Design 9: PLAYFUL (fun, rounded, vibrant) ─────────────────────────────
+  if (flyer.design === 'playful') {
+    const headline = flyer.headline || 'Hoi nieuwe buurman!';
+    return (
+      <div style={{ ...base, background: '#FFFBF0' }}>
+        {/* Colorful wavy top */}
+        <div style={{ background: flyer.accent, padding: '14px 16px 18px', borderRadius: '0 0 30px 0', position: 'relative', overflow: 'hidden' }}>
+          {/* Decorative dots */}
+          <div style={{ position: 'absolute', top: '4px', right: '8px', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)' }} />
+          <div style={{ position: 'absolute', bottom: '-10px', left: '50%', width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)' }} />
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', letterSpacing: '0.1em', color: flyer.kleur, opacity: 0.75, marginBottom: '6px', textTransform: 'uppercase' }}>Nieuw in de buurt? Hiiii!</div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', color: flyer.kleur, lineHeight: 1.15, fontWeight: 700 }}>{headline}</div>
+        </div>
+        {/* Content */}
+        <div style={{ padding: '14px 16px' }}>
+          {/* Business name badge */}
+          <div style={{ display: 'inline-block', background: flyer.kleur, borderRadius: '20px', padding: '4px 12px', marginBottom: '10px' }}>
+            <span style={{ fontSize: '9px', fontWeight: 800, color: '#fff', fontFamily: 'var(--font-mono)' }}>{naam}</span>
+          </div>
+          {flyer.heroImageUrl && (
+            <div style={{ position: 'relative', marginBottom: '8px', borderRadius: '12px', overflow: 'hidden' }}>
+              <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('55px'), borderRadius: '12px' }} onMouseDown={handleHeroDrag} />
+              {onHeroOffsetChange && <div style={{ position: 'absolute', inset: 0, border: '1.5px dashed rgba(255,255,255,0.5)', borderRadius: '12px', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-mono)', background: 'rgba(0,0,0,0.4)', padding: '1px 5px', borderRadius: '2px' }}>sleep om te verschuiven</span></div>}
+            </div>
+          )}
+          <div style={{ fontSize: '8px', color: '#555', lineHeight: 1.65, marginBottom: '10px' }}>{tekst}</div>
+          {usps.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              {usps.map((u, i) => (
+                <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', background: `${flyer.accent}20`, borderRadius: '8px', padding: '4px 10px' }}>
+                  <span style={{ fontSize: '10px', color: flyer.accent }}>★</span>
+                  <span style={{ fontSize: '7.5px', color: '#444', fontWeight: 500 }}>{u}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        {/* Footer */}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '7px 16px', background: `${flyer.kleur}0a`, borderTop: '1px solid rgba(0,0,0,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {flyer.website && <span style={{ fontSize: '7px', color: '#888', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
+          {flyer.logoData
+            ? <img src={flyer.logoData} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain', borderRadius: '50%' }} />
+            : <div style={{ width: '22px', height: '22px', background: flyer.kleur, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: 800, color: '#fff' }}>{initials}</div>
+          }
+        </div>
+      </div>
+    );
+  }
+
   // Fallback — should not reach here
   return null;
+}
+
+// ─── QR Code (decorative placeholder) ────────────────────────────────────────
+
+function QrCode({ size = 40, fg = '#000', bg = 'transparent' }: { size?: number; fg?: string; bg?: string }) {
+  const p = [
+    [1,1,1,0,1,0,1,1,1],
+    [1,0,1,0,0,0,1,0,1],
+    [1,0,1,0,1,0,1,0,1],
+    [0,0,0,0,1,0,0,0,0],
+    [1,0,1,0,1,0,1,0,1],
+    [1,0,1,0,0,0,1,0,1],
+    [1,1,1,0,1,0,1,1,1],
+    [0,0,0,0,0,0,0,0,0],
+    [1,0,1,0,1,0,1,0,1],
+  ];
+  const c = Math.floor(size / 9);
+  return (
+    <div style={{ background: bg, padding: `${c}px`, display: 'inline-flex', flexDirection: 'column', flexShrink: 0 }}>
+      {p.map((row, r) => (
+        <div key={r} style={{ display: 'flex' }}>
+          {row.map((v, i) => (
+            <div key={i} style={{ width: c, height: c, background: v ? fg : bg }} />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Flyer Back Preview ───────────────────────────────────────────────────────
+
+function FlyerBackPreview({ flyer }: { flyer: FlyerState }) {
+  const naam = flyer.bedrijfsnaam || 'Jouw Bedrijfsnaam';
+  const initials = naam.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase();
+  const adres = flyer.adres || '';
+  const urenLines = flyer.openingstijden ? flyer.openingstijden.split('\n').filter(Boolean).slice(0, 4) : [];
+  const backTekst = flyer.backTekst || 'Vragen? Wij helpen je graag verder.';
+
+  const base: React.CSSProperties = {
+    width: '240px', height: '340px', borderRadius: '8px', overflow: 'hidden',
+    position: 'relative', flexShrink: 0, fontFamily: 'var(--font-sans)',
+    boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
+  };
+
+  const contactRows = [
+    flyer.telefoon && { icon: '☎', v: flyer.telefoon },
+    flyer.email && { icon: '✉', v: flyer.email },
+    flyer.website && { icon: '⊕', v: flyer.website },
+    adres && { icon: '⌖', v: adres },
+  ].filter(Boolean) as { icon: string; v: string }[];
+
+  // ── EDITORIAL BACK ────────────────────────────────────────────────────────
+  if (flyer.design === 'editorial') {
+    return (
+      <div style={{ ...base, background: flyer.kleur }}>
+        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: flyer.accent }} />
+        <div style={{ padding: '20px 18px 14px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <div>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '14px', color: '#fff', fontWeight: 700 }}>{naam}</div>
+              {flyer.slogan && <div style={{ fontSize: '8px', color: flyer.accent, fontFamily: 'var(--font-mono)', marginTop: '2px' }}>{flyer.slogan}</div>}
+            </div>
+            {flyer.logoData
+              ? <img src={flyer.logoData} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain', borderRadius: '4px' }} />
+              : <div style={{ width: '28px', height: '28px', background: flyer.accent, borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: flyer.kleur, fontWeight: 800, fontSize: '10px' }}>{initials}</div>
+            }
+          </div>
+          <div style={{ width: '32px', height: '2px', background: flyer.accent, marginBottom: '10px' }} />
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '11px', fontStyle: 'italic', color: 'rgba(255,255,255,0.7)', marginBottom: '14px', lineHeight: 1.5 }}>{backTekst}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', marginBottom: '12px' }}>
+            {contactRows.map((c, i) => (
+              <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                <span style={{ color: flyer.accent, fontSize: '9px', flexShrink: 0, width: '12px', textAlign: 'center' }}>{c.icon}</span>
+                <span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.82)', fontFamily: 'var(--font-mono)', lineHeight: 1.4, wordBreak: 'break-all' }}>{c.v}</span>
+              </div>
+            ))}
+          </div>
+          {urenLines.length > 0 && (
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '10px' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: flyer.accent, letterSpacing: '0.12em', marginBottom: '5px' }}>OPENINGSTIJDEN</div>
+              {urenLines.map((u, i) => <div key={i} style={{ fontSize: '7.5px', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-mono)', lineHeight: 1.6 }}>{u}</div>)}
+            </div>
+          )}
+        </div>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '9px 18px 9px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>Scan voor onze website</div>
+          <QrCode size={36} fg={flyer.accent} bg="transparent" />
+        </div>
+      </div>
+    );
+  }
+
+  // ── GEOMETRIC BACK ────────────────────────────────────────────────────────
+  if (flyer.design === 'geometric') {
+    return (
+      <div style={{ ...base, background: '#f5f4f0' }}>
+        <div style={{ background: flyer.kleur, padding: '16px 18px 18px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', bottom: '-30px', right: '-20px', width: '90px', height: '90px', borderRadius: '50%', border: `12px solid ${flyer.accent}`, opacity: 0.3 }} />
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: flyer.accent, letterSpacing: '0.12em', marginBottom: '6px' }}>CONTACTGEGEVENS</div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', color: '#fff', fontWeight: 400 }}>{naam}</div>
+        </div>
+        <div style={{ padding: '14px 18px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
+            {contactRows.map((c, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: `${flyer.kleur}0f`, borderRadius: '20px', padding: '5px 10px' }}>
+                <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: flyer.accent, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ color: flyer.kleur, fontSize: '7px' }}>{c.icon}</span>
+                </div>
+                <span style={{ fontSize: '7.5px', color: flyer.kleur, fontWeight: 500, wordBreak: 'break-all', lineHeight: 1.3 }}>{c.v}</span>
+              </div>
+            ))}
+          </div>
+          {urenLines.length > 0 && (
+            <div style={{ background: `${flyer.kleur}08`, borderRadius: 'var(--radius)', padding: '8px 10px', marginBottom: '10px' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: flyer.accent, letterSpacing: '0.1em', marginBottom: '4px' }}>OPENINGSTIJDEN</div>
+              {urenLines.map((u, i) => <div key={i} style={{ fontSize: '7.5px', color: '#555', lineHeight: 1.55 }}>{u}</div>)}
+            </div>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+            <div style={{ fontSize: '7.5px', color: '#777', lineHeight: 1.6, maxWidth: '130px' }}>{backTekst}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+              <QrCode size={40} fg={flyer.kleur} bg="#f5f4f0" />
+              <div style={{ fontSize: '6px', color: '#aaa', fontFamily: 'var(--font-mono)' }}>Scan mij</div>
+            </div>
+          </div>
+        </div>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: flyer.accent, padding: '6px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '8px', fontWeight: 700, color: flyer.kleur }}>{flyer.website || 'www.jouwwebsite.nl'}</span>
+          {flyer.logoData
+            ? <img src={flyer.logoData} alt="" style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
+            : <div style={{ fontSize: '9px', fontWeight: 800, color: flyer.kleur }}>{initials}</div>
+          }
+        </div>
+      </div>
+    );
+  }
+
+  // ── MINIMAL BACK ──────────────────────────────────────────────────────────
+  if (flyer.design === 'minimal') {
+    return (
+      <div style={{ ...base, background: '#faf9f7' }}>
+        <div style={{ height: '8px', background: flyer.accent }} />
+        <div style={{ height: '1px', background: flyer.kleur, margin: '0 20px' }} />
+        <div style={{ padding: '16px 22px', display: 'flex', flexDirection: 'column', height: 'calc(100% - 9px)', boxSizing: 'border-box' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '13px', color: flyer.kleur }}>{naam}</div>
+            {flyer.logoData
+              ? <img src={flyer.logoData} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+              : <div style={{ width: '28px', height: '28px', border: `1.5px solid ${flyer.kleur}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: flyer.kleur }}>{initials}</div>
+            }
+          </div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '12px', color: '#888', fontStyle: 'italic', marginBottom: '16px', lineHeight: 1.5 }}>{backTekst}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
+            {contactRows.map((c, i) => (
+              <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'baseline', borderBottom: '1px solid #f0ede6', paddingBottom: '6px' }}>
+                <span style={{ fontSize: '8px', color: '#bbb', fontFamily: 'var(--font-mono)', width: '12px', flexShrink: 0 }}>{c.icon}</span>
+                <span style={{ fontSize: '8px', color: '#555', fontFamily: 'var(--font-mono)', lineHeight: 1.4, wordBreak: 'break-all' }}>{c.v}</span>
+              </div>
+            ))}
+            {urenLines.length > 0 && (
+              <div style={{ marginTop: '4px' }}>
+                <div style={{ fontSize: '7px', color: '#ccc', fontFamily: 'var(--font-mono)', letterSpacing: '0.1em', marginBottom: '4px' }}>OPENINGSTIJDEN</div>
+                {urenLines.map((u, i) => <div key={i} style={{ fontSize: '7.5px', color: '#777', fontFamily: 'var(--font-mono)', lineHeight: 1.6 }}>{u}</div>)}
+              </div>
+            )}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', marginTop: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+              <QrCode size={36} fg={flyer.kleur} bg="#faf9f7" />
+              <div style={{ fontSize: '6px', color: '#bbb', fontFamily: 'var(--font-mono)' }}>website</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── BOLD BACK ─────────────────────────────────────────────────────────────
+  if (flyer.design === 'bold') {
+    return (
+      <div style={{ ...base, background: flyer.kleur }}>
+        <div style={{ background: flyer.accent, padding: '12px 16px 10px' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', letterSpacing: '0.18em', color: flyer.kleur, opacity: 0.7, textTransform: 'uppercase', marginBottom: '3px' }}>Contact & Info</div>
+          <div style={{ fontWeight: 800, fontSize: '11px', color: flyer.kleur }}>{naam}</div>
+        </div>
+        <div style={{ padding: '14px 16px' }}>
+          <div style={{ width: '40px', height: '3px', background: flyer.accent, marginBottom: '12px', borderRadius: '2px' }} />
+          {flyer.telefoon && (
+            <div style={{ marginBottom: '14px' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.12em', marginBottom: '3px' }}>BEL ONS</div>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: flyer.accent, letterSpacing: '0.02em', lineHeight: 1 }}>{flyer.telefoon}</div>
+            </div>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', marginBottom: '12px' }}>
+            {contactRows.filter(c => c.v !== flyer.telefoon).map((c, i) => (
+              <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <div style={{ width: '14px', height: '14px', background: flyer.accent, borderRadius: '2px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: '7px', color: flyer.kleur }}>{c.icon}</span>
+                </div>
+                <span style={{ fontSize: '7.5px', color: 'rgba(255,255,255,0.8)', wordBreak: 'break-all', lineHeight: 1.4 }}>{c.v}</span>
+              </div>
+            ))}
+          </div>
+          {urenLines.length > 0 && (
+            <div style={{ background: `${flyer.accent}18`, borderRadius: '4px', padding: '8px 10px', marginBottom: '10px' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: flyer.accent, marginBottom: '4px', letterSpacing: '0.1em' }}>OPENINGSTIJDEN</div>
+              {urenLines.map((u, i) => <div key={i} style={{ fontSize: '7.5px', color: 'rgba(255,255,255,0.7)', lineHeight: 1.55 }}>{u}</div>)}
+            </div>
+          )}
+          <div style={{ fontSize: '7.5px', color: 'rgba(255,255,255,0.45)', lineHeight: 1.6 }}>{backTekst}</div>
+        </div>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: flyer.accent, padding: '8px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: '7px', color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>Scan voor meer info</div>
+          <QrCode size={32} fg={flyer.kleur} bg={flyer.accent} />
+        </div>
+      </div>
+    );
+  }
+
+  // ── RETRO BACK ────────────────────────────────────────────────────────────
+  if (flyer.design === 'retro') {
+    const bg = '#F5EDD8';
+    return (
+      <div style={{ ...base, background: bg }}>
+        <div style={{ height: '5px', background: flyer.kleur }} />
+        <div style={{ height: '2px', background: flyer.accent }} />
+        <div style={{ padding: '10px 16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
+            <div style={{ border: `2px solid ${flyer.kleur}`, borderRadius: '50px', padding: '3px 14px' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', letterSpacing: '0.2em', color: flyer.kleur, textTransform: 'uppercase' }}>{naam}</span>
+            </div>
+          </div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', fontWeight: 700, color: flyer.kleur, textAlign: 'center', marginBottom: '4px' }}>Kom langs!</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: '6px 0' }}>
+            <div style={{ flex: 1, height: '1px', background: flyer.kleur, opacity: 0.3 }} />
+            <div style={{ width: '6px', height: '6px', background: flyer.accent, transform: 'rotate(45deg)' }} />
+            <div style={{ flex: 1, height: '1px', background: flyer.kleur, opacity: 0.3 }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', marginBottom: '8px' }}>
+            {contactRows.map((c, i) => (
+              <div key={i} style={{ background: `${flyer.kleur}08`, borderRadius: '3px', padding: '5px 7px' }}>
+                <div style={{ fontSize: '7px', color: flyer.accent, fontFamily: 'var(--font-mono)', marginBottom: '1px' }}>{c.icon}</div>
+                <div style={{ fontSize: '7px', color: '#4a3a28', lineHeight: 1.4, wordBreak: 'break-all' }}>{c.v}</div>
+              </div>
+            ))}
+          </div>
+          {urenLines.length > 0 && (
+            <div style={{ border: `1px dashed ${flyer.kleur}50`, borderRadius: '3px', padding: '6px 8px', marginBottom: '8px', textAlign: 'center' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: flyer.kleur, marginBottom: '3px', letterSpacing: '0.12em' }}>OPENINGSTIJDEN</div>
+              {urenLines.map((u, i) => <div key={i} style={{ fontSize: '7.5px', color: '#4a3a28', lineHeight: 1.55 }}>{u}</div>)}
+            </div>
+          )}
+          <div style={{ fontSize: '7.5px', color: '#4a3a28', lineHeight: 1.65, textAlign: 'center', marginBottom: '6px' }}>{backTekst}</div>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <div style={{ border: `2px solid ${flyer.kleur}`, padding: '4px', display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+              <QrCode size={36} fg={flyer.kleur} bg={bg} />
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '6px', color: flyer.kleur, letterSpacing: '0.1em' }}>WEBSITE</div>
+            </div>
+          </div>
+        </div>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
+          <div style={{ height: '2px', background: flyer.accent }} />
+          <div style={{ height: '4px', background: flyer.kleur }} />
+        </div>
+      </div>
+    );
+  }
+
+  // ── WARM BACK ─────────────────────────────────────────────────────────────
+  if (flyer.design === 'warm') {
+    const bg = '#FFF8F0';
+    return (
+      <div style={{ ...base, background: bg }}>
+        <div style={{ background: flyer.kleur, borderRadius: '0 0 40px 0', padding: '14px 16px 16px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '60px', height: '60px', borderRadius: '50%', background: flyer.accent, opacity: 0.2 }} />
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: flyer.accent, letterSpacing: '0.15em', marginBottom: '5px', textTransform: 'uppercase' }}>Vind ons!</div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', color: '#fff', lineHeight: 1.1 }}>{naam}</div>
+        </div>
+        <div style={{ padding: '14px 16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
+            {contactRows.map((c, i) => (
+              <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', background: `${flyer.accent}12`, borderRadius: '6px', padding: '5px 8px' }}>
+                <span style={{ fontSize: '9px', color: flyer.accent, flexShrink: 0 }}>♥</span>
+                <span style={{ fontSize: '7.5px', color: '#5a4a3a', lineHeight: 1.4, wordBreak: 'break-all' }}>{c.v}</span>
+              </div>
+            ))}
+          </div>
+          {urenLines.length > 0 && (
+            <div style={{ borderTop: `2px solid ${flyer.accent}40`, paddingTop: '8px', marginBottom: '8px' }}>
+              <div style={{ fontSize: '7px', color: flyer.kleur, fontFamily: 'var(--font-mono)', letterSpacing: '0.1em', marginBottom: '4px' }}>OPENINGSTIJDEN</div>
+              {urenLines.map((u, i) => <div key={i} style={{ fontSize: '7.5px', color: '#5a4a3a', lineHeight: 1.6 }}>{u}</div>)}
+            </div>
+          )}
+          <div style={{ fontSize: '8px', color: '#5a4a3a', lineHeight: 1.65, marginBottom: '4px' }}>{backTekst}</div>
+        </div>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 16px', borderTop: `2px solid ${flyer.accent}50`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: '7px', color: '#bbb', fontFamily: 'var(--font-mono)' }}>Scan voor website</div>
+          <QrCode size={32} fg={flyer.kleur} bg={bg} />
+        </div>
+      </div>
+    );
+  }
+
+  // ── NEON BACK ─────────────────────────────────────────────────────────────
+  if (flyer.design === 'neon') {
+    const bg = '#0A0A12';
+    return (
+      <div style={{ ...base, background: bg }}>
+        <div style={{ height: '3px', background: `linear-gradient(90deg, transparent, ${flyer.accent}, transparent)`, boxShadow: `0 0 12px ${flyer.accent}` }} />
+        <div style={{ padding: '14px 18px' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: flyer.accent, letterSpacing: '0.2em', marginBottom: '6px', textTransform: 'uppercase', textShadow: `0 0 8px ${flyer.accent}` }}>Contact</div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '14px', color: '#fff', marginBottom: '4px' }}>{naam}</div>
+          <div style={{ height: '1px', background: `linear-gradient(90deg, ${flyer.accent}, transparent)`, marginBottom: '14px', boxShadow: `0 0 6px ${flyer.accent}` }} />
+          {contactRows.map((c, i) => (
+            <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '9px' }}>
+              <div style={{ width: '20px', height: '20px', border: `1px solid ${flyer.accent}60`, borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <span style={{ fontSize: '9px', color: flyer.accent, textShadow: `0 0 6px ${flyer.accent}` }}>{c.icon}</span>
+              </div>
+              <span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.75)', fontFamily: 'var(--font-mono)', lineHeight: 1.4, wordBreak: 'break-all' }}>{c.v}</span>
+            </div>
+          ))}
+          {urenLines.length > 0 && (
+            <div style={{ border: `1px solid ${flyer.accent}30`, borderRadius: '4px', padding: '7px 10px', marginTop: '4px', marginBottom: '8px' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: flyer.accent, marginBottom: '4px', letterSpacing: '0.12em' }}>OPENINGSTIJDEN</div>
+              {urenLines.map((u, i) => <div key={i} style={{ fontSize: '7.5px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.55 }}>{u}</div>)}
+            </div>
+          )}
+          <div style={{ fontSize: '7.5px', color: 'rgba(255,255,255,0.35)', lineHeight: 1.6 }}>{backTekst}</div>
+        </div>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 18px', borderTop: `1px solid ${flyer.accent}25`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)' }}>Scan voor meer</div>
+          <div style={{ border: `1px solid ${flyer.accent}60`, padding: '3px', borderRadius: '3px', boxShadow: `0 0 8px ${flyer.accent}30` }}>
+            <QrCode size={32} fg={flyer.accent} bg="transparent" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── CORPORATE BACK ────────────────────────────────────────────────────────
+  if (flyer.design === 'corporate') {
+    return (
+      <div style={{ ...base, background: '#fff' }}>
+        <div style={{ background: flyer.kleur, padding: '12px 18px 10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: flyer.accent, letterSpacing: '0.15em', marginBottom: '4px' }}>CONTACTGEGEVENS</div>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '14px', color: '#fff' }}>{naam}</div>
+            </div>
+            {flyer.logoData
+              ? <img src={flyer.logoData} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain', background: 'rgba(255,255,255,0.1)', padding: '3px', borderRadius: '3px' }} />
+              : <div style={{ width: '28px', height: '28px', background: flyer.accent, borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: flyer.kleur }}>{initials}</div>
+            }
+          </div>
+        </div>
+        <div style={{ height: '3px', background: flyer.accent }} />
+        <div style={{ padding: '12px 18px' }}>
+          <div style={{ fontSize: '8px', color: '#555', lineHeight: 1.65, marginBottom: '12px', fontStyle: 'italic' }}>{backTekst}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+            {contactRows.map((c, i) => (
+              <div key={i} style={{ display: 'grid', gridTemplateColumns: '20px 1fr', gap: '8px', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #f0f0f0' }}>
+                <span style={{ fontSize: '9px', color: flyer.accent, textAlign: 'center' }}>{c.icon}</span>
+                <span style={{ fontSize: '8px', color: '#333', fontFamily: 'var(--font-mono)', lineHeight: 1.4, wordBreak: 'break-all' }}>{c.v}</span>
+              </div>
+            ))}
+          </div>
+          {urenLines.length > 0 && (
+            <div style={{ marginTop: '10px', background: '#f8f8f8', borderLeft: `3px solid ${flyer.accent}`, padding: '7px 10px' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: '#888', letterSpacing: '0.1em', marginBottom: '3px' }}>OPENINGSTIJDEN</div>
+              {urenLines.map((u, i) => <div key={i} style={{ fontSize: '7.5px', color: '#555', lineHeight: 1.55 }}>{u}</div>)}
+            </div>
+          )}
+        </div>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '7px 18px', background: '#f5f5f5', borderTop: '1px solid #e8e8e8', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: '7px', color: '#aaa', fontFamily: 'var(--font-mono)' }}>Scan voor onze website</div>
+          <QrCode size={32} fg={flyer.kleur} bg="#f5f5f5" />
+        </div>
+      </div>
+    );
+  }
+
+  // ── PLAYFUL BACK ──────────────────────────────────────────────────────────
+  if (flyer.design === 'playful') {
+    return (
+      <div style={{ ...base, background: '#FFFBF0' }}>
+        <div style={{ background: flyer.accent, borderRadius: '0 0 30px 0', padding: '12px 16px 14px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: '4px', right: '8px', width: '30px', height: '30px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)' }} />
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: flyer.kleur, opacity: 0.7, letterSpacing: '0.1em', marginBottom: '4px' }}>NEEM CONTACT OP!</div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '15px', color: flyer.kleur, fontWeight: 700 }}>{naam}</div>
+        </div>
+        <div style={{ padding: '12px 16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
+            {contactRows.map((c, i) => (
+              <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', background: `${flyer.kleur}0a`, borderRadius: '8px', padding: '5px 10px' }}>
+                <span style={{ fontSize: '10px', color: flyer.accent }}>★</span>
+                <span style={{ fontSize: '7.5px', color: '#444', fontWeight: 500, wordBreak: 'break-all', lineHeight: 1.4 }}>{c.v}</span>
+              </div>
+            ))}
+          </div>
+          {urenLines.length > 0 && (
+            <div style={{ background: `${flyer.accent}18`, borderRadius: '8px', padding: '7px 10px', marginBottom: '8px' }}>
+              <div style={{ fontSize: '7px', color: flyer.kleur, fontFamily: 'var(--font-mono)', letterSpacing: '0.1em', marginBottom: '3px' }}>OPENINGSTIJDEN</div>
+              {urenLines.map((u, i) => <div key={i} style={{ fontSize: '7.5px', color: '#555', lineHeight: 1.55 }}>{u}</div>)}
+            </div>
+          )}
+          <div style={{ fontSize: '8px', color: '#666', lineHeight: 1.6, marginBottom: '4px' }}>{backTekst}</div>
+        </div>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '7px 16px', background: `${flyer.kleur}08`, borderTop: '1px solid rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: '7px', color: '#bbb', fontFamily: 'var(--font-mono)' }}>Scan ons!</div>
+          <div style={{ background: flyer.kleur, padding: '3px', borderRadius: '4px' }}>
+            <QrCode size={30} fg="#fff" bg={flyer.kleur} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback for designs without explicit back implementation
+  return (
+    <div style={{ ...base, background: flyer.kleur, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+      <div style={{ fontFamily: 'var(--font-serif)', fontSize: '14px', color: '#fff', opacity: 0.5 }}>Achterkant</div>
+      {contactRows.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '80%' }}>
+          {contactRows.map((c, i) => (
+            <div key={i} style={{ fontSize: '8px', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-mono)' }}>{c.icon} {c.v}</div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // ─── Coverage Visual (now uses real NL map) ──────────────────────────────────
@@ -529,8 +1087,8 @@ interface Pc4Stats {
   dataBron: string;
 }
 
-function CoverageVisual({ centrum, straalKm, onPc4sChange }: {
-  centrum: string; straalKm: number; onPc4sChange?: (pc4s: string[]) => void;
+function CoverageVisual({ centrum, straalKm, onPc4sChange, onEstChange }: {
+  centrum: string; straalKm: number; onPc4sChange?: (pc4s: string[]) => void; onEstChange?: (est: number) => void;
 }) {
   const [apiStats, setApiStats] = useState<Pc4Stats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -546,7 +1104,12 @@ function CoverageVisual({ centrum, straalKm, onPc4sChange }: {
       body: JSON.stringify({ centrumPc4: centrum, straalKm }),
     })
       .then(r => r.json())
-      .then(data => { if (!cancelled && !data.error) setApiStats(data); })
+      .then(data => {
+        if (!cancelled && !data.error) {
+          setApiStats(data);
+          onEstChange?.(data.estAdressenMaand);
+        }
+      })
       .catch(() => {})
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
@@ -562,7 +1125,6 @@ function CoverageVisual({ centrum, straalKm, onPc4sChange }: {
   const estAdressenMaand = apiStats?.estAdressenMaand ?? fallback.estAdressenMaand;
   const verhuisgraadPct = apiStats?.verhuisgraadPct ?? 5.5;
   const cbsBron = apiStats?.dataBron?.startsWith('CBS') ?? false;
-  const suggestieFlyers = Math.max(250, Math.min(2000, Math.round(estAdressenMaand / 50) * 50));
   const t = (v: string) => loading ? '...' : v;
 
   return (
@@ -575,7 +1137,7 @@ function CoverageVisual({ centrum, straalKm, onPc4sChange }: {
           <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>totaal bereik · {straalKm} km straal</div>
         </div>
         <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '12px' }}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', marginBottom: '3px' }}>NIEUWE BEWONERS/MND</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', marginBottom: '3px' }}>NIEUWE HUISHOUDENS/MND</div>
           <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: 'var(--green)', lineHeight: 1 }}>{t(`~${estAdressenMaand}`)}</div>
           <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
             {loading ? 'laden...' : `${verhuisgraadPct}% instroom/jaar${cbsBron ? ' (CBS 2023)' : ' (schatting)'}`}
@@ -584,7 +1146,7 @@ function CoverageVisual({ centrum, straalKm, onPc4sChange }: {
         <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '12px' }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', marginBottom: '3px' }}>DOELGROEP PER JAAR</div>
           <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: 'var(--green)', lineHeight: 1 }}>{t(`~${(estAdressenMaand * 12).toLocaleString('nl')}`)}</div>
-          <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>nieuwe bewoners om te bereiken</div>
+          <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>nieuwe huishoudens om te bereiken</div>
         </div>
       </div>
       {pc4List.length > 0 && (
@@ -612,7 +1174,7 @@ function CoverageVisual({ centrum, straalKm, onPc4sChange }: {
         borderRadius: 'var(--radius)', padding: '10px 12px',
         fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)',
       }}>
-        💡 Suggestie: {suggestieFlyers} flyers/mnd op basis van dit werkgebied
+        💡 Verwachte verhuizingen in dit gebied: ~{estAdressenMaand} huishoudens/mnd — dit wordt je startaantal in de volgende stap
       </div>
     </div>
   );
@@ -737,12 +1299,26 @@ export default function LokaalKabaal() {
     } catch {}
   }, []);
 
+  // Handle Stripe payment return
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment') === 'success') {
+      setPage('dashboard');
+      // Clean up URL
+      window.history.replaceState({}, '', '/app');
+    } else if (params.get('payment') === 'cancelled') {
+      setPage('wizard');
+      window.history.replaceState({}, '', '/app');
+    }
+  }, []);
+
   const uitloggen = () => {
     localStorage.removeItem('lk_user');
     router.push('/login');
   };
 
-  const [wiz, setWiz] = useState<WizState>({
+  const INIT_WIZ: WizState = {
     step: 1,
     akkoord: { av: false, privacy: false },
     kluswaarde: 2500,
@@ -751,27 +1327,62 @@ export default function LokaalKabaal() {
     centrum: '', straal: 10,
     aantalFlyers: 500,
     formaat: 'a5', dubbelzijdig: false,
-    proefFlyer: false, proefAdres: '',
+    proefFlyer: false, proefAdres: '', email: '',
     pc4Lijst: [],
-  });
+    flyerIndex: 0,
+  };
 
-  const [flyer, setFlyer] = useState<FlyerState>({
+  const [wiz, setWiz] = useState<WizState>(INIT_WIZ);
+
+  const startNieuweCampagne = () => {
+    setWiz(INIT_WIZ);
+    setPage('wizard');
+  };
+
+  type SavedFlyer = FlyerState & { naam: string; id: number };
+
+  const INIT_FLYER: FlyerState = {
     kleur: '#0A0A0A', accent: '#00E87A', afmeting: 'a5', dubbelzijdig: false,
     bedrijfsnaam: '', slogan: '', telefoon: '', email: '', website: '',
     usp: '', tekst: '', logoData: null,
     websiteUrl: '', websiteScan: null, design: 'editorial',
     heroImageUrl: null, heroOffsetX: 50, heroOffsetY: 50, headline: '', cta: '', pdfUrl: null,
+    adres: '', openingstijden: '', backTekst: '',
+  };
+
+  const [flyers, setFlyers] = useState<SavedFlyer[]>(() => {
+    if (typeof window === 'undefined') return [{ ...INIT_FLYER, naam: 'Flyer 1', id: 1 }];
+    try {
+      const saved = localStorage.getItem('lk_flyers');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [{ ...INIT_FLYER, naam: 'Flyer 1', id: 1 }];
   });
+  const [activeFlyerIdx, setActiveFlyerIdx] = useState(0);
+  const flyer = flyers[Math.min(activeFlyerIdx, flyers.length - 1)];
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lk_flyers', JSON.stringify(flyers));
+    }
+  }, [flyers]);
 
   const [aiLoading, setAiLoading] = useState(false);
   const [scanLoading, setScanLoading] = useState(false);
   const [scanMsg, setScanMsg] = useState('');
+  const [previewSide, setPreviewSide] = useState<'voor' | 'achter'>('voor');
+  const [adresStatus, setAdresStatus] = useState<'idle' | 'checking' | 'ok' | 'error'>('idle');
+  const [adresFeedback, setAdresFeedback] = useState<{ volledig?: string; adresRegel?: string; postcode?: string; stad?: string; error?: string; suggesties?: string[] }>({});
+  const adresTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [orderLoading, setOrderLoading] = useState(false);
+  const [orderError, setOrderError] = useState('');
+  const wizardFlyerRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLInputElement>(null);
   const flyerPreviewRef = useRef<HTMLDivElement>(null);
 
   const updateFlyer = useCallback((patch: Partial<FlyerState>) => {
-    setFlyer(f => ({ ...f, ...patch }));
-  }, []);
+    setFlyers(fs => fs.map((f, i) => i === activeFlyerIdx ? { ...f, ...patch } : f));
+  }, [activeFlyerIdx]);
 
   const updateWiz = useCallback((patch: Partial<WizState>) => {
     setWiz(w => ({ ...w, ...patch }));
@@ -864,14 +1475,6 @@ export default function LokaalKabaal() {
     reader.readAsDataURL(file);
   }, [updateFlyer]);
 
-  const applyTemplate = useCallback((t: typeof FLYER_TEMPLATES[0]) => {
-    updateFlyer({
-      kleur: t.kleur, accent: t.accent,
-      bedrijfsnaam: t.bedrijfsnaam, slogan: t.slogan,
-      tekst: t.tekst, usp: t.usp,
-    });
-  }, [updateFlyer]);
-
   // ── Sidebar ──
 
   const navItems: { id: Page; label: string; icon: string }[] = [
@@ -887,6 +1490,16 @@ export default function LokaalKabaal() {
   function renderDashboard() {
     return (
       <div className="fade-in">
+
+        {/* Dashboard header met nieuwe campagne knop */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', letterSpacing: '0.08em' }}>MIJN CAMPAGNES</div>
+          <button onClick={startNieuweCampagne} style={{
+            padding: '8px 16px', background: 'var(--ink)', color: 'var(--paper)',
+            border: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '12px',
+            cursor: 'pointer', fontFamily: 'var(--font-mono)',
+          }}>+ Nieuwe campagne</button>
+        </div>
 
         {/* Proef flyer — wacht op goedkeuring */}
         {pendingCampaign && (
@@ -944,7 +1557,7 @@ export default function LokaalKabaal() {
           <p style={{ color: 'var(--muted)', fontSize: '13px', lineHeight: 1.65, maxWidth: '380px', margin: '0 auto 24px' }}>
             Maak je eerste campagne en bereik nieuwe bewoners in jouw werkgebied — automatisch elke maand.
           </p>
-          <button onClick={() => setPage('wizard')} style={{
+          <button onClick={startNieuweCampagne} style={{
             padding: '12px 28px', background: 'var(--ink)', color: 'var(--paper)',
             border: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px', cursor: 'pointer'
           }}>
@@ -958,11 +1571,11 @@ export default function LokaalKabaal() {
   }
 
   function renderWizard() {
-    const { step, akkoord, kluswaarde, spec, specQ, datum, centrum, straal, aantalFlyers, formaat, dubbelzijdig, proefFlyer, proefAdres } = wiz;
+    const { step, akkoord, kluswaarde, spec, specQ, datum, centrum, straal, aantalFlyers, formaat, dubbelzijdig, proefFlyer, proefAdres, flyerIndex } = wiz;
     const availableMonths = getAvailableMonths();
     const stats = estimeerDekkingsgebied(straal);
     const prijs = berekenPrijs(aantalFlyers, formaat, dubbelzijdig);
-    const proefPrijs = 5.00;
+    const proefPrijs = 4.95;
     const totaal = prijs + (proefFlyer ? proefPrijs : 0);
 
     const canNext = (
@@ -971,7 +1584,8 @@ export default function LokaalKabaal() {
       (step === 3 && datum !== '') ||
       (step === 4 && centrum !== '') ||
       (step === 5 && aantalFlyers >= 250) ||
-      step === 6 || step === 7
+      (step === 6 && (wiz.email || '').includes('@') && (!proefFlyer || adresStatus === 'ok')) ||
+      step === 7
     );
 
     const specFiltered = SPECS.filter(s => s.toLowerCase().includes(specQ.toLowerCase()));
@@ -1114,7 +1728,7 @@ export default function LokaalKabaal() {
                 </div>
               </div>
 
-              <CoverageVisual centrum={centrum} straalKm={straal} onPc4sChange={list => updateWiz({ pc4Lijst: list })} />
+              <CoverageVisual centrum={centrum} straalKm={straal} onPc4sChange={list => updateWiz({ pc4Lijst: list })} onEstChange={est => updateWiz({ aantalFlyers: Math.max(250, est) })} />
             </div>
           )}
 
@@ -1165,7 +1779,7 @@ export default function LokaalKabaal() {
               {/* Aantal */}
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '10px' }}>
-                  AANTAL FLYERS — {stats.suggestieFlyers} AANBEVOLEN VOOR DIT GEBIED
+                  MAXIMAAL AANTAL FLYERS PER MAAND
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '10px' }}>
                   {[250, 500, 750, 1000, 1500, 2000, 2500, 3000].map(n => (
@@ -1178,7 +1792,7 @@ export default function LokaalKabaal() {
                       }}>{n.toLocaleString('nl')}</button>
                   ))}
                 </div>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '12px' }}>
                   <span style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>Of voer in:</span>
                   <input
                     type="number" min={250} step={50} value={aantalFlyers}
@@ -1186,19 +1800,50 @@ export default function LokaalKabaal() {
                     style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', fontFamily: 'var(--font-mono)', fontSize: '14px', background: 'var(--paper2)' }}
                   />
                 </div>
+                <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.25)', borderRadius: 'var(--radius)', padding: '12px 14px', fontSize: '12px', lineHeight: 1.6, color: 'var(--ink)' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--green-dim)', marginBottom: '6px', letterSpacing: '0.08em' }}>
+                    HOE WERKT HET MAXIMALE BUDGET?
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <span style={{ color: 'var(--green)', flexShrink: 0, fontWeight: 700, fontSize: '14px' }}>1</span>
+                      <span style={{ fontSize: '12px', color: '#444' }}>
+                        <strong>Jij kiest een maximum</strong> — dit is het hoogste aantal flyers dat we per maand versturen. Je betaalt nooit meer dan dit maximum.
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <span style={{ color: 'var(--green)', flexShrink: 0, fontWeight: 700, fontSize: '14px' }}>2</span>
+                      <span style={{ fontSize: '12px', color: '#444' }}>
+                        <strong>Op de 20e weten we het exacte aantal</strong> — dan verwerken we de verhuisdata voor jouw gebied. Je ziet dit in het dashboard vóór de verzending.
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <span style={{ color: 'var(--green)', flexShrink: 0, fontWeight: 700, fontSize: '14px' }}>3</span>
+                      <span style={{ fontSize: '12px', color: '#444' }}>
+                        <strong>Op de 25e wordt alles verstuurd</strong> — je betaalt alleen voor de daadwerkelijk verstuurde flyers. Minder verhuizingen = lagere factuur.
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid rgba(0,232,122,0.2)', paddingTop: '8px' }}>
+                      <span style={{ color: '#888', flexShrink: 0, fontWeight: 700, fontSize: '14px' }}>★</span>
+                      <span style={{ fontSize: '12px', color: '#666' }}>
+                        Bij minder verhuizingen dan verwacht: kies voor <strong>credit</strong> (terugboeking volgende factuur) of <strong>rollover</strong> (resterende flyers volgende maand als eerste verstuurd).
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Prijsoverzicht */}
               <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '6px', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '13px', color: 'var(--muted)' }}>{aantalFlyers.toLocaleString('nl')} flyers × {formaat.toUpperCase()}{dubbelzijdig ? ' dubbelzijdig' : ''}</span>
+                  <span style={{ fontSize: '13px', color: 'var(--muted)' }}>Max {aantalFlyers.toLocaleString('nl')} flyers × {formaat.toUpperCase()}{dubbelzijdig ? ' dubbelzijdig' : ''}</span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>
                     €{(berekenPrijs(aantalFlyers, formaat, dubbelzijdig) / aantalFlyers).toFixed(2)}/stuk
                   </span>
                 </div>
                 <div style={{ height: '1px', background: 'var(--line)', margin: '10px 0' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <span style={{ fontWeight: 700 }}>Totaal per maand</span>
+                  <span style={{ fontWeight: 700 }}>Max budget per maand</span>
                   <span style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', color: 'var(--green)' }}>{formatPrijs(prijs)}</span>
                 </div>
               </div>
@@ -1212,6 +1857,31 @@ export default function LokaalKabaal() {
               <p style={{ color: 'var(--muted)', marginBottom: '20px' }}>
                 Bekijk je instellingen. Optioneel: stuur één proef flyer naar je eigen adres.
               </p>
+
+              {/* Flyer kiezen */}
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '10px' }}>FLYER VOOR DEZE CAMPAGNE</div>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                  {flyers.map((f, i) => (
+                    <button key={f.id} onClick={() => { setActiveFlyerIdx(i); updateWiz({ flyerIndex: i }); }}
+                      style={{
+                        padding: '8px 14px', border: `2px solid ${flyerIndex === i ? 'var(--green)' : 'var(--line)'}`,
+                        borderRadius: 'var(--radius)', background: flyerIndex === i ? 'var(--green-bg)' : 'var(--paper)',
+                        cursor: 'pointer', fontSize: '12px', fontFamily: 'var(--font-mono)',
+                        fontWeight: flyerIndex === i ? 700 : 400, color: flyerIndex === i ? 'var(--green-dim)' : 'var(--ink)',
+                      }}>
+                      {f.naam}
+                    </button>
+                  ))}
+                  <button onClick={() => setPage('flyer')}
+                    style={{ padding: '8px 14px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper)', cursor: 'pointer', fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--muted)' }}>
+                    Bewerken →
+                  </button>
+                </div>
+                <div ref={wizardFlyerRef} style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden', maxWidth: '200px' }}>
+                  <FlyerPreview flyer={flyer} />
+                </div>
+              </div>
 
               {/* Samenvatting */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
@@ -1245,15 +1915,91 @@ export default function LokaalKabaal() {
                 {proefFlyer && (
                   <div>
                     <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '6px' }}>JOUW ADRES (straat + huisnr + postcode + stad)</label>
-                    <input
-                      type="text"
-                      placeholder="Kerkstraat 12, 3512 AB Utrecht"
-                      value={proefAdres}
-                      onChange={e => updateWiz({ proefAdres: e.target.value })}
-                      style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: '#fff', fontFamily: 'var(--font-mono)', boxSizing: 'border-box' }}
-                    />
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="text"
+                        placeholder="Kerkstraat 12, 3512 AB Utrecht"
+                        value={proefAdres}
+                        onChange={e => {
+                          const val = e.target.value;
+                          updateWiz({ proefAdres: val });
+                          setAdresStatus('idle');
+                          setAdresFeedback({});
+                          if (adresTimerRef.current) clearTimeout(adresTimerRef.current);
+                          if (val.length > 8) {
+                            setAdresStatus('checking');
+                            adresTimerRef.current = setTimeout(async () => {
+                              try {
+                                const r = await fetch(`/api/printone/validate?adres=${encodeURIComponent(val)}`);
+                                const d = await r.json();
+                                if (d.valid) {
+                                  setAdresStatus('ok');
+                                  setAdresFeedback({
+                                    volledig: d.genormaliseerd?.volledig,
+                                    adresRegel: d.genormaliseerd?.adresRegel,
+                                    postcode: d.genormaliseerd?.postcode,
+                                    stad: d.genormaliseerd?.stad,
+                                  });
+                                } else {
+                                  setAdresStatus('error');
+                                  setAdresFeedback({ error: d.error, suggesties: d.suggesties });
+                                }
+                              } catch {
+                                setAdresStatus('idle');
+                              }
+                            }, 600);
+                          }
+                        }}
+                        style={{
+                          width: '100%', padding: '10px 36px 10px 12px',
+                          border: `1px solid ${adresStatus === 'ok' ? 'var(--green)' : adresStatus === 'error' ? '#e74c3c' : 'var(--line)'}`,
+                          borderRadius: 'var(--radius)', background: '#fff',
+                          fontFamily: 'var(--font-mono)', boxSizing: 'border-box',
+                        }}
+                      />
+                      {/* Status icon */}
+                      <div style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '14px' }}>
+                        {adresStatus === 'checking' && <span style={{ color: 'var(--muted)', fontSize: '11px', fontFamily: 'var(--font-mono)' }}>...</span>}
+                        {adresStatus === 'ok' && <span style={{ color: 'var(--green)' }}>✓</span>}
+                        {adresStatus === 'error' && <span style={{ color: '#e74c3c' }}>✗</span>}
+                      </div>
+                    </div>
+                    {/* Feedback */}
+                    {adresStatus === 'ok' && adresFeedback.volledig && (
+                      <div style={{ marginTop: '6px', fontSize: '11px', color: 'var(--green-dim)', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>✓</span> Gevonden: {adresFeedback.volledig}
+                      </div>
+                    )}
+                    {adresStatus === 'error' && (
+                      <div style={{ marginTop: '6px', fontSize: '11px', color: '#e74c3c', fontFamily: 'var(--font-mono)' }}>
+                        {adresFeedback.error || 'Adres niet herkend'}
+                        {adresFeedback.suggesties && adresFeedback.suggesties.length > 0 && (
+                          <div style={{ marginTop: '4px' }}>
+                            <span style={{ color: 'var(--muted)' }}>Bedoelde je: </span>
+                            {adresFeedback.suggesties.map((s, i) => (
+                              <button key={i} onClick={() => { updateWiz({ proefAdres: s }); setAdresStatus('idle'); setAdresFeedback({}); }}
+                                style={{ display: 'block', background: 'none', border: 'none', padding: '2px 0', cursor: 'pointer', color: '#e74c3c', textDecoration: 'underline', fontSize: '11px', fontFamily: 'var(--font-mono)', textAlign: 'left' }}>
+                                {s}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
+              </div>
+
+              {/* E-mailadres voor Stripe */}
+              <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px', marginBottom: '20px' }}>
+                <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '6px' }}>E-MAILADRES (voor betalingsbevestiging)</label>
+                <input
+                  type="email"
+                  value={wiz.email ?? ''}
+                  onChange={e => updateWiz({ email: e.target.value })}
+                  placeholder="jouw@email.nl"
+                  style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: '#fff', fontFamily: 'var(--font-mono)', boxSizing: 'border-box' }}
+                />
               </div>
 
               {/* Totaal */}
@@ -1303,31 +2049,81 @@ export default function LokaalKabaal() {
                   <p style={{ color: 'var(--muted)', fontSize: '11px', marginBottom: '20px', fontFamily: 'var(--font-mono)' }}>
                     Betaald: €4,95 incl. verzending · Campagne nog niet actief
                   </p>
-                  <button onClick={() => { setPage('dashboard'); }} style={{
-                    padding: '12px 28px', background: 'var(--ink)', color: 'var(--paper)',
-                    border: 'none', borderRadius: 'var(--radius)', fontWeight: 700, cursor: 'pointer', fontSize: '14px'
-                  }}>Naar dashboard — wachten op proef →</button>
-                </>
-              ) : (
-                <>
-                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '64px', color: 'var(--green)', marginBottom: '12px', lineHeight: 1 }}>✓</div>
-                  <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '32px', marginBottom: '8px' }}>Campagne geactiveerd!</h2>
-                  <p style={{ color: 'var(--muted)', maxWidth: '420px', margin: '0 auto 8px', lineHeight: 1.6 }}>
-                    Je flyers gaan elke maand op de 25e de deur uit naar nieuwe bewoners in <strong>{centrum || 'jouw werkgebied'}</strong>.
-                  </p>
-                  <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '28px', fontFamily: 'var(--font-mono)' }}>
-                    Eerste bezorging: {datum ? new Date(datum).toLocaleDateString('nl', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
-                  </p>
                   <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
                     <button onClick={() => setPage('dashboard')} style={{
                       padding: '12px 24px', background: 'var(--ink)', color: 'var(--paper)',
                       border: 'none', borderRadius: 'var(--radius)', fontWeight: 700, cursor: 'pointer', fontSize: '14px'
-                    }}>Naar dashboard</button>
-                    <button onClick={() => setPage('flyer')} style={{
+                    }}>Naar dashboard →</button>
+                    <button onClick={startNieuweCampagne} style={{
                       padding: '12px 24px', background: 'var(--paper)', color: 'var(--ink)',
                       border: '1px solid var(--line)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: '14px'
-                    }}>Flyer aanpassen</button>
+                    }}>+ Nog een campagne</button>
                   </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '64px', color: 'var(--green)', marginBottom: '12px', lineHeight: 1 }}>€</div>
+                  <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '32px', marginBottom: '8px' }}>Betaal & activeer je campagne</h2>
+                  <p style={{ color: 'var(--muted)', maxWidth: '420px', margin: '0 auto 8px', lineHeight: 1.6 }}>
+                    Je flyers gaan elke maand op de <strong>25e</strong> de deur uit naar nieuwe bewoners in <strong>{centrum || 'jouw werkgebied'}</strong>. Op de 20e zie je hoeveel dat worden.
+                  </p>
+                  <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '20px', fontFamily: 'var(--font-mono)' }}>
+                    Eerste bezorging: {datum ? new Date(datum).toLocaleDateString('nl', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'} · Betaling via Stripe
+                  </p>
+                  <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px', maxWidth: '420px', margin: '0 auto 20px', textAlign: 'left' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                      <span style={{ color: 'var(--muted)', fontSize: '13px' }}>Max {aantalFlyers.toLocaleString('nl')} flyers/maand</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{formatPrijs(prijs)}/mnd</span>
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                      Je betaalt alleen voor daadwerkelijk verstuurde flyers. Factuur op de 25e v/d maand.
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={async () => {
+                        setOrderLoading(true);
+                        setOrderError('');
+                        try {
+                          const res = await fetch('/api/stripe/checkout', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              maxFlyers: aantalFlyers,
+                              formaat,
+                              dubbelzijdig,
+                              spec,
+                              datum,
+                              centrum,
+                              email: wiz.email || 'klant@lokaalkabaal.nl',
+                              bedrijfsnaam: flyer.bedrijfsnaam || 'Klant',
+                            }),
+                          });
+                          const data = await res.json();
+                          if (data.url) {
+                            window.location.href = data.url;
+                          } else {
+                            setOrderError(data.error || 'Stripe checkout mislukt');
+                          }
+                        } catch {
+                          setOrderError('Verbindingsfout — probeer opnieuw');
+                        } finally {
+                          setOrderLoading(false);
+                        }
+                      }}
+                      disabled={orderLoading}
+                      style={{
+                        padding: '14px 32px', background: orderLoading ? 'var(--line)' : 'var(--ink)', color: orderLoading ? 'var(--muted)' : 'var(--paper)',
+                        border: 'none', borderRadius: 'var(--radius)', fontWeight: 700, cursor: orderLoading ? 'not-allowed' : 'pointer', fontSize: '15px'
+                      }}>
+                      {orderLoading ? 'Laden...' : 'Betalen via Stripe →'}
+                    </button>
+                    <button onClick={startNieuweCampagne} style={{
+                      padding: '14px 24px', background: 'var(--paper)', color: 'var(--ink)',
+                      border: '1px solid var(--line)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: '14px'
+                    }}>Annuleren</button>
+                  </div>
+                  {orderError && <div style={{ marginTop: '12px', fontSize: '12px', color: '#c0392b', fontFamily: 'var(--font-mono)' }}>✗ {orderError}</div>}
                 </>
               )}
             </div>
@@ -1336,6 +2132,12 @@ export default function LokaalKabaal() {
 
         {/* Nav knoppen */}
         {step < 7 && (
+          <div>
+          {orderError && (
+            <div style={{ marginBottom: '10px', padding: '10px 14px', background: 'rgba(231,76,60,0.08)', border: '1px solid rgba(231,76,60,0.3)', borderRadius: 'var(--radius)', fontSize: '12px', color: '#c0392b', fontFamily: 'var(--font-mono)' }}>
+              ✗ {orderError}
+            </div>
+          )}
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <button
               onClick={() => step > 1 ? updateWiz({ step: step - 1 }) : setPage('dashboard')}
@@ -1343,21 +2145,72 @@ export default function LokaalKabaal() {
               {step === 1 ? 'Annuleren' : '← Terug'}
             </button>
             <button
-              disabled={!canNext}
-              onClick={() => {
+              disabled={!canNext || orderLoading}
+              onClick={async () => {
                 if (step === 6 && proefFlyer) {
-                  setPendingCampaign({ spec, datum, centrum, aantalFlyers, formaat, proefAdres });
+                  setOrderLoading(true);
+                  setOrderError('');
+                  try {
+                    // Capture flyer HTML from rendered preview
+                    const flyerHtml = wizardFlyerRef.current
+                      ? `<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:sans-serif}</style></head><body>${wizardFlyerRef.current.innerHTML}</body></html>`
+                      : '<html><body><p>Flyer</p></body></html>';
+
+                    // Parse normalized address from BAG validation
+                    const adresRegel = adresFeedback.adresRegel || proefAdres.split(',')[0].trim();
+                    const postcode = adresFeedback.postcode || '';
+                    const stad = adresFeedback.stad || '';
+
+                    const res = await fetch('/api/printone', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        flyerHtml,
+                        formaat,
+                        finish: 'GLOSSY',
+                        recipient: {
+                          name: flyer.bedrijfsnaam || 'Klant',
+                          address: adresRegel,
+                          city: stad,
+                          postalCode: postcode,
+                          country: 'NL',
+                        },
+                        sender: {
+                          name: 'LokaalKabaal',
+                          address: 'Keizersgracht 1',
+                          city: 'Amsterdam',
+                          postalCode: '1015CN',
+                          country: 'NL',
+                        },
+                        templateNaam: `Proef – ${flyer.bedrijfsnaam || 'LokaalKabaal'} – ${new Date().toISOString().slice(0, 10)}`,
+                      }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                      setOrderError(data.error || 'Bestelling mislukt');
+                      setOrderLoading(false);
+                      return;
+                    }
+                    setPendingCampaign({ spec, datum, centrum, aantalFlyers, formaat, proefAdres });
+                    updateWiz({ step: step + 1 });
+                  } catch {
+                    setOrderError('Verbindingsfout — probeer opnieuw');
+                  } finally {
+                    setOrderLoading(false);
+                  }
+                } else {
+                  updateWiz({ step: step + 1 });
                 }
-                updateWiz({ step: step + 1 });
               }}
               style={{
-                padding: '10px 24px', background: canNext ? 'var(--ink)' : 'var(--line)',
-                color: canNext ? 'var(--paper)' : 'var(--muted)', border: 'none',
-                borderRadius: 'var(--radius)', cursor: canNext ? 'pointer' : 'not-allowed',
+                padding: '10px 24px', background: (canNext && !orderLoading) ? 'var(--ink)' : 'var(--line)',
+                color: (canNext && !orderLoading) ? 'var(--paper)' : 'var(--muted)', border: 'none',
+                borderRadius: 'var(--radius)', cursor: (canNext && !orderLoading) ? 'pointer' : 'not-allowed',
                 fontWeight: 700, fontSize: '13px', transition: 'all 0.15s'
               }}>
-              {step === 6 ? (proefFlyer ? 'Proef bestellen — €5,00 →' : 'Campagne activeren →') : 'Volgende →'}
+              {orderLoading ? 'Bestelling plaatsen…' : step === 6 ? (proefFlyer ? 'Proef bestellen — €4,95 →' : 'Campagne activeren →') : 'Volgende →'}
             </button>
+          </div>
           </div>
         )}
       </div>
@@ -1367,42 +2220,82 @@ export default function LokaalKabaal() {
   function renderFlyer() {
     return (
       <div className="fade-in">
-        <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '4px' }}>Flyer editor</h1>
-        <p style={{ color: 'var(--muted)', marginBottom: '20px', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
-          Pas je flyer aan. Veranderingen zijn direct zichtbaar in de preview.
-        </p>
+        {/* Pending campagne banner */}
+        {pendingCampaign && (
+          <div style={{
+            background: 'var(--green-bg)', border: '2px solid var(--green)', borderRadius: 'var(--radius)',
+            padding: '14px 20px', marginBottom: '20px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap',
+          }}>
+            <div>
+              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)', fontWeight: 700, marginBottom: '2px' }}>
+                CAMPAGNE WACHT OP JOUW GOEDKEURING
+              </div>
+              <div style={{ fontSize: '13px', color: 'var(--ink)' }}>
+                {pendingCampaign.spec} · {pendingCampaign.aantalFlyers.toLocaleString('nl')} flyers/mnd · start {pendingCampaign.datum ? new Date(pendingCampaign.datum).toLocaleDateString('nl', { month: 'long', year: 'numeric' }) : '—'}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+              <button onClick={() => { setPage('dashboard'); }}
+                style={{ padding: '8px 14px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper)', cursor: 'pointer', fontSize: '12px' }}>
+                ← Terug
+              </button>
+              <button onClick={() => { setPendingCampaign(null); setPage('dashboard'); }}
+                style={{ padding: '8px 16px', background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: '12px', fontWeight: 700 }}>
+                Campagne goedkeuren →
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '4px' }}>Mijn flyers</h1>
+            <p style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
+              Maak tot 3 flyers aan en kies per campagne welke je gebruikt.
+            </p>
+          </div>
+          {flyers.length < 3 && (
+            <button
+              onClick={() => {
+                const newId = Date.now();
+                const newFlyer: SavedFlyer = { ...INIT_FLYER, naam: `Flyer ${flyers.length + 1}`, id: newId };
+                setFlyers(fs => [...fs, newFlyer]);
+                setActiveFlyerIdx(flyers.length);
+              }}
+              style={{ padding: '8px 16px', background: 'var(--ink)', color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '12px', cursor: 'pointer', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
+              + Nieuwe flyer
+            </button>
+          )}
+        </div>
+
+        {/* Flyer tabs */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+          {flyers.map((f, i) => (
+            <button key={f.id} onClick={() => setActiveFlyerIdx(i)}
+              style={{
+                padding: '7px 14px', border: `2px solid ${activeFlyerIdx === i ? 'var(--green)' : 'var(--line)'}`,
+                borderRadius: 'var(--radius)', background: activeFlyerIdx === i ? 'var(--green-bg)' : 'var(--paper)',
+                cursor: 'pointer', fontSize: '12px', fontFamily: 'var(--font-mono)',
+                fontWeight: activeFlyerIdx === i ? 700 : 400, color: activeFlyerIdx === i ? 'var(--green-dim)' : 'var(--ink)',
+              }}>
+              {f.naam}
+              {flyers.length > 1 && (
+                <span
+                  onClick={e => { e.stopPropagation(); if (flyers.length > 1) { setFlyers(fs => fs.filter((_, idx) => idx !== i)); setActiveFlyerIdx(0); } }}
+                  style={{ marginLeft: '8px', color: 'var(--muted)', fontWeight: 400, cursor: 'pointer' }}>×</span>
+              )}
+            </button>
+          ))}
+        </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '16px', alignItems: 'start' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
-            {/* Templates */}
-            <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '12px' }}>Voorbeeldtemplates</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                {FLYER_TEMPLATES.map(t => (
-                  <button key={t.id} onClick={() => applyTemplate(t)}
-                    style={{
-                      padding: '12px 8px', border: '1px solid var(--line)',
-                      borderRadius: 'var(--radius)', background: 'var(--paper)',
-                      cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--green)')}
-                    onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--line)')}
-                  >
-                    <div style={{ fontSize: '20px', marginBottom: '4px' }}>{t.icon}</div>
-                    <div style={{ fontSize: '12px', fontWeight: 600 }}>{t.label}</div>
-                    <div style={{ width: '24px', height: '4px', borderRadius: '2px', background: t.accent, margin: '6px auto 0' }} />
-                  </button>
-                ))}
-              </div>
-              <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '8px' }}>
-                Klik op een template om kleuren, naam en tekst over te nemen
-              </div>
-            </div>
-
             {/* Design kiezen */}
             <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '12px' }}>Design</div>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Design</div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>9 professionele stijlen — kies wat bij jou past</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                 {([
                   { id: 'editorial' as const, label: 'Editorial', sub: 'Magazine-stijl' },
@@ -1411,15 +2304,20 @@ export default function LokaalKabaal() {
                   { id: 'bold' as const, label: 'Bold', sub: 'Foto centraal' },
                   { id: 'retro' as const, label: 'Retro', sub: 'Vintage poster' },
                   { id: 'warm' as const, label: 'Warm', sub: 'Buurt & sfeer' },
+                  { id: 'neon' as const, label: 'Neon', sub: 'Dark & glowing' },
+                  { id: 'corporate' as const, label: 'Corporate', sub: 'Professioneel' },
+                  { id: 'playful' as const, label: 'Playful', sub: 'Fun & rondes' },
                 ] as { id: FlyerState['design']; label: string; sub: string }[]).map(d => (
-                  <button key={d.id} onClick={() => updateFlyer({ design: d.id })}
+                  <button key={d.id} onClick={() => {
+                    updateFlyer({ design: d.id });
+                  }}
                     style={{
-                      padding: '12px 8px', border: `2px solid ${flyer.design === d.id ? 'var(--green)' : 'var(--line)'}`,
+                      padding: '10px 6px', border: `2px solid ${flyer.design === d.id ? 'var(--green)' : 'var(--line)'}`,
                       borderRadius: 'var(--radius)', background: flyer.design === d.id ? 'var(--green-bg)' : 'var(--paper)',
                       cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s',
                     }}>
                     <div style={{ fontSize: '11px', fontWeight: 700, color: flyer.design === d.id ? 'var(--green-dim)' : 'var(--ink)', marginBottom: '2px' }}>{d.label}</div>
-                    <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{d.sub}</div>
+                    <div style={{ fontSize: '9px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{d.sub}</div>
                   </button>
                 ))}
               </div>
@@ -1447,7 +2345,20 @@ export default function LokaalKabaal() {
                   {scanLoading ? 'Scannen...' : 'Scan →'}
                 </button>
               </div>
-              {scanMsg && <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--green-dim)', fontFamily: 'var(--font-mono)' }}>{scanMsg}</div>}
+              {scanMsg && (
+                <div style={{
+                  marginTop: '8px', padding: '10px 12px', borderRadius: 'var(--radius)',
+                  fontSize: '12px', fontFamily: 'var(--font-mono)', lineHeight: 1.6,
+                  background: scanMsg.includes('mislukt') || scanMsg.includes('blokkeert') || scanMsg.includes('niet bereikbaar') || scanMsg.includes('niet uitgelezen')
+                    ? 'rgba(255,80,80,0.07)' : 'var(--green-bg)',
+                  border: scanMsg.includes('mislukt') || scanMsg.includes('blokkeert') || scanMsg.includes('niet bereikbaar') || scanMsg.includes('niet uitgelezen')
+                    ? '1px solid rgba(255,80,80,0.25)' : '1px solid rgba(0,232,122,0.25)',
+                  color: scanMsg.includes('mislukt') || scanMsg.includes('blokkeert') || scanMsg.includes('niet bereikbaar') || scanMsg.includes('niet uitgelezen')
+                    ? '#c0392b' : 'var(--green-dim)',
+                }}>
+                  {scanMsg}
+                </div>
+              )}
             </div>
 
             {/* Kleuren */}
@@ -1527,6 +2438,62 @@ export default function LokaalKabaal() {
               />
             </div>
 
+            {/* Achterkant inhoud */}
+            <div style={{ background: 'var(--white)', border: `2px solid ${flyer.dubbelzijdig ? 'var(--green)' : 'var(--line)'}`, borderRadius: 'var(--radius)', padding: '20px', opacity: flyer.dubbelzijdig ? 1 : 0.5, transition: 'all 0.2s' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px' }}>Achterkant</div>
+                  {flyer.dubbelzijdig && <span style={{ fontFamily: 'var(--font-mono)', fontSize: '9px', background: 'var(--green)', color: 'var(--ink)', padding: '1px 6px', borderRadius: '2px', fontWeight: 700 }}>ACTIEF</span>}
+                </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={flyer.dubbelzijdig} onChange={e => { updateFlyer({ dubbelzijdig: e.target.checked }); if (!e.target.checked) setPreviewSide('voor'); }} style={{ accentColor: 'var(--green)' }} />
+                  <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: flyer.dubbelzijdig ? 'var(--green-dim)' : 'var(--muted)' }}>Dubbelzijdig (+€0,06/stuk)</span>
+                </label>
+              </div>
+              {!flyer.dubbelzijdig ? (
+                <div style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', padding: '12px 0' }}>
+                  Zet dubbelzijdig aan om de achterkant te ontwerpen — perfect voor openingstijden, contact en een QR-code.
+                </div>
+              ) : (
+                <>
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '14px' }}>
+                    Contact- en locatiegegevens voor de achterkant van je flyer
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div>
+                      <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>ADRES (verschijnt op achterkant)</label>
+                      <input
+                        value={flyer.adres}
+                        onChange={e => updateFlyer({ adres: e.target.value })}
+                        placeholder="Kerkstraat 12, 3512 AB Utrecht"
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>OPENINGSTIJDEN (één per regel)</label>
+                      <textarea
+                        value={flyer.openingstijden}
+                        onChange={e => updateFlyer({ openingstijden: e.target.value })}
+                        placeholder={'Ma–Vr 09:00–18:00\nZa 10:00–17:00\nZo gesloten'}
+                        rows={3}
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)', resize: 'vertical', fontFamily: 'var(--font-sans)', fontSize: '13px', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>ACHTERKANT TEKST (slogan of aanbieding)</label>
+                      <textarea
+                        value={flyer.backTekst}
+                        onChange={e => updateFlyer({ backTekst: e.target.value })}
+                        placeholder="Vragen? Wij helpen je graag verder. Kom langs of bel ons!"
+                        rows={2}
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)', resize: 'vertical', fontFamily: 'var(--font-sans)', fontSize: '13px', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
             {/* Logo */}
             <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
               <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '12px' }}>Logo</div>
@@ -1550,12 +2517,32 @@ export default function LokaalKabaal() {
           {/* Preview */}
           <div style={{ position: 'sticky', top: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px' }}>Preview</div>
-            {/* Bleed indicator wrapper */}
+            {/* Voor/Achter tabs — only when dubbelzijdig */}
+            {flyer.dubbelzijdig && (
+              <div style={{ display: 'flex', gap: '4px' }}>
+                {(['voor', 'achter'] as const).map(side => (
+                  <button key={side} onClick={() => setPreviewSide(side)}
+                    style={{
+                      flex: 1, padding: '6px', border: `2px solid ${previewSide === side ? 'var(--green)' : 'var(--line)'}`,
+                      borderRadius: 'var(--radius)', background: previewSide === side ? 'var(--green-bg)' : 'var(--paper)',
+                      cursor: 'pointer', fontSize: '11px', fontFamily: 'var(--font-mono)',
+                      fontWeight: previewSide === side ? 700 : 400,
+                      color: previewSide === side ? 'var(--green-dim)' : 'var(--muted)',
+                    }}>
+                    {side === 'voor' ? '▣ Voorkant' : '▤ Achterkant'}
+                  </button>
+                ))}
+              </div>
+            )}
+            {/* Flyer preview */}
             <div style={{ position: 'relative', display: 'inline-block' }}>
               <div ref={flyerPreviewRef}>
-                <FlyerPreview flyer={flyer} onHeroOffsetChange={(x, y) => updateFlyer({ heroOffsetX: x, heroOffsetY: y })} />
+                {(!flyer.dubbelzijdig || previewSide === 'voor')
+                  ? <FlyerPreview flyer={flyer} onHeroOffsetChange={(x, y) => updateFlyer({ heroOffsetX: x, heroOffsetY: y })} />
+                  : <FlyerBackPreview flyer={flyer} />
+                }
               </div>
-              {/* Safe zone overlay (dashed) */}
+              {/* Safe zone overlay */}
               <div style={{
                 position: 'absolute', inset: '6px', border: '1px dashed rgba(0,232,122,0.35)',
                 borderRadius: '4px', pointerEvents: 'none',
@@ -1577,10 +2564,6 @@ export default function LokaalKabaal() {
                   </button>
                 ))}
               </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px', cursor: 'pointer' }}>
-                <input type="checkbox" checked={flyer.dubbelzijdig} onChange={e => updateFlyer({ dubbelzijdig: e.target.checked })} style={{ accentColor: 'var(--green)' }} />
-                <span style={{ fontSize: '12px', fontFamily: 'var(--font-mono)' }}>Dubbelzijdig (+€0,06/stuk)</span>
-              </label>
             </div>
             <FlyerExport
               flyerRef={flyerPreviewRef}
