@@ -420,7 +420,7 @@ function buildFlyerHTML(d: {
   .accent-bar{position:absolute;top:0;left:0;right:0;height:1.5mm;background:${d.accentKleur}}
   .flyer{width:100%;height:100%;display:flex;flex-direction:column;padding:9mm 9mm 7mm}
   .header{display:flex;align-items:center;gap:4mm;padding-bottom:5mm;border-bottom:0.4mm solid ${d.accentKleur}55;margin-bottom:5mm}
-  .logo{max-height:11mm;max-width:38mm;object-fit:contain}
+  .logo{max-height:14mm;max-width:42mm;height:auto;width:auto;object-fit:contain;display:block}
   .bedrijfsnaam{font-size:15pt;font-weight:800;color:${tekstKleur};line-height:1.1}
   .branche-badge{
     display:inline-block;background:${d.accentKleur};color:#0A0A0A;
@@ -443,6 +443,24 @@ function buildFlyerHTML(d: {
   .qr-label{font-size:5.5pt;color:${mutedKleur};font-family:'DM Mono',monospace;text-align:center;letter-spacing:.04em}
   .adres-block{margin-top:3mm;padding:2.5mm 3mm;background:${d.accentKleur}18;border-left:1.5mm solid ${d.accentKleur};border-radius:.5mm}
 </style>
+<script>
+(function(){
+  var logo = document.querySelector('.logo');
+  if(!logo) return;
+  function adapt(){
+    var w = logo.naturalWidth, h = logo.naturalHeight;
+    if(!w || !h) return;
+    if(w/h > 2.2){
+      /* brede / tekst-logo */
+      logo.style.height='10mm'; logo.style.width='auto'; logo.style.maxWidth='42mm'; logo.style.borderRadius='0';
+    } else {
+      /* vierkant / icoon-logo */
+      logo.style.height='14mm'; logo.style.width='14mm'; logo.style.maxWidth='14mm'; logo.style.borderRadius='1.5mm';
+    }
+  }
+  if(logo.complete && logo.naturalWidth){ adapt(); } else { logo.addEventListener('load', adapt); }
+})();
+</script>
 </head>
 <body>
 <div class="accent-bar"></div>

@@ -138,6 +138,38 @@ interface FlyerState {
 
 type Page = 'dashboard' | 'wizard' | 'flyer' | 'credits' | 'profiel' | 'conversies';
 
+// ─── AdaptiveLogo — past breedte en hoogte aan op het aspect van het logo ─────
+
+function AdaptiveLogo({ src, baseSize, style }: {
+  src: string;
+  baseSize: number;
+  style?: React.CSSProperties;
+}) {
+  const [aspect, setAspect] = useState<number>(1);
+  const wide = aspect > 2.2;
+  const imgStyle: React.CSSProperties = wide
+    ? {
+        height: Math.round(baseSize * 0.75),
+        width: 'auto',
+        maxWidth: baseSize * 4.5,
+        objectFit: 'contain' as const,
+        flexShrink: 0,
+        filter: style?.filter,
+      }
+    : { width: baseSize, height: baseSize, objectFit: 'contain' as const, flexShrink: 0, ...style };
+  return (
+    <img
+      src={src}
+      alt=""
+      style={imgStyle}
+      onLoad={e => {
+        const img = e.currentTarget;
+        if (img.naturalWidth && img.naturalHeight) setAspect(img.naturalWidth / img.naturalHeight);
+      }}
+    />
+  );
+}
+
 // ─── Flyer Preview — 3 premium designs ───────────────────────────────────────
 
 function FlyerPreview({ flyer, onHeroOffsetChange }: {
@@ -258,7 +290,7 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
             {flyer.website && <div style={{ fontSize: '7px', color: flyer.accent, fontFamily: 'var(--font-mono)', marginTop: '1px' }}>{flyer.website}</div>}
           </div>
           {flyer.logoData
-            ? <img src={flyer.logoData} alt="" style={{ width: '26px', height: '26px', objectFit: 'contain', borderRadius: '3px' }} />
+            ? <AdaptiveLogo src={flyer.logoData} baseSize={26} style={{ borderRadius: '3px' }} />
             : <div style={{ width: '26px', height: '26px', background: flyer.accent, borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: flyer.kleur, fontWeight: 900, fontSize: '9px' }}>{initials}</div>
           }
         </div>
@@ -299,7 +331,7 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
         {flyer.heroImageUrl && (
           <div style={{ background: flyer.kleur, padding: '8px 14px 6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             {flyer.logoData
-              ? <img src={flyer.logoData} alt="" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+              ? <AdaptiveLogo src={flyer.logoData} baseSize={20} />
               : <div style={{ width: '20px', height: '20px', background: flyer.accent, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '7px', fontWeight: 900, color: flyer.kleur, flexShrink: 0 }}>{initials}</div>
             }
             <div style={{ fontWeight: 700, fontSize: '9px', color: '#fff' }}>{naam}</div>
@@ -358,7 +390,7 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
             {flyer.slogan && <div style={{ fontSize: '7px', color: '#999', marginTop: '2px', letterSpacing: '0.10em', textTransform: 'uppercase' }}>{flyer.slogan}</div>}
           </div>
           {flyer.logoData
-            ? <img src={flyer.logoData} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+            ? <AdaptiveLogo src={flyer.logoData} baseSize={28} />
             : <div style={{ width: '28px', height: '28px', border: `1px solid ${flyer.kleur}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 700, color: flyer.kleur }}>{initials}</div>
           }
         </div>
@@ -448,7 +480,7 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
           <div style={{ background: flyer.accent, padding: '7px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '8px', fontWeight: 800, color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>{ctaText}</span>
             {flyer.logoData
-              ? <img src={flyer.logoData} alt="" style={{ width: '20px', height: '20px', objectFit: 'contain', borderRadius: '2px' }} />
+              ? <AdaptiveLogo src={flyer.logoData} baseSize={20} style={{ borderRadius: '2px' }} />
               : <span style={{ fontSize: '7px', fontWeight: 700, color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>{flyer.website || ''}</span>
             }
           </div>
@@ -514,7 +546,7 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
           <div style={{ padding: '6px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `2px solid ${flyer.kleur}` }}>
             <div style={{ fontFamily: 'var(--font-serif)', fontSize: '9px', fontWeight: 700, color: flyer.kleur }}>{naam}</div>
             {flyer.logoData
-              ? <img src={flyer.logoData} alt="" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+              ? <AdaptiveLogo src={flyer.logoData} baseSize={20} />
               : <div style={{ fontSize: '7px', fontFamily: 'var(--font-mono)', color: flyer.kleur, opacity: 0.65 }}>{flyer.website || ''}</div>
             }
           </div>
@@ -549,7 +581,7 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
           {/* Business name */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '7px' }}>
             {flyer.logoData
-              ? <img src={flyer.logoData} alt="" style={{ width: '18px', height: '18px', objectFit: 'contain', borderRadius: '50%', flexShrink: 0 }} />
+              ? <AdaptiveLogo src={flyer.logoData} baseSize={18} style={{ borderRadius: '50%', flexShrink: 0 }} />
               : <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: flyer.accent, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '7px', fontWeight: 900, color: flyer.kleur }}>{initials}</div>
             }
             <div style={{ fontSize: '10px', fontWeight: 700, color: flyer.kleur }}>{naam}</div>
@@ -631,7 +663,7 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
             {flyer.website && <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.28)', fontFamily: 'var(--font-mono)', marginTop: '1px' }}>{flyer.website}</div>}
           </div>
           {flyer.logoData
-            ? <img src={flyer.logoData} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain', filter: 'brightness(1.3)' }} />
+            ? <AdaptiveLogo src={flyer.logoData} baseSize={22} style={{ filter: 'brightness(1.3)' }} />
             : <div style={{ width: '22px', height: '22px', border: `1px solid ${flyer.accent}`, borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: 800, color: flyer.accent, boxShadow: `0 0 5px ${flyer.accent}35` }}>{initials}</div>
           }
         </div>
@@ -652,7 +684,7 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
               <div style={{ fontFamily: 'var(--font-serif)', fontSize: '15px', color: '#fff', fontWeight: 400, lineHeight: 1.2, letterSpacing: '-0.01em' }}>{naam}</div>
             </div>
             {flyer.logoData
-              ? <img src={flyer.logoData} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain', borderRadius: '3px', background: 'rgba(255,255,255,0.1)', padding: '3px' }} />
+              ? <AdaptiveLogo src={flyer.logoData} baseSize={28} style={{ borderRadius: '3px', background: 'rgba(255,255,255,0.1)', padding: '3px' }} />
               : <div style={{ width: '28px', height: '28px', background: flyer.accent, borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 900, color: flyer.kleur }}>{initials}</div>
             }
           </div>
@@ -742,7 +774,7 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '6px 16px', background: `${flyer.kleur}08`, borderTop: '1px solid rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {flyer.website && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
           {flyer.logoData
-            ? <img src={flyer.logoData} alt="" style={{ width: '20px', height: '20px', objectFit: 'contain', borderRadius: '50%' }} />
+            ? <AdaptiveLogo src={flyer.logoData} baseSize={20} style={{ borderRadius: '50%' }} />
             : <div style={{ width: '20px', height: '20px', background: flyer.kleur, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '7px', fontWeight: 900, color: '#fff' }}>{initials}</div>
           }
         </div>
@@ -816,7 +848,7 @@ function FlyerBackPreview({ flyer }: { flyer: FlyerState }) {
               {flyer.slogan && <div style={{ fontSize: '8px', color: flyer.accent, fontFamily: 'var(--font-mono)', marginTop: '2px' }}>{flyer.slogan}</div>}
             </div>
             {flyer.logoData
-              ? <img src={flyer.logoData} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain', borderRadius: '4px' }} />
+              ? <AdaptiveLogo src={flyer.logoData} baseSize={28} style={{ borderRadius: '4px' }} />
               : <div style={{ width: '28px', height: '28px', background: flyer.accent, borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: flyer.kleur, fontWeight: 800, fontSize: '10px' }}>{initials}</div>
             }
           </div>
@@ -882,7 +914,7 @@ function FlyerBackPreview({ flyer }: { flyer: FlyerState }) {
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: flyer.accent, padding: '6px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '8px', fontWeight: 700, color: flyer.kleur }}>{flyer.website || 'www.jouwwebsite.nl'}</span>
           {flyer.logoData
-            ? <img src={flyer.logoData} alt="" style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
+            ? <AdaptiveLogo src={flyer.logoData} baseSize={18} />
             : <div style={{ fontSize: '9px', fontWeight: 800, color: flyer.kleur }}>{initials}</div>
           }
         </div>
@@ -900,7 +932,7 @@ function FlyerBackPreview({ flyer }: { flyer: FlyerState }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
             <div style={{ fontFamily: 'var(--font-serif)', fontSize: '13px', color: flyer.kleur }}>{naam}</div>
             {flyer.logoData
-              ? <img src={flyer.logoData} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+              ? <AdaptiveLogo src={flyer.logoData} baseSize={28} />
               : <div style={{ width: '28px', height: '28px', border: `1.5px solid ${flyer.kleur}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: flyer.kleur }}>{initials}</div>
             }
           </div>
@@ -1103,7 +1135,7 @@ function FlyerBackPreview({ flyer }: { flyer: FlyerState }) {
               <div style={{ fontFamily: 'var(--font-serif)', fontSize: '14px', color: '#fff' }}>{naam}</div>
             </div>
             {flyer.logoData
-              ? <img src={flyer.logoData} alt="" style={{ width: '28px', height: '28px', objectFit: 'contain', background: 'rgba(255,255,255,0.1)', padding: '3px', borderRadius: '3px' }} />
+              ? <AdaptiveLogo src={flyer.logoData} baseSize={28} style={{ background: 'rgba(255,255,255,0.1)', padding: '3px', borderRadius: '3px' }} />
               : <div style={{ width: '28px', height: '28px', background: flyer.accent, borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: flyer.kleur }}>{initials}</div>
             }
           </div>
@@ -2959,7 +2991,7 @@ export default function LokaalKabaal() {
               <input ref={logoRef} type="file" accept="image/*" onChange={handleLogoUpload} style={{ display: 'none' }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 {flyer.logoData ? (
-                  <img src={flyer.logoData} alt="logo" style={{ width: '60px', height: '60px', objectFit: 'contain', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '4px' }} />
+                  <AdaptiveLogo src={flyer.logoData} baseSize={60} style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '4px' }} />
                 ) : (
                   <div style={{ width: '60px', height: '60px', border: '2px dashed var(--line)', borderRadius: 'var(--radius)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '20px' }}>+</div>
                 )}
