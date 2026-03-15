@@ -561,21 +561,7 @@ export async function POST(req: NextRequest) {
     const scraped = await scrapeSite(normalizedUrl);
     console.log('[flyer] scrape klaar — ok:', scraped.scrapedOk, 'status:', scraped.httpStatus, 'fotos:', scraped.fotos?.length);
 
-    if (!scraped.scrapedOk) {
-      const status = scraped.httpStatus;
-      let uitleg = 'Deze website kon niet worden uitgelezen.';
-      if (status === 403 || status === 429 || status === 503) {
-        uitleg = `De website blokkeert automatische verzoeken (HTTP ${status}). Dit is gebruikelijk bij grote webshops en retailers.`;
-      } else if (status === 0) {
-        uitleg = 'De website was niet bereikbaar — controleer of de URL klopt en de site online is.';
-      }
-      return NextResponse.json(
-        { error: `${uitleg} Vul je bedrijfsnaam en branche handmatig in en gebruik de AI-knop om alsnog een flyertekst te genereren.` },
-        { status: 422 }
-      );
-    }
-
-    // Stap 2: foto + tekst parallel
+    // Stap 2: foto + tekst parallel (doorgaan ook als scrape mislukte — bedrijfsnaam + branche zijn altijd aanwezig)
     const [besteFoto, tekst] = await Promise.all([
       selecteerBesteFoto(scraped.fotos || [], branche),
       genereerTekst({
