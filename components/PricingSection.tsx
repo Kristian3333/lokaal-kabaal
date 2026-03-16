@@ -20,6 +20,7 @@ const TIERS = [
       '1 flyer-template',
       'Maandelijks rapport',
     ],
+    yearlyFeatures: [] as string[],
     noFeature: 'Geen exclusiviteitsgarantie',
     exclusive: null,
     hero: false,
@@ -43,8 +44,8 @@ const TIERS = [
       '3 templates (incl. seizoensvariant)',
       'Wekelijks rapport + statistieken',
       'A/B test twee templates',
-      'Telefonische onboarding',
     ],
+    yearlyFeatures: [] as string[],
     noFeature: null,
     exclusive: 'Exclusiviteit per postcode, per branche',
     hero: true,
@@ -68,8 +69,8 @@ const TIERS = [
       'Onbeperkt templates + auto-selectie',
       'Real-time dashboard',
       'Kwartaalgesprek accountmanager',
-      'Professioneel ontwerp (éénmalig inbegrepen)',
     ],
+    yearlyFeatures: ['Persoonlijke flyerhulp inbegrepen (éénmalig)'],
     noFeature: null,
     exclusive: 'Exclusiviteit voor het volledige verzorgingsgebied',
     hero: false,
@@ -211,6 +212,23 @@ export default function PricingSection() {
                     <span style={{ color: 'var(--green)', flexShrink: 0, fontSize: '12px', marginTop: '1px' }}>★</span>
                     <span style={{ fontSize: '12px', color: 'var(--green)', fontWeight: 700, lineHeight: 1.4 }}>{t.exclusive}</span>
                   </div>
+                )}
+                {t.yearlyFeatures.length > 0 && (
+                  yearly ? (
+                    t.yearlyFeatures.map(f => (
+                      <div key={f} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginTop: '4px' }}>
+                        <span style={{ color: 'var(--green)', flexShrink: 0, fontSize: '12px' }}>★</span>
+                        <span style={{ fontSize: '12px', color: 'var(--green)', fontWeight: 700, lineHeight: 1.4 }}>{f}</span>
+                      </div>
+                    ))
+                  ) : (
+                    t.yearlyFeatures.map(f => (
+                      <div key={f} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginTop: '4px' }}>
+                        <span style={{ color: 'rgba(255,255,255,.15)', flexShrink: 0, fontSize: '12px' }}>★</span>
+                        <span style={{ fontSize: '12px', color: 'rgba(255,255,255,.2)', lineHeight: 1.4 }}>{f} <em>(bij jaarcontract)</em></span>
+                      </div>
+                    ))
+                  )
                 )}
               </div>
 

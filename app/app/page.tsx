@@ -2246,7 +2246,7 @@ export default function LokaalKabaal() {
             <div>
               <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '8px' }}>Kies je werkgebied</h2>
               <p style={{ color: 'var(--muted)', marginBottom: '20px' }}>
-                Voer je centrum-postcode in en kies een straal. Wij selecteren alle PC4-gebieden die de straal raken inclusief 2 km buffer.
+                De straal selecteert automatisch alle PC4-postcodes in dat gebied. Verwijder gebieden die je niet wil bereiken, of voeg extra postcodes handmatig toe.
               </p>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
@@ -2270,17 +2270,66 @@ export default function LokaalKabaal() {
                     STRAAL: {straal} KM
                   </label>
                   <input
-                    type="range" min={5} max={50} step={5} value={straal}
-                    onChange={e => updateWiz({ straal: Number(e.target.value), aantalFlyers: roundUp50(Math.max(250, estimeerDekkingsgebied(Number(e.target.value)).suggestieFlyers)) })}
+                    type="range" min={1} max={50} step={1} value={straal}
+                    onChange={e => updateWiz({ straal: Number(e.target.value) })}
                     style={{ width: '100%', accentColor: 'var(--green)', marginTop: '8px' }}
                   />
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                    <span>5 km</span><span>50 km</span>
+                    <span>1 km</span><span>50 km</span>
                   </div>
                 </div>
               </div>
 
               <CoverageVisual centrum={centrum} straalKm={straal} onPc4sChange={list => updateWiz({ pc4Lijst: list })} onEstChange={est => updateWiz({ aantalFlyers: roundUp50(Math.max(250, est)) })} />
+
+              {/* PC4 chip editor */}
+              {wiz.pc4Lijst.length > 0 && (
+                <div style={{ marginTop: '16px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
+                    GESELECTEERDE POSTCODES ({wiz.pc4Lijst.length}) — klik × om te verwijderen
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
+                    {wiz.pc4Lijst.map(pc4 => (
+                      <span key={pc4} style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '4px',
+                        padding: '3px 8px', background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.3)',
+                        borderRadius: '4px', fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)',
+                      }}>
+                        {pc4}
+                        <button
+                          onClick={() => updateWiz({ pc4Lijst: wiz.pc4Lijst.filter(p => p !== pc4) })}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--green-dim)', padding: '0 0 0 2px', fontSize: '13px', lineHeight: 1 }}
+                        >×</button>
+                      </span>
+                    ))}
+                  </div>
+                  {/* Handmatig postcode toevoegen */}
+                  {(() => {
+                    const [addPc4, setAddPc4] = (useState as <T>(v: T) => [T, (v: T) => void])('');
+                    const doAdd = () => {
+                      const v = addPc4.trim();
+                      if (/^\d{4}$/.test(v) && !wiz.pc4Lijst.includes(v)) {
+                        updateWiz({ pc4Lijst: [...wiz.pc4Lijst, v].sort() });
+                      }
+                      setAddPc4('');
+                    };
+                    return (
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <input
+                          type="text" maxLength={4} placeholder="+ postcode toevoegen"
+                          value={addPc4}
+                          onChange={e => setAddPc4(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                          onKeyDown={e => { if (e.key === 'Enter') doAdd(); }}
+                          style={{ padding: '7px 10px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', fontFamily: 'var(--font-mono)', fontSize: '13px', width: '160px', background: 'var(--paper2)' }}
+                        />
+                        <button onClick={doAdd} style={{ padding: '7px 14px', background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', fontFamily: 'var(--font-mono)', fontSize: '12px', cursor: 'pointer' }}>
+                          Voeg toe
+                        </button>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
             </div>
           )}
 
@@ -2327,6 +2376,24 @@ export default function LokaalKabaal() {
                   </div>
                 </label>
               </div>
+
+              {/* Offerte bij groot werkgebied */}
+              {stats.estAdressenMaand >= 5000 && (
+                <div style={{ background: 'var(--ink)', border: '1px solid rgba(0,232,122,0.3)', borderRadius: 'var(--radius)', padding: '16px', marginBottom: '16px' }}>
+                  <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green)', marginBottom: '8px', letterSpacing: '0.08em' }}>
+                    GROOT WERKGEBIED — MAATWERKTARIEF
+                  </div>
+                  <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', marginBottom: '12px', lineHeight: 1.6 }}>
+                    Uw werkgebied bevat ~{stats.estAdressenMaand.toLocaleString('nl')} nieuwe bewoners per maand. Voor grotere gebieden maken we een maatwerkaanbod.
+                  </div>
+                  <a
+                    href={`mailto:hallo@lokaalkabaal.nl?subject=Prijsverzoek groot werkgebied&body=Hallo,%0A%0AIk wil graag een offerte voor mijn werkgebied:%0A- Centrum: ${centrum}%0A- Straal: ${straal} km%0A- Branche: ${spec}%0A- Geschatte nieuwe bewoners/mnd: ${stats.estAdressenMaand}%0A%0AKunt u mij een aanbod sturen?`}
+                    style={{ display: 'inline-block', padding: '10px 20px', background: 'var(--green)', color: 'var(--ink)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', fontFamily: 'var(--font-mono)' }}
+                  >
+                    Stuur prijsverzoek →
+                  </a>
+                </div>
+              )}
 
               {/* Abonnementsoverzicht op basis van werkgebied */}
               <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px', marginBottom: '16px' }}>
