@@ -207,82 +207,62 @@ export default function Landing() {
       <section id="prijzen" style={{ background: 'var(--ink)', padding: '100px 40px' }}>
         <div style={{ maxWidth: '960px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Pakketten</div>
-            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '38px', fontWeight: 400, color: '#fff', marginBottom: '12px' }}>Kies je pakket. <em style={{ color: 'rgba(255,255,255,.4)' }}>Betaal per verstuurde flyer.</em></h2>
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,.4)', fontFamily: 'var(--font-mono)' }}>Geen abonnement · Geen setup kosten · Opstarten = gratis</p>
+            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Transparante prijzen</div>
+            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '38px', fontWeight: 400, color: '#fff', marginBottom: '12px' }}>Platform + flyers. <em style={{ color: 'rgba(255,255,255,.4)' }}>Twee aparte kosten.</em></h2>
+            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,.4)', fontFamily: 'var(--font-mono)' }}>Kies welke features je nodig hebt. Betaal flyers apart op basis van formaat en aantallen.</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+          {/* ── Deel 1: Platform-pakketten ── */}
+          <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,.3)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '16px' }}>① Platform — jaarlijks vast bedrag</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '48px' }}>
             {[
               {
-                naam: 'Basis',
-                prijs: '€0,89',
-                sub: 'per flyer · A6 formaat',
-                formaat: 'A6 (10×15 cm)',
-                kleur: 'rgba(255,255,255,.15)',
+                naam: 'Gratis',
+                prijs: '€0',
+                sub: 'per jaar',
+                badge: null,
                 border: 'rgba(255,255,255,0.1)',
-                features: [
-                  'A6 formaat — matte of glossy',
-                  'Professioneel AI-design',
-                  'Automatisch op de 25e',
-                  'Heel Nederland',
-                  'Kadaster-data targeting',
-                ],
-                geen: ['QR-code conversietracking', 'Maandrapportage'],
+                bg: 'rgba(255,255,255,0.02)',
+                features: ['Upload eigen ontwerp', 'Automatisch op de 25e', 'Heel Nederland', 'Kadaster-data targeting'],
+                geen: ['AI design generator', 'QR-code conversietracking'],
+                cta: 'Gratis starten',
+                ctaBg: 'rgba(255,255,255,0.07)',
+                ctaColor: '#fff',
               },
               {
-                naam: 'Standaard',
-                prijs: '€1,09',
-                sub: 'per flyer · A5 formaat',
-                formaat: 'A5 (15×21 cm)',
-                aanbevolen: true,
-                kleur: 'rgba(0,232,122,0.06)',
+                naam: 'Design',
+                prijs: '€199',
+                sub: 'per jaar · excl. BTW',
+                badge: null,
+                border: 'rgba(255,255,255,0.15)',
+                bg: 'rgba(255,255,255,0.03)',
+                features: ['Upload eigen ontwerp', 'AI design generator', 'Automatisch op de 25e', 'Heel Nederland', 'Kadaster-data targeting'],
+                geen: ['QR-code conversietracking'],
+                cta: 'Design starten',
+                ctaBg: 'rgba(255,255,255,0.07)',
+                ctaColor: '#fff',
+              },
+              {
+                naam: 'Tracking',
+                prijs: '€299',
+                sub: 'per jaar · excl. BTW',
+                badge: 'MEEST GEKOZEN',
                 border: 'var(--green)',
-                features: [
-                  'A5 formaat — matte of glossy',
-                  'Professioneel AI-design',
-                  'Automatisch op de 25e',
-                  'Heel Nederland',
-                  'Kadaster-data targeting',
-                  'QR-code per flyer',
-                  'Conversiedashboard (scan = klant)',
-                ],
-                geen: ['Maandrapportage'],
-              },
-              {
-                naam: 'Premium',
-                prijs: '€1,49',
-                sub: 'per flyer · A5 gloss + dubbelzijdig',
-                formaat: 'A5 gloss · dubbelzijdig',
-                kleur: 'rgba(200,169,126,0.06)',
-                border: 'rgba(200,169,126,0.4)',
-                features: [
-                  'A5 formaat — gloss finish',
-                  'Dubbelzijdig bedrukt',
-                  'Professioneel AI-design',
-                  'Automatisch op de 25e',
-                  'Heel Nederland',
-                  'Kadaster-data targeting',
-                  'QR-code per flyer',
-                  'Conversiedashboard (scan = klant)',
-                  'Maandelijkse ROI-rapportage',
-                ],
+                bg: 'rgba(0,232,122,0.04)',
+                features: ['Upload eigen ontwerp', 'AI design generator', 'Automatisch op de 25e', 'Heel Nederland', 'Kadaster-data targeting', 'QR-code per flyer (uniek per adres)', 'Conversiedashboard — scan = klant'],
                 geen: [],
+                cta: 'Tracking starten',
+                ctaBg: 'var(--green)',
+                ctaColor: 'var(--ink)',
               },
             ].map(t => (
-              <div key={t.naam} style={{
-                padding: '28px', borderRadius: 'var(--radius)',
-                border: `1px solid ${t.border}`,
-                background: t.kleur,
-                position: 'relative',
-              }}>
-                {t.aanbevolen && (
-                  <div style={{ position: 'absolute', top: '-1px', right: '16px', background: 'var(--green)', color: 'var(--ink)', fontSize: '9px', fontWeight: 700, padding: '2px 10px', borderRadius: '0 0 4px 4px', fontFamily: 'var(--font-mono)', letterSpacing: '0.06em' }}>MEEST GEKOZEN</div>
+              <div key={t.naam} style={{ padding: '28px', borderRadius: 'var(--radius)', border: `1px solid ${t.border}`, background: t.bg, position: 'relative', display: 'flex', flexDirection: 'column' }}>
+                {t.badge && (
+                  <div style={{ position: 'absolute', top: '-1px', right: '16px', background: 'var(--green)', color: 'var(--ink)', fontSize: '9px', fontWeight: 700, padding: '2px 10px', borderRadius: '0 0 4px 4px', fontFamily: 'var(--font-mono)', letterSpacing: '0.06em' }}>{t.badge}</div>
                 )}
-                <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: t.aanbevolen ? 'var(--green)' : 'rgba(255,255,255,.3)', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.naam}</div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '34px', fontWeight: 300, color: '#fff', lineHeight: 1, marginBottom: '2px' }}>{t.prijs}</div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.3)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>{t.sub}</div>
-                <div style={{ display: 'inline-block', fontSize: '9px', fontFamily: 'var(--font-mono)', color: t.aanbevolen ? 'var(--green)' : 'rgba(255,255,255,.25)', border: `1px solid ${t.aanbevolen ? 'var(--green)' : 'rgba(255,255,255,.1)'}`, borderRadius: '3px', padding: '2px 6px', marginBottom: '20px' }}>{t.formaat}</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', marginBottom: '20px' }}>
+                <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: t.badge ? 'var(--green)' : 'rgba(255,255,255,.3)', letterSpacing: '.12em', textTransform: 'uppercase' as const, marginBottom: '12px' }}>{t.naam}</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '38px', fontWeight: 300, color: '#fff', lineHeight: 1, marginBottom: '2px' }}>{t.prijs}</div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.3)', fontFamily: 'var(--font-mono)', marginBottom: '20px' }}>{t.sub}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', marginBottom: '24px', flex: 1 }}>
                   {t.features.map(f => (
                     <div key={f} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
                       <span style={{ color: 'var(--green)', fontSize: '11px', flexShrink: 0, marginTop: '1px' }}>✓</span>
@@ -296,29 +276,54 @@ export default function Landing() {
                     </div>
                   ))}
                 </div>
-                <Link href="/login" style={{
-                  display: 'block', padding: '10px',
-                  background: t.aanbevolen ? 'var(--green)' : 'rgba(255,255,255,0.07)',
-                  color: t.aanbevolen ? 'var(--ink)' : '#fff',
-                  borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px',
-                  textAlign: 'center', textDecoration: 'none',
-                }}>
-                  Starten met {t.naam}
+                <Link href="/login" style={{ display: 'block', padding: '10px', background: t.ctaBg, color: t.ctaColor, borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', textAlign: 'center' as const, textDecoration: 'none' }}>
+                  {t.cta}
                 </Link>
               </div>
             ))}
           </div>
-          {/* Volume card */}
-          <div style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 'var(--radius)', padding: '24px 28px', background: 'rgba(255,255,255,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-            <div>
-              <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,.3)', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '6px' }}>Volume · 5.000+ flyers / maand</div>
-              <div style={{ fontSize: '17px', color: '#fff', fontFamily: 'var(--font-serif)' }}>Meer dan 5.000 flyers per maand? <span style={{ color: 'rgba(255,255,255,.4)' }}>Vraag maatwerkprijzen aan.</span></div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,.3)', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>Inclusief dedicated accountmanager · Alle formaten · Maximale korting</div>
-            </div>
-            <Link href="/contact" style={{ padding: '10px 22px', background: 'rgba(255,255,255,0.08)', color: '#fff', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', textDecoration: 'none', whiteSpace: 'nowrap' as const }}>Neem contact op →</Link>
+
+          {/* ── Deel 2: Flyerkosten ── */}
+          <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,.3)', letterSpacing: '.1em', textTransform: 'uppercase' as const, marginBottom: '16px' }}>② Flyerkosten — bovenop pakketprijs, per verstuurd exemplaar</div>
+          <div style={{ border: '1px solid rgba(255,255,255,0.1)', borderRadius: 'var(--radius)', overflow: 'hidden', marginBottom: '16px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: 'rgba(255,255,255,0.04)' }}>
+                  {['Formaat', 'Afmeting', 'Papier', 'Prijs per stuk*'].map(h => (
+                    <th key={h} style={{ padding: '12px 16px', textAlign: 'left' as const, fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,.3)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, fontWeight: 600 }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { formaat: 'A6', afmeting: '10 × 15 cm', papier: 'Matte of Glossy', prijs: '€0,69' },
+                  { formaat: 'Postcard', afmeting: '15 × 15 cm', papier: 'Matte of Glossy', prijs: '€0,74' },
+                  { formaat: 'A5', afmeting: '15 × 21 cm', papier: 'Matte of Glossy', prijs: '€0,79' },
+                ].map((r, i) => (
+                  <tr key={r.formaat} style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}>
+                    <td style={{ padding: '14px 16px', fontSize: '13px', fontWeight: 600, color: '#fff' }}>{r.formaat}</td>
+                    <td style={{ padding: '14px 16px', fontSize: '12px', color: 'rgba(255,255,255,.5)', fontFamily: 'var(--font-mono)' }}>{r.afmeting}</td>
+                    <td style={{ padding: '14px 16px', fontSize: '12px', color: 'rgba(255,255,255,.5)' }}>{r.papier}</td>
+                    <td style={{ padding: '14px 16px', fontSize: '15px', fontFamily: 'var(--font-mono)', color: 'var(--green)', fontWeight: 600 }}>{r.prijs}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '11px', color: 'rgba(255,255,255,.2)', fontFamily: 'var(--font-mono)' }}>
-            Alle prijzen exclusief BTW · Postcard 15×15 cm beschikbaar op aanvraag
+
+          {/* Footnote + volume */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '0' }}>
+            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.2)', fontFamily: 'var(--font-mono)', lineHeight: 1.7 }}>
+              * Alle prijzen excl. BTW · Via print.one (350 gsm MC coated, FSC-gecertificeerd)<br />
+              Volume korting mogelijk vanaf 5.000 flyers/maand — <Link href="/contact" style={{ color: 'rgba(255,255,255,.35)', textDecoration: 'none' }}>neem contact op</Link>
+            </div>
+            <div style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 'var(--radius)', padding: '14px 20px', background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div>
+                <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,.3)', letterSpacing: '.1em', marginBottom: '2px' }}>VOORBEELD</div>
+                <div style={{ fontSize: '13px', color: '#fff' }}>Tracking pakket + 500 A5 flyers</div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.4)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>€299/jaar + (500 × €0,79) = <span style={{ color: 'var(--green)' }}>€694/jaar</span></div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
