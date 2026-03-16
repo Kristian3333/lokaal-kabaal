@@ -2,6 +2,30 @@
 import Link from 'next/link';
 import { useState } from 'react';
 
+function QrCode({ fg, bg, size }: { fg: string; bg: string; size: number }) {
+  const u = size / 21;
+  const pts = [
+    [8,0],[10,0],[12,0],[9,1],[11,1],[8,2],[12,2],[9,3],[11,3],[8,4],[10,4],[12,4],[9,5],[11,5],
+    [0,8],[2,8],[4,8],[1,9],[3,9],[0,10],[4,10],[2,10],[1,11],[3,11],[0,12],[2,12],[4,12],
+    [8,8],[10,8],[13,8],[15,8],[17,8],[19,8],[9,9],[12,9],[14,9],[16,9],[18,9],[20,9],
+    [8,10],[11,10],[13,10],[17,10],[19,10],[9,11],[10,11],[14,11],[16,11],[18,11],[20,11],
+    [8,12],[12,12],[14,12],[16,12],[18,12],[9,13],[11,13],[15,13],[17,13],[19,13],
+    [8,14],[10,14],[12,14],[16,14],[18,14],[20,14],[9,15],[11,15],[13,15],[17,15],[19,15],
+    [8,16],[10,16],[14,16],[18,16],[20,16],[9,17],[13,17],[15,17],[17,17],[19,17],
+    [8,18],[12,18],[14,18],[16,18],[20,18],[9,19],[11,19],[15,19],[17,19],[19,19],
+    [8,20],[10,20],[12,20],[16,20],[18,20],
+  ];
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} shapeRendering="crispEdges" style={{ display: 'block' }}>
+      <rect width={size} height={size} fill={bg}/>
+      <rect x={0} y={0} width={u*7} height={u} fill={fg}/><rect x={0} y={u} width={u} height={u*5} fill={fg}/><rect x={u*6} y={u} width={u} height={u*5} fill={fg}/><rect x={0} y={u*6} width={u*7} height={u} fill={fg}/><rect x={u*2} y={u*2} width={u*3} height={u*3} fill={fg}/>
+      <rect x={u*14} y={0} width={u*7} height={u} fill={fg}/><rect x={u*14} y={u} width={u} height={u*5} fill={fg}/><rect x={u*20} y={u} width={u} height={u*5} fill={fg}/><rect x={u*14} y={u*6} width={u*7} height={u} fill={fg}/><rect x={u*16} y={u*2} width={u*3} height={u*3} fill={fg}/>
+      <rect x={0} y={u*14} width={u*7} height={u} fill={fg}/><rect x={0} y={u*15} width={u} height={u*5} fill={fg}/><rect x={u*6} y={u*15} width={u} height={u*5} fill={fg}/><rect x={0} y={u*20} width={u*7} height={u} fill={fg}/><rect x={u*2} y={u*16} width={u*3} height={u*3} fill={fg}/>
+      {pts.map(([x, y], i) => <rect key={i} x={u*x} y={u*y} width={u} height={u} fill={fg}/>)}
+    </svg>
+  );
+}
+
 const TICKERS = [
   "🟢 Kapper Bloemendaal — 340 flyers verstuurd",
   "🟢 Pizzeria Oost — campagne gestart",
@@ -311,17 +335,22 @@ export default function Landing() {
             </table>
           </div>
 
-          {/* Footnote + volume */}
+          {/* Footnote + examples */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '0' }}>
             <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.2)', fontFamily: 'var(--font-mono)', lineHeight: 1.7 }}>
-              * Alle prijzen excl. BTW · Via print.one (350 gsm MC coated, FSC-gecertificeerd)<br />
+              * Alle prijzen excl. BTW · 350 gsm MC coated, FSC-gecertificeerd<br />
               Volume korting mogelijk vanaf 5.000 flyers/maand — <Link href="/contact" style={{ color: 'rgba(255,255,255,.35)', textDecoration: 'none' }}>neem contact op</Link>
             </div>
-            <div style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 'var(--radius)', padding: '14px 20px', background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div>
-                <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,.3)', letterSpacing: '.1em', marginBottom: '2px' }}>VOORBEELD</div>
-                <div style={{ fontSize: '13px', color: '#fff' }}>Tracking pakket + 500 A5 flyers</div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.4)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>€299/jaar + (500 × €0,79) = <span style={{ color: 'var(--green)' }}>€694/jaar</span></div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 'var(--radius)', padding: '12px 18px', background: 'rgba(255,255,255,0.02)' }}>
+                <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,.3)', letterSpacing: '.1em', marginBottom: '4px' }}>VOORBEELD — ÉÉN CAMPAGNE</div>
+                <div style={{ fontSize: '13px', color: '#fff', marginBottom: '2px' }}>Tracking + 500 A5 flyers/mnd</div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.4)', fontFamily: 'var(--font-mono)' }}>€299/jaar + (500 × €0,79) = <span style={{ color: 'var(--green)' }}>€694/jaar</span></div>
+              </div>
+              <div style={{ border: '1px solid rgba(0,232,122,0.15)', borderRadius: 'var(--radius)', padding: '12px 18px', background: 'rgba(0,232,122,0.03)' }}>
+                <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--green)', letterSpacing: '.1em', marginBottom: '4px' }}>VOORBEELD — MEERDERE CAMPAGNES</div>
+                <div style={{ fontSize: '13px', color: '#fff', marginBottom: '2px' }}>Design + 3 seizoenscampagnes à 300 A6/mnd</div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.4)', fontFamily: 'var(--font-mono)' }}>€199/jaar + 3×(300 × €0,73) = <span style={{ color: 'var(--green)' }}>€857/jaar</span></div>
               </div>
             </div>
           </div>
@@ -333,267 +362,272 @@ export default function Landing() {
         <div style={{ textAlign: 'center', marginBottom: '60px' }}>
           <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Flyervoorbeelden</div>
           <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '38px', fontWeight: 400, marginBottom: '12px' }}>Zo ziet jouw flyer <em style={{ color: 'var(--muted)' }}>eruit</em></h2>
-          <p style={{ color: 'var(--muted)', fontSize: '14px', maxWidth: '480px', margin: '0 auto' }}>Klik op een flyer om de achterzijde te zien. Kies een template of upload je eigen ontwerp.</p>
+          <p style={{ color: 'var(--muted)', fontSize: '14px', maxWidth: '520px', margin: '0 auto' }}>Klik op een flyer om hem om te draaien. AI genereert jouw design — inclusief unieke QR-code per adres voor conversietracking.</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '32px', alignItems: 'start' }}>
 
-          {/* Design 1: Editorial — Koffiebar */}
+          {/* Design 1: BREW. — Specialty Coffee */}
           {(() => {
-            const k = '#1C0F0A', a = '#E8A020';
-            const naam = 'Koffiehuis de Hoek';
-            const usps = ['€5 welkomstkorting bij €20', 'Vers gezette specialty koffie', 'Je nieuwe stamkroeg'];
+            const dk = '#0D0B08', am = '#E8A020', cr = '#F2EDE2';
             const isFlipped = flipped === 0;
             return (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                <div
-                  onClick={() => setFlipped(isFlipped ? null : 0)}
-                  style={{ width: '240px', height: '340px', perspective: '1200px', cursor: 'pointer' }}
-                >
-                  <div style={{
-                    width: '100%', height: '100%', position: 'relative',
-                    transformStyle: 'preserve-3d',
-                    transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-                    transition: 'transform 0.55s cubic-bezier(0.4,0,0.2,1)',
-                  }}>
+                <div onClick={() => setFlipped(isFlipped ? null : 0)} style={{ width: '240px', height: '340px', perspective: '1200px', cursor: 'pointer' }}>
+                  <div style={{ width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)', transition: 'transform 0.55s cubic-bezier(0.4,0,0.2,1)' }}>
                     {/* Front */}
-                    <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', background: k, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.22)', fontFamily: 'sans-serif' }}>
-                      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: a }} />
-                      <div style={{ padding: '20px 18px 0 20px' }}>
-                        <div style={{ fontFamily: 'monospace', fontSize: '7px', letterSpacing: '0.15em', color: a, textTransform: 'uppercase' as const, marginBottom: '10px' }}>Nieuwe bewoners — Welkomstaanbieding</div>
-                        <div style={{ fontSize: '28px', fontStyle: 'italic', color: '#fff', lineHeight: 1.05, marginBottom: '10px', letterSpacing: '-0.02em' }}>Welkom<br /><span style={{ color: a }}>in de buurt.</span></div>
-                        <div style={{ width: '32px', height: '2px', background: a, marginBottom: '10px' }} />
-                        <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.72)', lineHeight: 1.65, marginBottom: '12px' }}>Net ingetrokken? Welkom! Kom kennismaken en geniet van de beste koffie in de wijk. Bij een besteding van €20 of meer, krijg jij €5 korting.</div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>{usps.map((u,i) => <div key={i} style={{ display: 'flex', gap: '7px' }}><span style={{ color: a, fontSize: '9px' }}>—</span><span style={{ color: 'rgba(255,255,255,0.88)', fontSize: '8px' }}>{u}</span></div>)}</div>
+                    <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', background: dk, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.35)', fontFamily: 'sans-serif' }}>
+                      <div style={{ height: '5px', background: am }} />
+                      <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ fontSize: '13px', fontWeight: 800, color: '#fff', letterSpacing: '0.14em' }}>BREW.</div>
+                          <div style={{ fontSize: '6.5px', color: am, fontFamily: 'monospace', letterSpacing: '0.15em', marginTop: '1px' }}>SPECIALTY COFFEE</div>
+                        </div>
+                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: am, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 9 Q2 4 6.5 4 Q11 4 11 9" stroke="#0D0B08" strokeWidth="1.4" fill="none" strokeLinecap="round"/><rect x="1" y="9" width="11" height="1.5" rx="0.75" fill="#0D0B08"/><path d="M5 3.5 Q5 2 6.5 2 Q8 2 8 3.5" stroke="#0D0B08" strokeWidth="0.9" fill="none"/></svg>
+                        </div>
                       </div>
-                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, borderTop: '1px solid rgba(255,255,255,0.1)', padding: '10px 18px 10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div><div style={{ fontWeight: 700, fontSize: '9px', color: '#fff' }}>{naam}</div><div style={{ fontSize: '7px', color: a, fontFamily: 'monospace', marginTop: '2px' }}>koffiehuis.nl</div></div>
-                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                          <rect width="28" height="28" rx="4" fill="#E8A020"/>
-                          <path d="M6 20 Q6 10 14 10 Q22 10 22 20" stroke="#1C0F0A" strokeWidth="2" fill="none" strokeLinecap="round"/>
-                          <rect x="4" y="20" width="20" height="2.5" rx="1.25" fill="#1C0F0A"/>
-                          <path d="M11 9 Q11 6 14 6 Q17 6 17 9" stroke="#1C0F0A" strokeWidth="1.5" fill="none"/>
-                        </svg>
+                      <div style={{ padding: '6px 18px 14px' }}>
+                        <div style={{ fontSize: '34px', color: '#fff', lineHeight: 0.98, fontWeight: 300, letterSpacing: '-0.03em', fontFamily: 'Georgia, serif' }}>Welkom,<br /><span style={{ color: am }}>buur.</span></div>
+                        <div style={{ width: '28px', height: '2px', background: am, margin: '12px 0 10px' }} />
+                        <div style={{ fontSize: '7.5px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.65, fontFamily: 'monospace' }}>Net ingetrokken? Wij vieren dat graag<br />mee. Eerste koffie bij ons op rekening.</div>
                       </div>
-                      {/* Flip hint */}
-                      <div style={{ position: 'absolute', top: '10px', right: '14px', fontSize: '7px', color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace' }}>klik ↺</div>
+                      {/* QR — prominent */}
+                      <div style={{ margin: '0 14px', background: cr, borderRadius: '8px', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ background: '#fff', padding: '4px', borderRadius: '4px', flexShrink: 0 }}>
+                          <QrCode fg={dk} bg="#fff" size={52} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '6px', color: '#888', fontFamily: 'monospace', letterSpacing: '0.12em', marginBottom: '3px' }}>SCAN &amp; CLAIM</div>
+                          <div style={{ fontSize: '14px', fontWeight: 800, color: dk, lineHeight: 1.1 }}>1 koffie<br />gratis</div>
+                          <div style={{ fontSize: '6.5px', color: '#777', marginTop: '4px', fontFamily: 'monospace' }}>eerste bezoek · t/m 31 dec</div>
+                        </div>
+                      </div>
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 18px', borderTop: '1px solid rgba(255,255,255,0.07)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '7px', color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace' }}>Koffieplein 12, Amsterdam</span>
+                        <span style={{ fontSize: '7px', color: am, fontFamily: 'monospace' }}>brew-coffee.nl</span>
+                      </div>
+                      <div style={{ position: 'absolute', top: '8px', right: '14px', fontSize: '6.5px', color: 'rgba(255,255,255,0.18)', fontFamily: 'monospace' }}>klik ↺</div>
                     </div>
                     {/* Back */}
-                    <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)', background: '#F5F0E8', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.22)', fontFamily: 'sans-serif' }}>
-                      <div style={{ height: '6px', background: a }} />
-                      <div style={{ padding: '20px 20px 16px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                          <div style={{ fontFamily: 'serif', fontSize: '14px', color: k, fontStyle: 'italic' }}>{naam}</div>
-                          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                            <rect width="28" height="28" rx="4" fill="#E8A020"/>
-                            <path d="M6 20 Q6 10 14 10 Q22 10 22 20" stroke="#1C0F0A" strokeWidth="2" fill="none" strokeLinecap="round"/>
-                            <rect x="4" y="20" width="20" height="2.5" rx="1.25" fill="#1C0F0A"/>
-                            <path d="M11 9 Q11 6 14 6 Q17 6 17 9" stroke="#1C0F0A" strokeWidth="1.5" fill="none"/>
-                          </svg>
+                    <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)', background: cr, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.35)', fontFamily: 'sans-serif' }}>
+                      <div style={{ height: '5px', background: am }} />
+                      <div style={{ padding: '14px 18px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                          <div>
+                            <div style={{ fontSize: '11px', fontWeight: 800, color: dk, letterSpacing: '0.1em' }}>BREW.</div>
+                            <div style={{ fontSize: '6.5px', color: '#888', fontFamily: 'monospace' }}>specialty coffee · Amsterdam</div>
+                          </div>
+                          <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: am, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <svg width="12" height="12" viewBox="0 0 13 13" fill="none"><path d="M2 9 Q2 4 6.5 4 Q11 4 11 9" stroke="#0D0B08" strokeWidth="1.4" fill="none" strokeLinecap="round"/><rect x="1" y="9" width="11" height="1.5" rx="0.75" fill="#0D0B08"/></svg>
+                          </div>
                         </div>
-                        <div style={{ fontSize: '7.5px', color: '#555', fontStyle: 'italic', lineHeight: 1.6, marginBottom: '16px', borderLeft: `2px solid ${a}`, paddingLeft: '8px' }}>
-                          &ldquo;Lekkerste koffie van de buurt. Kom langs en proef het zelf — je bent altijd welkom.&rdquo;
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-                          {[['📍', 'Koffiestraat 12, Amsterdam'], ['📞', '020 – 123 45 67'], ['🌐', 'koffiehuis.nl'], ['✉', 'hallo@koffiehuis.nl']].map(([ic, v], i) => (
-                            <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                              <span style={{ fontSize: '8px', width: '14px' }}>{ic}</span>
-                              <span style={{ fontSize: '7.5px', color: k, fontFamily: 'monospace' }}>{v}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <div style={{ background: k, borderRadius: '4px', padding: '8px 12px', marginBottom: '10px' }}>
-                          <div style={{ fontSize: '7px', color: a, fontFamily: 'monospace', letterSpacing: '0.1em', marginBottom: '4px' }}>OPENINGSTIJDEN</div>
-                          {[['Ma – Vr', '07:30 – 18:00'], ['Za', '08:00 – 17:00'], ['Zo', '09:00 – 15:00']].map(([d, t], i) => (
-                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                              <span style={{ fontSize: '7px', color: 'rgba(255,255,255,0.5)' }}>{d}</span>
+                        {[['📍','Koffieplein 12, Amsterdam'],['📞','020 – 555 12 34'],['🌐','brew-coffee.nl'],['✉','hallo@brew-coffee.nl']].map(([ic,v],i) => (
+                          <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', borderBottom: '1px solid rgba(0,0,0,0.06)', paddingBottom: '6px', marginBottom: '6px' }}>
+                            <span style={{ fontSize: '8px', width: '14px' }}>{ic}</span>
+                            <span style={{ fontSize: '7px', color: dk, fontFamily: 'monospace' }}>{v}</span>
+                          </div>
+                        ))}
+                        <div style={{ background: dk, borderRadius: '4px', padding: '8px 10px', marginTop: '8px' }}>
+                          <div style={{ fontSize: '6.5px', color: am, fontFamily: 'monospace', letterSpacing: '0.1em', marginBottom: '5px' }}>OPENINGSTIJDEN</div>
+                          {[['Ma – Vr','07:00 – 18:00'],['Za','08:00 – 17:00'],['Zo','09:00 – 15:00']].map(([d,t],i) => (
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                              <span style={{ fontSize: '7px', color: 'rgba(255,255,255,0.4)' }}>{d}</span>
                               <span style={{ fontSize: '7px', color: '#fff' }}>{t}</span>
                             </div>
                           ))}
                         </div>
                       </div>
-                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: a, padding: '8px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '7px', fontWeight: 700, color: k }}>Laat je gezicht zien.</span>
-                        <span style={{ fontSize: '7px', color: k, fontFamily: 'monospace' }}>klik ↺</span>
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: dk, padding: '9px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <QrCode fg="#fff" bg={dk} size={30} />
+                          <div>
+                            <div style={{ fontSize: '6px', color: am, fontFamily: 'monospace', letterSpacing: '0.08em' }}>SCAN &amp; CLAIM</div>
+                            <div style={{ fontSize: '8px', color: '#fff', fontWeight: 700 }}>1 gratis koffie</div>
+                          </div>
+                        </div>
+                        <span style={{ fontSize: '6.5px', color: 'rgba(255,255,255,0.25)', fontFamily: 'monospace' }}>klik ↺</span>
                       </div>
                     </div>
                   </div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Editorial</div>
-                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>Magazine-stijl · aanpasbaar</div>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Dark Premium</div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>Koffie · horeca · food</div>
                 </div>
               </div>
             );
           })()}
 
-          {/* Design 2: Geometric — Meubelwinkel */}
+          {/* Design 2: Studio Lente — Wellness / Salon */}
           {(() => {
-            const k = '#14213D', a = '#C8A97E';
-            const naam = 'Wonen & Zo';
-            const usps = ['10% welkomstkorting', 'Grote showroom', 'Gratis levering in regio'];
+            const bg2 = '#F7F2EB', gr = '#243D22', tc = '#C96B38';
             const isFlipped = flipped === 1;
             return (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                <div
-                  onClick={() => setFlipped(isFlipped ? null : 1)}
-                  style={{ width: '240px', height: '340px', perspective: '1200px', cursor: 'pointer' }}
-                >
-                  <div style={{
-                    width: '100%', height: '100%', position: 'relative',
-                    transformStyle: 'preserve-3d',
-                    transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-                    transition: 'transform 0.55s cubic-bezier(0.4,0,0.2,1)',
-                  }}>
+                <div onClick={() => setFlipped(isFlipped ? null : 1)} style={{ width: '240px', height: '340px', perspective: '1200px', cursor: 'pointer' }}>
+                  <div style={{ width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)', transition: 'transform 0.55s cubic-bezier(0.4,0,0.2,1)' }}>
                     {/* Front */}
-                    <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', background: '#f5f4f0', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.18)', fontFamily: 'sans-serif' }}>
-                      <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: k, opacity: 0.08 }} />
-                      <div style={{ background: k, padding: '18px 18px 22px', position: 'relative', overflow: 'hidden' }}>
-                        <div style={{ position: 'absolute', bottom: '-30px', right: '-20px', width: '90px', height: '90px', borderRadius: '50%', border: `12px solid ${a}`, opacity: 0.3 }} />
-                        <div style={{ fontFamily: 'monospace', fontSize: '7px', color: a, letterSpacing: '0.12em', marginBottom: '8px' }}>WELKOM IN DE BUURT</div>
-                        <div style={{ fontSize: '26px', color: '#fff', lineHeight: 1.0, letterSpacing: '-0.02em' }}>{naam}</div>
-                        <div style={{ fontSize: '9px', color: a, marginTop: '4px', fontStyle: 'italic' }}>Jouw thuis, jouw stijl.</div>
+                    <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', background: bg2, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.18)', fontFamily: 'sans-serif' }}>
+                      {/* Decorative circle */}
+                      <div style={{ position: 'absolute', top: '-48px', right: '-48px', width: '160px', height: '160px', borderRadius: '50%', background: gr, opacity: 0.12 }} />
+                      <div style={{ position: 'absolute', top: '10px', right: '10px', width: '80px', height: '80px', borderRadius: '50%', background: gr, opacity: 0.07 }} />
+                      <div style={{ padding: '16px 18px 0' }}>
+                        <div style={{ fontSize: '8px', fontFamily: 'monospace', letterSpacing: '0.16em', color: tc, textTransform: 'uppercase' as const, marginBottom: '16px' }}>Studio Lente · Amsterdam</div>
+                        <div style={{ fontSize: '31px', color: gr, lineHeight: 1.05, fontFamily: 'Georgia, serif', fontStyle: 'italic', letterSpacing: '-0.02em', marginBottom: '8px' }}>Jouw haar,<br />jouw<br /><span style={{ color: tc }}>moment.</span></div>
+                        <div style={{ width: '28px', height: '2px', background: tc, marginBottom: '10px' }} />
+                        <div style={{ fontSize: '7.5px', color: '#666', lineHeight: 1.6, fontFamily: 'monospace', marginBottom: '14px' }}>Als nieuwe bewoner:<br />25% welkomstkorting op je eerste afspraak.</div>
                       </div>
-                      <div style={{ padding: '14px 18px' }}>
-                        <div style={{ fontSize: '8.5px', color: '#333', lineHeight: 1.65, marginBottom: '12px' }}>Een nieuw huis verdient een nieuw begin. Als nieuwe bewoner krijg je 10% welkomstkorting op je eerste aankoop.</div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>{usps.map((u,i) => <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: `${k}0f`, borderRadius: '20px', padding: '5px 10px' }}><div style={{ width: '16px', height: '16px', borderRadius: '50%', background: a, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: k, fontSize: '8px', fontWeight: 800 }}>✓</span></div><span style={{ fontSize: '7.5px', color: k, fontWeight: 600 }}>{u}</span></div>)}</div>
+                      {/* QR — prominent, green background */}
+                      <div style={{ margin: '0 14px', background: gr, borderRadius: '8px', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ background: '#fff', padding: '4px', borderRadius: '4px', flexShrink: 0 }}>
+                          <QrCode fg={gr} bg="#fff" size={52} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '6px', color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace', letterSpacing: '0.12em', marginBottom: '3px' }}>SCAN &amp; BOEK</div>
+                          <div style={{ fontSize: '12px', fontWeight: 800, color: '#fff', lineHeight: 1.15 }}>25%<br />korting</div>
+                          <div style={{ fontSize: '6.5px', color: tc, marginTop: '4px', fontFamily: 'monospace', fontWeight: 600 }}>nieuwe bewoners</div>
+                        </div>
                       </div>
-                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: a, padding: '8px 18px', display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '8px', fontWeight: 700, color: k }}>wonen-en-zo.nl</span>
-                        <span style={{ fontSize: '8px', color: k, fontFamily: 'monospace' }}>klik ↺</span>
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 18px', borderTop: `1px solid rgba(36,61,34,0.1)`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '7px', color: '#999', fontFamily: 'monospace' }}>Bloemstraat 4, Amsterdam</span>
+                        <span style={{ fontSize: '7px', color: tc, fontFamily: 'monospace' }}>studiolente.nl</span>
                       </div>
+                      <div style={{ position: 'absolute', top: '8px', right: '14px', fontSize: '6.5px', color: 'rgba(0,0,0,0.18)', fontFamily: 'monospace' }}>klik ↺</div>
                     </div>
                     {/* Back */}
-                    <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)', background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.18)', fontFamily: 'sans-serif' }}>
-                      <div style={{ background: k, padding: '16px 18px' }}>
-                        <div style={{ fontSize: '7px', color: a, fontFamily: 'monospace', letterSpacing: '0.12em', marginBottom: '4px' }}>CONTACTGEGEVENS</div>
-                        <div style={{ fontSize: '15px', color: '#fff', lineHeight: 1.1 }}>{naam}</div>
-                      </div>
-                      <div style={{ padding: '16px 18px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '14px' }}>
-                          {[['📍', 'Meubellaan 5, Rotterdam'], ['📞', '010 – 987 65 43'], ['🌐', 'wonen-en-zo.nl'], ['✉', 'info@wonen-en-zo.nl']].map(([ic, v], i) => (
-                            <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', borderBottom: '1px solid #f0ede6', paddingBottom: '8px' }}>
-                              <span style={{ fontSize: '9px', width: '14px' }}>{ic}</span>
-                              <span style={{ fontSize: '7.5px', color: '#333', fontFamily: 'monospace' }}>{v}</span>
+                    <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)', background: gr, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', fontFamily: 'sans-serif' }}>
+                      <div style={{ height: '5px', background: tc }} />
+                      <div style={{ padding: '14px 18px' }}>
+                        <div style={{ marginBottom: '14px' }}>
+                          <div style={{ fontSize: '11px', fontWeight: 700, color: '#fff', letterSpacing: '0.12em' }}>STUDIO LENTE</div>
+                          <div style={{ fontSize: '6.5px', color: 'rgba(255,255,255,0.45)', fontFamily: 'monospace', marginTop: '2px' }}>Knippen · Kleuren · Behandeling</div>
+                        </div>
+                        {[['📍','Bloemstraat 4, Amsterdam'],['📞','020 – 321 98 76'],['🌐','studiolente.nl'],['✉','afspraak@studiolente.nl']].map(([ic,v],i) => (
+                          <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '6px', marginBottom: '6px' }}>
+                            <span style={{ fontSize: '8px', width: '14px' }}>{ic}</span>
+                            <span style={{ fontSize: '7px', color: 'rgba(255,255,255,0.7)', fontFamily: 'monospace' }}>{v}</span>
+                          </div>
+                        ))}
+                        <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '4px', padding: '8px 10px', marginTop: '8px' }}>
+                          <div style={{ fontSize: '6.5px', color: tc, fontFamily: 'monospace', letterSpacing: '0.1em', marginBottom: '5px' }}>DIENSTEN</div>
+                          {['Knippen & föhnen','Haarkleur & highlights','Keratine behandeling','Bruid & special events'].map((s,i) => (
+                            <div key={i} style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '3px' }}>
+                              <span style={{ color: tc, fontSize: '8px' }}>✓</span>
+                              <span style={{ fontSize: '7px', color: 'rgba(255,255,255,0.7)' }}>{s}</span>
                             </div>
                           ))}
                         </div>
-                        <div style={{ background: `${k}08`, borderRadius: '6px', padding: '10px 12px', marginBottom: '10px' }}>
-                          <div style={{ fontSize: '7px', color: '#888', fontFamily: 'monospace', letterSpacing: '0.1em', marginBottom: '6px' }}>SHOWROOM OPEN</div>
-                          {[['Ma – Vr', '10:00 – 18:00'], ['Za', '10:00 – 17:00'], ['Zo', 'Gesloten']].map(([d, t], i) => (
-                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-                              <span style={{ fontSize: '7px', color: '#666' }}>{d}</span>
-                              <span style={{ fontSize: '7px', color: k, fontWeight: t === 'Gesloten' ? 400 : 600 }}>{t}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <div style={{ background: a, borderRadius: '20px', padding: '6px 12px', textAlign: 'center' as const }}>
-                          <span style={{ fontSize: '8px', fontWeight: 700, color: k }}>10% welkomstkorting — Laat deze flyer zien</span>
-                        </div>
                       </div>
-                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: a, padding: '7px 18px', display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '7px', fontWeight: 700, color: k }}>Gratis levering in de regio</span>
-                        <span style={{ fontSize: '7px', color: k, fontFamily: 'monospace' }}>klik ↺</span>
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.25)', padding: '9px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ background: '#fff', padding: '3px', borderRadius: '3px', flexShrink: 0 }}>
+                            <QrCode fg={gr} bg="#fff" size={28} />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '6px', color: tc, fontFamily: 'monospace', letterSpacing: '0.08em' }}>SCAN &amp; BOEK</div>
+                            <div style={{ fontSize: '8px', color: '#fff', fontWeight: 700 }}>25% welkomstkorting</div>
+                          </div>
+                        </div>
+                        <span style={{ fontSize: '6.5px', color: 'rgba(255,255,255,0.2)', fontFamily: 'monospace' }}>klik ↺</span>
                       </div>
                     </div>
                   </div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Geometric</div>
-                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>Bold & modern · aanpasbaar</div>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Warm Editorial</div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>Salon · beauty · wellness</div>
                 </div>
               </div>
             );
           })()}
 
-          {/* Design 3: Minimal Luxury — Stucadoor */}
+          {/* Design 3: ProBouw — Installatie & Klus */}
           {(() => {
-            const k = '#0D0D0D', a = '#FF6B35';
-            const naam = 'StucPro Regio';
-            const usps = ['Gratis offerte aan huis', 'Lokale vakman', 'Binnen 2 weken op locatie'];
+            const nv = '#0B1D35', or = '#E84D00', wh = '#FFFFFF';
             const isFlipped = flipped === 2;
             return (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                <div
-                  onClick={() => setFlipped(isFlipped ? null : 2)}
-                  style={{ width: '240px', height: '340px', perspective: '1200px', cursor: 'pointer' }}
-                >
-                  <div style={{
-                    width: '100%', height: '100%', position: 'relative',
-                    transformStyle: 'preserve-3d',
-                    transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-                    transition: 'transform 0.55s cubic-bezier(0.4,0,0.2,1)',
-                  }}>
+                <div onClick={() => setFlipped(isFlipped ? null : 2)} style={{ width: '240px', height: '340px', perspective: '1200px', cursor: 'pointer' }}>
+                  <div style={{ width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)', transition: 'transform 0.55s cubic-bezier(0.4,0,0.2,1)' }}>
                     {/* Front */}
-                    <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', background: '#faf9f7', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.18)', fontFamily: 'sans-serif' }}>
-                      <div style={{ height: '8px', background: a }} />
-                      <div style={{ height: '1px', background: k, margin: '0 20px' }} />
-                      <div style={{ padding: '16px 20px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-                          <div><div style={{ fontSize: '13px', color: k, letterSpacing: '0.02em' }}>{naam}</div><div style={{ fontSize: '7px', color: '#888', marginTop: '2px', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>Strak. Snel. Lokaal.</div></div>
-                          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                            <rect width="32" height="32" rx="2" stroke="#0D0D0D" strokeWidth="1.5"/>
-                            <path d="M8 22 L8 16 Q8 12 16 12 Q24 12 24 16 L24 22" stroke="#0D0D0D" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-                            <rect x="6" y="22" width="20" height="2" rx="1" fill="#FF6B35"/>
-                            <rect x="9" y="24" width="2" height="4" rx="1" fill="#0D0D0D"/>
-                            <rect x="21" y="24" width="2" height="4" rx="1" fill="#0D0D0D"/>
-                          </svg>
+                    <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', background: wh, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.18)', fontFamily: 'sans-serif' }}>
+                      {/* Orange left edge */}
+                      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: or }} />
+                      {/* Navy header */}
+                      <div style={{ background: nv, padding: '12px 18px 12px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ fontSize: '11px', fontWeight: 800, color: '#fff', letterSpacing: '0.1em' }}>PROBOUW</div>
+                          <div style={{ fontSize: '6.5px', color: or, fontFamily: 'monospace', letterSpacing: '0.12em', marginTop: '1px' }}>INSTALLATIE &amp; RENOVATIE</div>
                         </div>
-                        <div style={{ fontSize: '22px', color: k, lineHeight: 1.15, marginBottom: '6px', letterSpacing: '-0.02em' }}>Welkom in<br />de buurt.</div>
-                        <div style={{ width: '24px', height: '2px', background: a, marginBottom: '12px' }} />
-                        <div style={{ fontSize: '8px', color: '#555', lineHeight: 1.7, marginBottom: '14px' }}>Nieuwe woning, nieuwe muren. Gratis offerte aan huis — wij zijn dé vakman in jouw regio.</div>
-                        <div style={{ borderTop: '1px solid #e8e6e0', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>{usps.map((u,i) => <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><div style={{ width: '4px', height: '4px', borderRadius: '50%', background: a, flexShrink: 0 }} /><span style={{ fontSize: '7.5px', color: '#444' }}>{u}</span></div>)}</div>
+                        <div style={{ border: `2px solid ${or}`, borderRadius: '3px', padding: '3px 6px', textAlign: 'center' as const }}>
+                          <div style={{ fontSize: '11px', fontWeight: 800, color: '#fff', lineHeight: 1 }}>20+</div>
+                          <div style={{ fontSize: '5.5px', color: or, fontFamily: 'monospace', lineHeight: 1.2 }}>JAAR</div>
+                        </div>
                       </div>
-                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 20px', borderTop: '1px solid #e8e6e0', display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '7px', color: '#888', fontFamily: 'monospace' }}>stucpro.nl</span>
-                        <span style={{ fontSize: '7px', color: '#999', fontFamily: 'monospace' }}>klik ↺</span>
+                      <div style={{ padding: '14px 18px 10px 22px' }}>
+                        <div style={{ fontSize: '8px', color: or, fontFamily: 'monospace', letterSpacing: '0.14em', marginBottom: '8px' }}>WELKOM IN JE NIEUWE WONING</div>
+                        <div style={{ fontSize: '28px', fontWeight: 900, color: nv, lineHeight: 0.98, letterSpacing: '-0.02em', textTransform: 'uppercase' as const, marginBottom: '8px' }}>Nieuwe<br />woning?<br /><span style={{ color: or }}>Wij<br />regelen</span><br />het.</div>
+                        <div style={{ fontSize: '7.5px', color: '#555', fontFamily: 'monospace', lineHeight: 1.55, marginBottom: '10px' }}>Elektra · Gas · Water · Klussen<br />Gratis advies aan huis.</div>
                       </div>
+                      {/* QR — prominent, orange background */}
+                      <div style={{ margin: '0 14px 10px', background: or, borderRadius: '8px', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ background: '#fff', padding: '4px', borderRadius: '4px', flexShrink: 0 }}>
+                          <QrCode fg={nv} bg="#fff" size={52} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '6px', color: 'rgba(255,255,255,0.7)', fontFamily: 'monospace', letterSpacing: '0.12em', marginBottom: '2px' }}>SCAN &amp; PLAN</div>
+                          <div style={{ fontSize: '12px', fontWeight: 800, color: '#fff', lineHeight: 1.15 }}>Gratis<br />offerte</div>
+                          <div style={{ fontSize: '6.5px', color: 'rgba(255,255,255,0.8)', marginTop: '3px', fontFamily: 'monospace' }}>binnen 24u reactie</div>
+                        </div>
+                      </div>
+                      <div style={{ position: 'absolute', bottom: 0, left: 6, right: 0, padding: '7px 18px', borderTop: '1px solid #e8e8e8', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '7px', color: '#888', fontFamily: 'monospace' }}>Nijverheidsweg 8, Utrecht</span>
+                        <span style={{ fontSize: '7px', color: or, fontFamily: 'monospace' }}>probouw.nl</span>
+                      </div>
+                      <div style={{ position: 'absolute', top: '8px', right: '14px', fontSize: '6.5px', color: 'rgba(0,0,0,0.18)', fontFamily: 'monospace' }}>klik ↺</div>
                     </div>
                     {/* Back */}
-                    <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)', background: '#faf9f7', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.18)', fontFamily: 'sans-serif' }}>
-                      <div style={{ height: '8px', background: a }} />
-                      <div style={{ height: '1px', background: k, margin: '0 20px' }} />
-                      <div style={{ padding: '16px 22px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-                          <div style={{ fontSize: '13px', color: k, fontFamily: 'monospace' }}>{naam}</div>
-                          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                            <rect width="32" height="32" rx="2" stroke="#0D0D0D" strokeWidth="1.5"/>
-                            <path d="M8 22 L8 16 Q8 12 16 12 Q24 12 24 16 L24 22" stroke="#0D0D0D" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-                            <rect x="6" y="22" width="20" height="2" rx="1" fill="#FF6B35"/>
-                            <rect x="9" y="24" width="2" height="4" rx="1" fill="#0D0D0D"/>
-                            <rect x="21" y="24" width="2" height="4" rx="1" fill="#0D0D0D"/>
-                          </svg>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
-                          {[['Adres', 'Stucweg 3, Den Haag'], ['Tel', '070 – 111 22 33'], ['Web', 'stucpro.nl'], ['Mail', 'info@stucpro.nl']].map(([label, val], i) => (
-                            <div key={i} style={{ display: 'flex', alignItems: 'baseline', gap: '10px', borderBottom: '1px solid #f0ede6', paddingBottom: '7px' }}>
-                              <span style={{ fontSize: '7px', color: '#bbb', fontFamily: 'monospace', width: '26px', flexShrink: 0 }}>{label}</span>
-                              <span style={{ fontSize: '7.5px', color: k, fontFamily: 'monospace' }}>{val}</span>
-                            </div>
-                          ))}
-                        </div>
+                    <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)', background: nv, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.3)', fontFamily: 'sans-serif' }}>
+                      <div style={{ height: '5px', background: or }} />
+                      <div style={{ padding: '14px 18px' }}>
                         <div style={{ marginBottom: '12px' }}>
-                          <div style={{ fontSize: '7px', color: '#ccc', fontFamily: 'monospace', letterSpacing: '0.1em', marginBottom: '6px' }}>BESCHIKBAARHEID</div>
-                          {[['Ma – Vr', '07:00 – 17:00'], ['Za', 'Op afspraak'], ['Zo', 'Gesloten']].map(([d, t], i) => (
-                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-                              <span style={{ fontSize: '7px', color: '#888' }}>{d}</span>
-                              <span style={{ fontSize: '7px', color: k }}>{t}</span>
+                          <div style={{ fontSize: '11px', fontWeight: 800, color: '#fff', letterSpacing: '0.1em' }}>PROBOUW</div>
+                          <div style={{ fontSize: '6.5px', color: or, fontFamily: 'monospace', marginTop: '1px' }}>Jouw vakman in de regio</div>
+                        </div>
+                        <div style={{ marginBottom: '10px' }}>
+                          <div style={{ fontSize: '6.5px', color: or, fontFamily: 'monospace', letterSpacing: '0.1em', marginBottom: '6px' }}>WAT WIJ DOEN</div>
+                          {['Elektrische installaties','Gas & waterleiding','Badkamer & keuken renovatie','CV-ketel onderhoud','Zonnepanelen plaatsen'].map((s,i) => (
+                            <div key={i} style={{ display: 'flex', gap: '7px', alignItems: 'center', marginBottom: '4px' }}>
+                              <span style={{ color: or, fontSize: '9px', fontWeight: 700 }}>▸</span>
+                              <span style={{ fontSize: '7.5px', color: 'rgba(255,255,255,0.75)' }}>{s}</span>
                             </div>
                           ))}
                         </div>
-                        <div style={{ background: `${a}15`, borderLeft: `2px solid ${a}`, borderRadius: '2px', padding: '6px 10px' }}>
-                          <span style={{ fontSize: '7.5px', color: k }}>Gratis offerte — bel of mail gerust</span>
-                        </div>
+                        {[['📞','085 – 100 20 30'],['🌐','probouw.nl'],['✉','info@probouw.nl']].map(([ic,v],i) => (
+                          <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '5px', marginBottom: '5px' }}>
+                            <span style={{ fontSize: '8px', width: '14px' }}>{ic}</span>
+                            <span style={{ fontSize: '7px', color: 'rgba(255,255,255,0.65)', fontFamily: 'monospace' }}>{v}</span>
+                          </div>
+                        ))}
                       </div>
-                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 20px', borderTop: '1px solid #e8e6e0', display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: '7px', color: a, fontFamily: 'monospace', fontWeight: 700 }}>Vakwerk, gegarandeerd.</span>
-                        <span style={{ fontSize: '7px', color: '#999', fontFamily: 'monospace' }}>klik ↺</span>
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: or, padding: '9px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ background: '#fff', padding: '3px', borderRadius: '3px', flexShrink: 0 }}>
+                            <QrCode fg={nv} bg="#fff" size={28} />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '6px', color: 'rgba(255,255,255,0.8)', fontFamily: 'monospace', letterSpacing: '0.08em' }}>SCAN &amp; PLAN AFSPRAAK</div>
+                            <div style={{ fontSize: '8px', color: '#fff', fontWeight: 700 }}>Gratis offerte aan huis</div>
+                          </div>
+                        </div>
+                        <span style={{ fontSize: '6.5px', color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace' }}>klik ↺</span>
                       </div>
                     </div>
                   </div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Minimal Luxury</div>
-                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>Clean & premium · aanpasbaar</div>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Bold & Direct</div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>Vakman · installatie · klus</div>
                 </div>
               </div>
             );
