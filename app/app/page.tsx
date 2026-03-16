@@ -135,6 +135,7 @@ interface FlyerState {
   adres: string;
   openingstijden: string;
   backTekst: string;
+  qrPlaats: 'voor' | 'achter' | 'beide';
 }
 
 type Page = 'dashboard' | 'wizard' | 'flyer' | 'credits' | 'profiel' | 'conversies';
@@ -147,17 +148,18 @@ function AdaptiveLogo({ src, baseSize, style }: {
   style?: React.CSSProperties;
 }) {
   const [aspect, setAspect] = useState<number>(1);
-  const wide = aspect > 2.2;
-  const imgStyle: React.CSSProperties = wide
-    ? {
-        height: Math.round(baseSize * 0.75),
-        width: 'auto',
-        maxWidth: baseSize * 4.5,
-        objectFit: 'contain' as const,
-        flexShrink: 0,
-        filter: style?.filter,
-      }
-    : { width: baseSize, height: baseSize, objectFit: 'contain' as const, flexShrink: 0, ...style };
+  // Normalize visual area so square logos get proper weight (not tiny)
+  const targetArea = baseSize * baseSize * 1.5;
+  const rawW = Math.sqrt(targetArea * aspect);
+  const w = Math.round(Math.min(rawW, baseSize * 4.5));
+  const h = Math.round(w / aspect);
+  const imgStyle: React.CSSProperties = {
+    width: w,
+    height: h,
+    objectFit: 'contain' as const,
+    flexShrink: 0,
+    ...style,
+  };
   return (
     <img
       src={src}
@@ -290,6 +292,7 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
             <div style={{ fontWeight: 800, fontSize: '9px', color: '#fff', letterSpacing: '0.01em' }}>{naam}</div>
             {flyer.website && <div style={{ fontSize: '7px', color: flyer.accent, fontFamily: 'var(--font-mono)', marginTop: '1px' }}>{flyer.website}</div>}
           </div>
+          {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.accent} bg="transparent" />}
           {flyer.logoData
             ? <AdaptiveLogo src={flyer.logoData} baseSize={26} style={{ borderRadius: '3px' }} />
             : <div style={{ width: '26px', height: '26px', background: flyer.accent, borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: flyer.kleur, fontWeight: 900, fontSize: '9px' }}>{initials}</div>
@@ -358,6 +361,7 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
         {/* Bottom CTA strip */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: flyer.accent, padding: '8px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '8px', fontWeight: 800, color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>{ctaText}</span>
+          {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.kleur} bg="transparent" />}
           <span style={{ fontSize: '7px', color: `${flyer.kleur}bb`, fontFamily: 'var(--font-mono)' }}>{flyer.website || ''}</span>
         </div>
       </div>
@@ -421,8 +425,9 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
         </div>
       </div>
       {/* Bottom contact */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '7px 20px', borderTop: '1px solid #e8e6e0', display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '7px 20px', borderTop: '1px solid #e8e6e0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         {flyer.website && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
+        {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.kleur} bg="transparent" />}
         {flyer.telefoon && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.telefoon}</span>}
       </div>
     </div>
@@ -480,6 +485,7 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
           {/* CTA bar */}
           <div style={{ background: flyer.accent, padding: '7px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '8px', fontWeight: 800, color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>{ctaText}</span>
+            {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.kleur} bg="transparent" />}
             {flyer.logoData
               ? <AdaptiveLogo src={flyer.logoData} baseSize={20} style={{ borderRadius: '2px' }} />
               : <span style={{ fontSize: '7px', fontWeight: 700, color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>{flyer.website || ''}</span>
@@ -546,6 +552,7 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
           <div style={{ padding: '6px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `2px solid ${flyer.kleur}` }}>
             <div style={{ fontFamily: 'var(--font-serif)', fontSize: '9px', fontWeight: 700, color: flyer.kleur }}>{naam}</div>
+            {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.kleur} bg="transparent" />}
             {flyer.logoData
               ? <AdaptiveLogo src={flyer.logoData} baseSize={20} />
               : <div style={{ fontSize: '7px', fontFamily: 'var(--font-mono)', color: flyer.kleur, opacity: 0.65 }}>{flyer.website || ''}</div>
@@ -606,6 +613,7 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
         {/* Footer */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '6px 16px', borderTop: `1px solid ${flyer.accent}40`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {flyer.website && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
+          {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.kleur} bg="transparent" />}
           {flyer.telefoon && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.telefoon}</span>}
         </div>
       </div>
@@ -663,6 +671,7 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
             <div style={{ fontWeight: 700, fontSize: '8px', color: flyer.accent, fontFamily: 'var(--font-mono)', textShadow: `0 0 6px ${flyer.accent}70` }}>{naam}</div>
             {flyer.website && <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.28)', fontFamily: 'var(--font-mono)', marginTop: '1px' }}>{flyer.website}</div>}
           </div>
+          {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.accent} bg="transparent" />}
           {flyer.logoData
             ? <AdaptiveLogo src={flyer.logoData} baseSize={22} style={{ filter: 'brightness(1.3)' }} />
             : <div style={{ width: '22px', height: '22px', border: `1px solid ${flyer.accent}`, borderRadius: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: 800, color: flyer.accent, boxShadow: `0 0 5px ${flyer.accent}35` }}>{initials}</div>
@@ -724,6 +733,7 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
         {/* Footer */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: '#f4f4f4', borderTop: `2px solid ${flyer.accent}`, padding: '6px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {flyer.website && <span style={{ fontSize: '7px', color: '#777', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
+          {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.kleur} bg="transparent" />}
           {flyer.telefoon && <span style={{ fontSize: '7px', color: '#777', fontFamily: 'var(--font-mono)' }}>{flyer.telefoon}</span>}
         </div>
       </div>
@@ -774,6 +784,7 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
         {/* Footer */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '6px 16px', background: `${flyer.kleur}08`, borderTop: '1px solid rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {flyer.website && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
+          {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.kleur} bg="transparent" />}
           {flyer.logoData
             ? <AdaptiveLogo src={flyer.logoData} baseSize={20} style={{ borderRadius: '50%' }} />
             : <div style={{ width: '20px', height: '20px', background: flyer.kleur, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '7px', fontWeight: 900, color: '#fff' }}>{initials}</div>
@@ -872,7 +883,7 @@ function FlyerBackPreview({ flyer }: { flyer: FlyerState }) {
         </div>
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '9px 18px 9px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>Scan voor onze website</div>
-          <QrCode size={36} fg={flyer.accent} bg="transparent" />
+          {(flyer.qrPlaats === 'achter' || flyer.qrPlaats === 'beide') && <QrCode size={36} fg={flyer.accent} bg="transparent" />}
         </div>
       </div>
     );
@@ -906,10 +917,10 @@ function FlyerBackPreview({ flyer }: { flyer: FlyerState }) {
           )}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
             <div style={{ fontSize: '7.5px', color: '#777', lineHeight: 1.6, maxWidth: '130px' }}>{backTekst}</div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+            {(flyer.qrPlaats === 'achter' || flyer.qrPlaats === 'beide') && <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
               <QrCode size={40} fg={flyer.kleur} bg="#f5f4f0" />
               <div style={{ fontSize: '6px', color: '#aaa', fontFamily: 'var(--font-mono)' }}>Scan mij</div>
-            </div>
+            </div>}
           </div>
         </div>
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: flyer.accent, padding: '6px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -953,10 +964,10 @@ function FlyerBackPreview({ flyer }: { flyer: FlyerState }) {
             )}
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', marginTop: '10px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
+            {(flyer.qrPlaats === 'achter' || flyer.qrPlaats === 'beide') && <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}>
               <QrCode size={36} fg={flyer.kleur} bg="#faf9f7" />
               <div style={{ fontSize: '6px', color: '#bbb', fontFamily: 'var(--font-mono)' }}>website</div>
-            </div>
+            </div>}
           </div>
         </div>
       </div>
@@ -999,7 +1010,7 @@ function FlyerBackPreview({ flyer }: { flyer: FlyerState }) {
         </div>
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: flyer.accent, padding: '8px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: '7px', color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>Scan voor meer info</div>
-          <QrCode size={32} fg={flyer.kleur} bg={flyer.accent} />
+          {(flyer.qrPlaats === 'achter' || flyer.qrPlaats === 'beide') && <QrCode size={32} fg={flyer.kleur} bg={flyer.accent} />}
         </div>
       </div>
     );
@@ -1040,10 +1051,10 @@ function FlyerBackPreview({ flyer }: { flyer: FlyerState }) {
           )}
           <div style={{ fontSize: '7.5px', color: '#4a3a28', lineHeight: 1.65, textAlign: 'center', marginBottom: '6px' }}>{backTekst}</div>
           <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <div style={{ border: `2px solid ${flyer.kleur}`, padding: '4px', display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+            {(flyer.qrPlaats === 'achter' || flyer.qrPlaats === 'beide') && <div style={{ border: `2px solid ${flyer.kleur}`, padding: '4px', display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
               <QrCode size={36} fg={flyer.kleur} bg={bg} />
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '6px', color: flyer.kleur, letterSpacing: '0.1em' }}>WEBSITE</div>
-            </div>
+            </div>}
           </div>
         </div>
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
@@ -1083,7 +1094,7 @@ function FlyerBackPreview({ flyer }: { flyer: FlyerState }) {
         </div>
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 16px', borderTop: `2px solid ${flyer.accent}50`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: '7px', color: '#bbb', fontFamily: 'var(--font-mono)' }}>Scan voor website</div>
-          <QrCode size={32} fg={flyer.kleur} bg={bg} />
+          {(flyer.qrPlaats === 'achter' || flyer.qrPlaats === 'beide') && <QrCode size={32} fg={flyer.kleur} bg={bg} />}
         </div>
       </div>
     );
@@ -1117,9 +1128,9 @@ function FlyerBackPreview({ flyer }: { flyer: FlyerState }) {
         </div>
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 18px', borderTop: `1px solid ${flyer.accent}25`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)' }}>Scan voor meer</div>
-          <div style={{ border: `1px solid ${flyer.accent}60`, padding: '3px', borderRadius: '3px', boxShadow: `0 0 8px ${flyer.accent}30` }}>
+          {(flyer.qrPlaats === 'achter' || flyer.qrPlaats === 'beide') && <div style={{ border: `1px solid ${flyer.accent}60`, padding: '3px', borderRadius: '3px', boxShadow: `0 0 8px ${flyer.accent}30` }}>
             <QrCode size={32} fg={flyer.accent} bg="transparent" />
-          </div>
+          </div>}
         </div>
       </div>
     );
@@ -1161,7 +1172,7 @@ function FlyerBackPreview({ flyer }: { flyer: FlyerState }) {
         </div>
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '7px 18px', background: '#f5f5f5', borderTop: '1px solid #e8e8e8', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: '7px', color: '#aaa', fontFamily: 'var(--font-mono)' }}>Scan voor onze website</div>
-          <QrCode size={32} fg={flyer.kleur} bg="#f5f5f5" />
+          {(flyer.qrPlaats === 'achter' || flyer.qrPlaats === 'beide') && <QrCode size={32} fg={flyer.kleur} bg="#f5f5f5" />}
         </div>
       </div>
     );
@@ -1195,9 +1206,9 @@ function FlyerBackPreview({ flyer }: { flyer: FlyerState }) {
         </div>
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '7px 16px', background: `${flyer.kleur}08`, borderTop: '1px solid rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: '7px', color: '#bbb', fontFamily: 'var(--font-mono)' }}>Scan ons!</div>
-          <div style={{ background: flyer.kleur, padding: '3px', borderRadius: '4px' }}>
+          {(flyer.qrPlaats === 'achter' || flyer.qrPlaats === 'beide') && <div style={{ background: flyer.kleur, padding: '3px', borderRadius: '4px' }}>
             <QrCode size={30} fg="#fff" bg={flyer.kleur} />
-          </div>
+          </div>}
         </div>
       </div>
     );
@@ -1788,7 +1799,7 @@ export default function LokaalKabaal() {
     usp: '', tekst: '', logoData: null,
     websiteUrl: '', websiteScan: null, design: 'editorial',
     heroImageUrl: null, heroOffsetX: 50, heroOffsetY: 50, heroScale: 100, headline: '', cta: '', pdfUrl: null,
-    adres: '', openingstijden: '', backTekst: '',
+    adres: '', openingstijden: '', backTekst: '', qrPlaats: 'achter' as const,
   };
 
   const [flyers, setFlyers] = useState<SavedFlyer[]>(() => {
@@ -2947,6 +2958,29 @@ export default function LokaalKabaal() {
                 rows={5}
                 style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)', resize: 'vertical', fontFamily: 'var(--font-sans)', fontSize: '13px', boxSizing: 'border-box' }}
               />
+            </div>
+
+            {/* QR-code plaatsing */}
+            <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>QR-code plaatsing</div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>Kies op welke kant de QR-code verschijnt</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                {([
+                  { id: 'achter' as const, label: 'Achter', sub: 'Standaard' },
+                  { id: 'voor' as const, label: 'Voor', sub: 'Op voorkant' },
+                  { id: 'beide' as const, label: 'Beide', sub: 'Voor + achter' },
+                ] as { id: FlyerState['qrPlaats']; label: string; sub: string }[]).map(opt => (
+                  <button key={opt.id} onClick={() => updateFlyer({ qrPlaats: opt.id })}
+                    style={{
+                      padding: '10px 6px', border: `2px solid ${flyer.qrPlaats === opt.id ? 'var(--green)' : 'var(--line)'}`,
+                      borderRadius: 'var(--radius)', background: flyer.qrPlaats === opt.id ? 'var(--green-bg)' : 'var(--paper)',
+                      cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s',
+                    }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: flyer.qrPlaats === opt.id ? 'var(--green-dim)' : 'var(--ink)', marginBottom: '2px' }}>{opt.label}</div>
+                    <div style={{ fontSize: '9px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{opt.sub}</div>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Achterkant inhoud */}
