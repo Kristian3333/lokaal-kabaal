@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import FlyerExport from '../../components/FlyerExport';
+import FlyerExport, { PREVIEW_PX, PRINT_DIMS } from '../../components/FlyerExport';
 
 const NLMap = dynamic(() => import('../../components/NLMap'), { ssr: false, loading: () => (
   <div style={{ height: '280px', background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '12px', fontFamily: 'var(--font-mono)' }}>Kaart laden...</div>
@@ -127,6 +127,7 @@ interface WizState {
   proefAdres: string;
   email: string;
   pc4Lijst: string[];
+  pc4Add: string;
   flyerIndex: number;
 }
 
@@ -196,8 +197,9 @@ function AdaptiveLogo({ src, baseSize, style }: {
 
 // ─── Flyer Preview — 3 premium designs ───────────────────────────────────────
 
-function FlyerPreview({ flyer, onHeroOffsetChange }: {
+function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
   flyer: FlyerState;
+  formaat?: 'a6' | 'a5' | 'a4';
   onHeroOffsetChange?: (x: number, y: number) => void;
 }) {
   const usps = flyer.usp ? flyer.usp.split('\n').filter(Boolean).slice(0, 3) : [];
@@ -242,8 +244,9 @@ function FlyerPreview({ flyer, onHeroOffsetChange }: {
     userSelect: 'none',
   });
 
+  const pxDims = PREVIEW_PX[formaat];
   const base: React.CSSProperties = {
-    width: '240px', height: '340px', borderRadius: '8px', overflow: 'hidden',
+    width: `${pxDims.w}px`, height: `${pxDims.h}px`, borderRadius: '8px', overflow: 'hidden',
     position: 'relative', flexShrink: 0, fontFamily: 'var(--font-sans)',
     boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
   };
@@ -849,15 +852,16 @@ function QrCode({ size = 40, fg = '#000', bg = 'transparent' }: { size?: number;
 
 // ─── Flyer Back Preview ───────────────────────────────────────────────────────
 
-function FlyerBackPreview({ flyer }: { flyer: FlyerState }) {
+function FlyerBackPreview({ flyer, formaat = 'a5' }: { flyer: FlyerState; formaat?: 'a6' | 'a5' | 'a4' }) {
   const naam = flyer.bedrijfsnaam || 'Jouw Bedrijfsnaam';
   const initials = naam.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase();
   const adres = flyer.adres || '';
   const urenLines = flyer.openingstijden ? flyer.openingstijden.split('\n').filter(Boolean).slice(0, 4) : [];
   const backTekst = flyer.backTekst || 'Vragen? Wij helpen je graag verder.';
 
+  const pxDims = PREVIEW_PX[formaat];
   const base: React.CSSProperties = {
-    width: '240px', height: '340px', borderRadius: '8px', overflow: 'hidden',
+    width: `${pxDims.w}px`, height: `${pxDims.h}px`, borderRadius: '8px', overflow: 'hidden',
     position: 'relative', flexShrink: 0, fontFamily: 'var(--font-sans)',
     boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
   };
@@ -1802,6 +1806,7 @@ export default function LokaalKabaal() {
     formaat: 'a5', dubbelzijdig: false,
     proefFlyer: false, proefAdres: '', email: '',
     pc4Lijst: [],
+    pc4Add: '',
     flyerIndex: 0,
   };
 
@@ -2304,30 +2309,35 @@ export default function LokaalKabaal() {
                     ))}
                   </div>
                   {/* Handmatig postcode toevoegen */}
-                  {(() => {
-                    const [addPc4, setAddPc4] = (useState as <T>(v: T) => [T, (v: T) => void])('');
-                    const doAdd = () => {
-                      const v = addPc4.trim();
-                      if (/^\d{4}$/.test(v) && !wiz.pc4Lijst.includes(v)) {
-                        updateWiz({ pc4Lijst: [...wiz.pc4Lijst, v].sort() });
-                      }
-                      setAddPc4('');
-                    };
-                    return (
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                        <input
-                          type="text" maxLength={4} placeholder="+ postcode toevoegen"
-                          value={addPc4}
-                          onChange={e => setAddPc4(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                          onKeyDown={e => { if (e.key === 'Enter') doAdd(); }}
-                          style={{ padding: '7px 10px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', fontFamily: 'var(--font-mono)', fontSize: '13px', width: '160px', background: 'var(--paper2)' }}
-                        />
-                        <button onClick={doAdd} style={{ padding: '7px 14px', background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', fontFamily: 'var(--font-mono)', fontSize: '12px', cursor: 'pointer' }}>
-                          Voeg toe
-                        </button>
-                      </div>
-                    );
-                  })()}
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <input
+                      type="text" maxLength={4} placeholder="+ postcode toevoegen"
+                      value={wiz.pc4Add}
+                      onChange={e => updateWiz({ pc4Add: e.target.value.replace(/\D/g, '').slice(0, 4) })}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          const v = wiz.pc4Add.trim();
+                          if (/^\d{4}$/.test(v) && !wiz.pc4Lijst.includes(v))
+                            updateWiz({ pc4Lijst: [...wiz.pc4Lijst, v].sort(), pc4Add: '' });
+                          else
+                            updateWiz({ pc4Add: '' });
+                        }
+                      }}
+                      style={{ padding: '7px 10px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', fontFamily: 'var(--font-mono)', fontSize: '13px', width: '160px', background: 'var(--paper2)' }}
+                    />
+                    <button
+                      onClick={() => {
+                        const v = wiz.pc4Add.trim();
+                        if (/^\d{4}$/.test(v) && !wiz.pc4Lijst.includes(v))
+                          updateWiz({ pc4Lijst: [...wiz.pc4Lijst, v].sort(), pc4Add: '' });
+                        else
+                          updateWiz({ pc4Add: '' });
+                      }}
+                      style={{ padding: '7px 14px', background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', fontFamily: 'var(--font-mono)', fontSize: '12px', cursor: 'pointer' }}
+                    >
+                      Voeg toe
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -2452,8 +2462,8 @@ export default function LokaalKabaal() {
                     Bewerken →
                   </button>
                 </div>
-                <div ref={wizardFlyerRef} style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden', maxWidth: '200px' }}>
-                  <FlyerPreview flyer={flyer} />
+                <div ref={wizardFlyerRef} style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+                  <FlyerPreview flyer={flyer} formaat={formaat} />
                 </div>
               </div>
 
@@ -3207,8 +3217,8 @@ export default function LokaalKabaal() {
             <div style={{ position: 'relative', display: 'inline-block' }}>
               <div ref={flyerPreviewRef}>
                 {(!flyer.dubbelzijdig || previewSide === 'voor')
-                  ? <FlyerPreview flyer={flyer} onHeroOffsetChange={(x, y) => updateFlyer({ heroOffsetX: x, heroOffsetY: y })} />
-                  : <FlyerBackPreview flyer={flyer} />
+                  ? <FlyerPreview flyer={flyer} formaat={(flyer.afmeting as 'a6' | 'a5' | 'a4') || 'a5'} onHeroOffsetChange={(x, y) => updateFlyer({ heroOffsetX: x, heroOffsetY: y })} />
+                  : <FlyerBackPreview flyer={flyer} formaat={(flyer.afmeting as 'a6' | 'a5' | 'a4') || 'a5'} />
                 }
               </div>
               {/* Safe zone overlay */}
