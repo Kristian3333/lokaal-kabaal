@@ -8,10 +8,10 @@ const TIERS = [
     name: 'Buurt',
     sub: 'Uw eerste vaste klanten werven',
     monthly: 69,
-    yearly: 59,
-    yearlyTotal: 699,
+    yearly: 52,
+    yearlyTotal: 624,
     extraMonthly: 2.25,
-    extraYearly: 1.91,
+    extraYearly: 1.69,
     features: [
       '1 postcode actief',
       '20 flyers/maand inbegrepen',
@@ -30,10 +30,10 @@ const TIERS = [
     name: 'Wijk',
     sub: 'De vaste naam in de buurt worden',
     monthly: 149,
-    yearly: 127,
-    yearlyTotal: 1524,
+    yearly: 112,
+    yearlyTotal: 1344,
     extraMonthly: 1.85,
-    extraYearly: 1.57,
+    extraYearly: 1.39,
     features: [
       '3 postcodes actief',
       '50 flyers/maand inbegrepen',
@@ -54,10 +54,10 @@ const TIERS = [
     name: 'Stad',
     sub: 'Categorie-eigenaar in uw verzorgingsgebied',
     monthly: 299,
-    yearly: 254,
-    yearlyTotal: 3048,
+    yearly: 224,
+    yearlyTotal: 2688,
     extraMonthly: 1.45,
-    extraYearly: 1.23,
+    extraYearly: 1.09,
     features: [
       '10 postcodes actief',
       '150 flyers/maand inbegrepen',
@@ -122,13 +122,13 @@ export default function PricingSection() {
                 background: yearly ? 'rgba(0,0,0,0.15)' : 'var(--green)',
                 color: yearly ? 'var(--ink)' : 'var(--ink)',
               }}>
-                −15%
+                −25%
               </span>
             </button>
           </div>
           {yearly && (
             <div style={{ marginTop: '10px', fontSize: '11px', color: 'rgba(255,255,255,.35)', fontFamily: 'var(--font-mono)' }}>
-              15% korting op abonnement én extra flyers · per jaar vooruit gefactureerd
+              25% korting op abonnement én extra flyers · per jaar vooruit gefactureerd
             </div>
           )}
         </div>
@@ -170,7 +170,7 @@ export default function PricingSection() {
                 </span>
                 <span style={{ fontSize: '13px', color: 'rgba(255,255,255,.3)', paddingBottom: '4px' }}>/maand</span>
                 {yearly && (
-                  <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--green)', fontFamily: 'var(--font-mono)', paddingBottom: '5px' }}>−15%</span>
+                  <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--green)', fontFamily: 'var(--font-mono)', paddingBottom: '5px' }}>−25%</span>
                 )}
               </div>
 
