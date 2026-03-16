@@ -2045,32 +2045,54 @@ export default function LokaalKabaal() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-            {campaigns.map(c => (
-              <div key={c.id} style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: c.status === 'actief' ? 'var(--green)' : '#888', flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '2px' }}>{c.spec}</div>
-                    <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                      {c.centrum} · max {c.aantalFlyers.toLocaleString('nl')} flyers · {c.formaat.toUpperCase()}{c.dubbelzijdig ? ' dubbelzijdig' : ''} · start {c.datum ? new Date(c.datum).toLocaleDateString('nl', { month: 'long', year: 'numeric' }) : '—'}
+            {campaigns.map(c => {
+              const now = new Date();
+              const next25 = new Date(now.getFullYear(), now.getMonth(), 25);
+              if (next25 <= now) next25.setMonth(next25.getMonth() + 1);
+              const daysUntil = Math.ceil((next25.getTime() - now.getTime()) / 86400000);
+              return (
+              <div key={c.id} style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+                {/* Type banner */}
+                <div style={{ background: 'var(--green-bg)', borderBottom: '1px solid rgba(0,232,122,0.2)', padding: '6px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, color: 'var(--green-dim)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Nieuwe bewoners · Altum-data</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'rgba(0,0,0,0.3)' }}>·</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--green-dim)' }}>elke 25e automatisch verstuurd</span>
+                  </div>
+                  {c.status === 'actief' && (
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--green-dim)' }}>
+                      volgende verzending over <strong>{daysUntil} dag{daysUntil !== 1 ? 'en' : ''}</strong>
+                    </span>
+                  )}
+                </div>
+                {/* Campaign body */}
+                <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: c.status === 'actief' ? 'var(--green)' : '#888', flexShrink: 0 }} />
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '2px' }}>{c.spec}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                        {c.centrum} · max {c.aantalFlyers.toLocaleString('nl')} flyers/mnd · {c.formaat.toUpperCase()}{c.dubbelzijdig ? ' dubbelzijdig' : ''} · start {c.datum ? new Date(c.datum).toLocaleDateString('nl', { month: 'long', year: 'numeric' }) : '—'}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px' }}>{formatPrijs(c.maxBudget)}<span style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>/mnd max</span></div>
-                    <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--muted)' }}>factuur op de 25e</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px' }}>{formatPrijs(c.maxBudget)}<span style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>/mnd max</span></div>
+                      <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--muted)' }}>betaal alleen actual gebruik</div>
+                    </div>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', padding: '3px 8px', borderRadius: '3px', background: c.status === 'actief' ? 'var(--green-bg)' : 'var(--paper2)', color: c.status === 'actief' ? 'var(--green-dim)' : 'var(--muted)', border: `1px solid ${c.status === 'actief' ? 'rgba(0,232,122,0.3)' : 'var(--line)'}`, fontWeight: 700 }}>
+                      {c.status.toUpperCase()}
+                    </span>
+                    <button onClick={() => setCampaigns(prev => prev.map(x => x.id === c.id ? { ...x, status: x.status === 'actief' ? 'gepauzeerd' : 'actief' } : x))}
+                      style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', padding: '5px 10px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper)', cursor: 'pointer' }}>
+                      {c.status === 'actief' ? 'Pauzeren' : 'Hervatten'}
+                    </button>
                   </div>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', padding: '3px 8px', borderRadius: '3px', background: c.status === 'actief' ? 'var(--green-bg)' : 'var(--paper2)', color: c.status === 'actief' ? 'var(--green-dim)' : 'var(--muted)', border: `1px solid ${c.status === 'actief' ? 'rgba(0,232,122,0.3)' : 'var(--line)'}`, fontWeight: 700 }}>
-                    {c.status.toUpperCase()}
-                  </span>
-                  <button onClick={() => setCampaigns(prev => prev.map(x => x.id === c.id ? { ...x, status: x.status === 'actief' ? 'gepauzeerd' : 'actief' } : x))}
-                    style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', padding: '5px 10px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper)', cursor: 'pointer' }}>
-                    {c.status === 'actief' ? 'Pauzeren' : 'Hervatten'}
-                  </button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -2124,7 +2146,7 @@ export default function LokaalKabaal() {
                 Welkom bij LokaalKabaal
               </h2>
               <p style={{ color: 'var(--muted)', marginBottom: '20px', lineHeight: 1.6 }}>
-                Bereik nieuwe bewoners in jouw werkgebied met een fysieke flyer — bezorgd op het moment dat ze net zijn ingetrokken. Wij regelen het drukken, de Kadaster-data en de bezorging.
+                Bereik nieuwe huiseigenaren in jouw postcodes met een fysieke flyer. Altum publiceert elke maand op de 20e alle eigendomsoverdrachten — wij verwerken ze en sturen op de 25e automatisch jouw flyer naar elk nieuw adres. Geen handmatig werk.
               </p>
               <RoiCalc kluswaarde={kluswaarde} onChange={v => updateWiz({ kluswaarde: v })} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
