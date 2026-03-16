@@ -58,10 +58,11 @@ function estimeerDekkingsgebied(straalKm: number): {
 }
 
 function berekenPrijs(aantalFlyers: number, formaat: string, dubbelzijdig: boolean): number {
-  const base = aantalFlyers >= 1000 ? 0.39 : aantalFlyers >= 500 ? 0.49 : 0.59;
-  const formaatExtra = formaat === 'a4' ? 0.08 : formaat === 'a6' ? -0.05 : 0;
+  // Basisprijzen: print.one-kostprijs + €0,04 marge
+  // A6 €0,69 + €0,04 = €0,73 · A5 €0,79 + €0,04 = €0,83 · A4 A5 + €0,08 = €0,91
+  const base = formaat === 'a6' ? 0.73 : formaat === 'a4' ? 0.91 : 0.83;
   const dubbelExtra = dubbelzijdig ? 0.06 : 0;
-  return aantalFlyers * (base + formaatExtra + dubbelExtra);
+  return aantalFlyers * (base + dubbelExtra);
 }
 
 function formatPrijs(x: number): string {
@@ -2240,7 +2241,7 @@ export default function LokaalKabaal() {
                 <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '10px' }}>FORMAAT</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                   {[
-                    { id: 'a6' as const, label: 'A6', afm: '105×148 mm', toeslag: '−€0,05/stuk' },
+                    { id: 'a6' as const, label: 'A6', afm: '105×148 mm', toeslag: '−€0,10/stuk' },
                     { id: 'a5' as const, label: 'A5', afm: '148×210 mm', toeslag: 'Standaard', std: true },
                     { id: 'a4' as const, label: 'A4', afm: '210×297 mm', toeslag: '+€0,08/stuk' },
                   ].map(f => (
@@ -2272,12 +2273,23 @@ export default function LokaalKabaal() {
               </div>
 
               {/* Aantal */}
+              {(() => {
+                const maxFlyers = stats.estAdressenMaand;
+                const presets = [250, 500, 750, 1000, 1500, 2000, 2500, 3000, 4000, 5000].filter(n => n <= maxFlyers);
+                // Als huidig gekozen aantal > max, reset naar max
+                if (aantalFlyers > maxFlyers) updateWiz({ aantalFlyers: Math.max(250, roundUp50(maxFlyers)) });
+                return (
               <div style={{ marginBottom: '16px' }}>
-                <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '10px' }}>
-                  MAXIMAAL AANTAL FLYERS PER MAAND
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '10px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                    MAXIMAAL AANTAL FLYERS PER MAAND
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                    max <strong style={{ color: 'var(--ink)' }}>{maxFlyers.toLocaleString('nl')}</strong> op basis van jouw regio
+                  </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '10px' }}>
-                  {[250, 500, 750, 1000, 1500, 2000, 2500, 3000].map(n => (
+                  {presets.map(n => (
                     <button key={n} onClick={() => updateWiz({ aantalFlyers: n })}
                       style={{
                         padding: '10px 6px', border: `1px solid ${aantalFlyers === n ? 'var(--green)' : 'var(--line)'}`,
@@ -2290,8 +2302,8 @@ export default function LokaalKabaal() {
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '12px' }}>
                   <span style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>Of voer in:</span>
                   <input
-                    type="number" min={250} step={50} value={aantalFlyers}
-                    onChange={e => updateWiz({ aantalFlyers: Math.max(250, Number(e.target.value)) })}
+                    type="number" min={250} max={maxFlyers} step={50} value={aantalFlyers}
+                    onChange={e => updateWiz({ aantalFlyers: Math.min(maxFlyers, Math.max(250, Number(e.target.value))) })}
                     style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', fontFamily: 'var(--font-mono)', fontSize: '14px', background: 'var(--paper2)' }}
                   />
                 </div>
@@ -2327,6 +2339,8 @@ export default function LokaalKabaal() {
                   </div>
                 </div>
               </div>
+                );
+              })()}
 
               {/* Prijsoverzicht */}
               <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px' }}>
