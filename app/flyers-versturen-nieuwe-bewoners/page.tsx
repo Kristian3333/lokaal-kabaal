@@ -2,12 +2,12 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Automatisch Flyers naar Nieuwe Bewoners Versturen',
-  description: 'Bereik nieuwe huiseigenaren binnen 30 dagen na verhuizing. Automatische flyers via Kadaster-data. Druk + bezorging inbegrepen. Geen handmatig werk.',
+  title: 'Flyers naar Nieuwe Bewoners Versturen | Maandelijks Automatisch',
+  description: 'Bereik nieuwe huiseigenaren elke maand automatisch. LokaalKabaal verwerkt Altum-verhuisdata op de 20e en bezorgt gepersonaliseerde flyers op de 25e. Geen handmatig werk.',
   alternates: { canonical: 'https://lokaalkabaal.agency/flyers-versturen-nieuwe-bewoners' },
   openGraph: {
-    title: 'Automatisch Flyers naar Nieuwe Bewoners Versturen | LokaalKabaal',
-    description: 'Bereik nieuwe huiseigenaren binnen 30 dagen na verhuizing. Automatische flyers via Kadaster-data.',
+    title: 'Flyers naar Nieuwe Bewoners Versturen | LokaalKabaal',
+    description: 'Elke 25e van de maand bereikt u alle nieuwe eigenaren in uw postcodes. Automatisch via Altum-verhuisdata.',
     url: 'https://lokaalkabaal.agency/flyers-versturen-nieuwe-bewoners',
   },
 };
@@ -29,7 +29,7 @@ const faqSchema = {
       name: 'Hoe snel na een verhuizing ontvangen nieuwe bewoners mijn flyer?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Het Kadaster registreert eigendomsoverdrachten doorgaans binnen 1–3 werkdagen na de notariële overdracht. LokaalKabaal pikt die registratie op en start direct het drukproces. Bezorging volgt binnen 2 werkdagen na detectie.',
+        text: 'Altum verwerkt eigendomsoverdrachten uit het Kadaster en publiceert deze maandelijks rond de 20e. LokaalKabaal pikt die data op, verwerkt alle adressen en stuurt op de 25e van diezelfde maand een gebundelde printorder. De nieuwe bewoner ontvangt uw flyer gemiddeld binnen 2–3 weken na hun verhuizing — ruimschoots in het 30-dagen beslissingsvenster.',
       },
     },
     {
@@ -91,13 +91,13 @@ export default function FlyersNieuweBewoners() {
         {/* Hero */}
         <section style={{ maxWidth: '800px', margin: '0 auto', padding: '80px 40px 60px' }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--green-dim)', letterSpacing: '0.12em', marginBottom: '16px', textTransform: 'uppercase' }}>
-            Direct mail · Nieuwe bewoners · Kadaster-koppeling
+            Direct mail · Nieuwe bewoners · Altum-verhuisdata
           </div>
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '48px', fontWeight: 400, lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: '20px' }}>
-            Flyers versturen naar<br />nieuwe bewoners —<br /><em style={{ color: 'var(--green-dim)' }}>volledig automatisch</em>
+            Elke 25e liggen uw flyers<br />bij de nieuwe bewoners<br /><em style={{ color: 'var(--green-dim)' }}>op de mat</em>
           </h1>
           <p style={{ fontSize: '16px', color: 'var(--muted)', lineHeight: 1.7, maxWidth: '620px', marginBottom: '32px' }}>
-            Elke maand wisselt het Kadaster tienduizenden woningen van eigenaar. Die nieuwe bewoners staan voor een complete reset: geen vaste bakker, geen kapper, geen installateur. Ze staan open. Ze zijn actief op zoek. En ze maken hun keuzes razendsnel — 80% van de nieuwe bewoners heeft binnen 30 dagen hun lokale voorkeursleveranciers gekozen. LokaalKabaal verstuurt automatisch gepersonaliseerde flyers naar nieuwe bewoners op basis van Kadaster-data, zodat u in dat venster zit.
+            Elke maand wisselt het Kadaster tienduizenden woningen van eigenaar. Altum verwerkt die data en publiceert ze op de 20e. LokaalKabaal pikt ze op, verwerkt alle adressen in uw postcodes en verstuurt op de 25e een gepersonaliseerde flyer naar elke nieuwe bewoner. Gemiddeld binnen 2–3 weken na de verhuizing — precies in het venster waarin 80% van de nieuwe bewoners hun vaste lokale leveranciers kiest.
           </p>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <Link href="/login" style={{ padding: '12px 24px', background: 'var(--ink)', color: 'var(--paper)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px' }}>
@@ -113,8 +113,8 @@ export default function FlyersNieuweBewoners() {
         <div style={{ borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)', background: 'var(--white)' }}>
           <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px 40px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0' }}>
             {[
-              { n: '900.000+', label: 'verhuisbewegingen per jaar in NL (CBS)' },
-              { n: '30 dagen', label: 'venster waarin nieuwe bewoners vaste keuzes maken' },
+              { n: '900.000+', label: 'eigendomsoverdrachten per jaar in NL (Kadaster/CBS)' },
+              { n: '25e', label: 'van de maand: uw flyers gaan eruit, zonder dat u iets doet' },
               { n: '4–8%', label: 'conversieratio welkomstflyer nieuwe bewoners' },
             ].map((s, i) => (
               <div key={i} style={{ padding: '16px 24px', borderRight: i < 2 ? '1px solid var(--line)' : 'none' }}>
@@ -151,14 +151,31 @@ export default function FlyersNieuweBewoners() {
           {/* Blok 2 */}
           <section id="hoe-het-werkt" style={{ marginBottom: '60px', background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '32px' }}>
             <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 400, marginBottom: '16px', letterSpacing: '-0.01em' }}>
-              Hoe LokaalKabaal automatisch flyers verstuurt op basis van Kadaster-data
+              Hoe de maandelijkse cyclus werkt
             </h2>
             <div style={{ width: '32px', height: '2px', background: 'var(--green)', marginBottom: '24px' }} />
+
+            {/* Timeline visual */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0', marginBottom: '28px', borderRadius: 'var(--radius)', overflow: 'hidden', border: '1px solid var(--line)' }}>
+              {[
+                { dag: '20e', label: 'Altum publiceert', sub: 'verhuisdata vorige periode', color: 'var(--paper)' },
+                { dag: '21–23e', label: 'LokaalKabaal verwerkt', sub: 'adressen per abonnee', color: 'var(--white)' },
+                { dag: '24–25e', label: 'Printorder verstuurd', sub: 'gebundelde bulkrun', color: 'var(--paper)' },
+                { dag: '28–30e', label: 'Bezorging', sub: 'flyer op de mat bij nieuwe bewoner', color: 'var(--green-bg)' },
+              ].map((t, i) => (
+                <div key={i} style={{ padding: '14px 16px', background: t.color, borderRight: i < 3 ? '1px solid var(--line)' : 'none' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 700, color: 'var(--green-dim)', marginBottom: '4px' }}>{t.dag}</div>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink)', marginBottom: '2px' }}>{t.label}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', lineHeight: 1.4 }}>{t.sub}</div>
+                </div>
+              ))}
+            </div>
+
             {[
-              { n: '01', title: 'Kadaster-monitoring', text: 'Het Kadaster registreert dagelijks alle eigendomsoverdrachten in Nederland. LokaalKabaal koppelt aan deze datastroom en monitort continu op overdrachten in de postcodes die u heeft geselecteerd. U stelt dit eenmalig in via uw dashboard.' },
-              { n: '02', title: 'Automatische flyertrigger', text: 'Zodra een nieuwe eigendomsoverdracht is geregistreerd in uw doelgebied, start het systeem automatisch het drukproces. Uw flyer — voorzien van het adres van de nieuwe bewoner — wordt aangemaakt als gepersonaliseerde drukorder.' },
-              { n: '03', title: 'Druk en bezorging binnen 2 werkdagen', text: 'De flyer wordt gedrukt en bezorgd via een geïntegreerde print-on-demand koppeling. Gemiddelde doorlooptijd: 2 werkdagen na de Kadaster-registratie. De nieuwe bewoner ontvangt uw bericht terwijl de verhuizing nog vers is.' },
-              { n: '04', title: 'Dashboard en rapportage', text: 'In uw LokaalKabaal-dashboard ziet u precies welke adressen een flyer hebben ontvangen, welke postcodes actief zijn, en hoeveel eigendomsoverdrachten er deze maand zijn geweest in uw gebied.' },
+              { n: '01', title: 'Eenmalige setup via uw dashboard', text: 'U kiest uw postcodes, uploadt uw flyer-template en stelt uw branche in. Dat is alles. Vanaf dat moment loopt alles automatisch — u hoeft niets meer te doen.' },
+              { n: '02', title: 'Altum-data op de 20e', text: 'Altum verwerkt maandelijks eigendomsoverdrachten uit het Kadaster en publiceert ze rond de 20e. LokaalKabaal koppelt aan deze datastroom en haalt automatisch alle nieuwe adressen op in uw geselecteerde postcodes.' },
+              { n: '03', title: 'Verwerking en bulkprint op de 25e', text: 'LokaalKabaal bundelt alle adressen per abonnee, koppelt het juiste template, en plaatst één gepoold printorder. Alle flyers worden tegelijk gedrukt en individueel geadresseerd verstuurd via PostNL. Bulk printen = lagere kosten per stuk.' },
+              { n: '04', title: 'Bezorging en rapportage', text: 'Eind van de maand liggen de flyers bij de nieuwe bewoners. In uw dashboard ziet u hoeveel flyers er zijn verstuurd, naar welke adressen, en wat de overdrachtsactiviteit per postcode was die maand.' },
             ].map(s => (
               <div key={s.n} style={{ display: 'flex', gap: '20px', marginBottom: '24px', alignItems: 'flex-start' }}>
                 <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--green-dim)', background: 'var(--green-bg)', padding: '4px 8px', borderRadius: 'var(--radius)', flexShrink: 0, marginTop: '2px' }}>{s.n}</div>
@@ -169,7 +186,7 @@ export default function FlyersNieuweBewoners() {
               </div>
             ))}
             <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.2)', borderRadius: 'var(--radius)', padding: '14px 16px', fontSize: '13px', color: 'var(--green-dim)', marginTop: '8px' }}>
-              Er is geen vergelijkbaar systeem in Nederland dat Kadaster-data combineert met geautomatiseerde direct mail voor lokale MKB-ondernemers. LokaalKabaal is de eerste en enige aanbieder van dit type.
+              Gemiddelde doorlooptijd: nieuwe bewoner ontvangt uw flyer binnen 2–3 weken na hun verhuizing. Ruimschoots in het 30-dagen beslissingsvenster.
             </div>
           </section>
 
@@ -216,6 +233,179 @@ export default function FlyersNieuweBewoners() {
             </div>
           </section>
 
+          {/* Pricing */}
+          <section id="prijzen" style={{ marginBottom: '72px' }}>
+            <div style={{ marginBottom: '8px', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--green-dim)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+              Abonnementen · Nieuwe bewoners
+            </div>
+            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '32px', fontWeight: 400, marginBottom: '12px', letterSpacing: '-0.01em', lineHeight: 1.1 }}>
+              Welke positie wilt u innemen<br />in uw buurt?
+            </h2>
+            <div style={{ width: '32px', height: '2px', background: 'var(--green)', marginBottom: '16px' }} />
+            <p style={{ fontSize: '14px', color: '#555', lineHeight: 1.7, maxWidth: '580px', marginBottom: '32px' }}>
+              Elke postcode heeft ruimte voor precies één kapper, één bakker, één installateur. Zolang die positie nog open is, kunt u hem innemen. Zodra een concurrent hem bezet, is hij weg.
+            </p>
+
+            {/* Exclusivity warning bar */}
+            <div style={{ background: 'var(--ink)', borderRadius: 'var(--radius)', padding: '12px 18px', marginBottom: '28px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)', fontFamily: 'var(--font-mono)' }}>
+                <strong style={{ color: '#fff' }}>Exclusiviteitsbeveiliging actief:</strong> per postcode neemt LokaalKabaal slechts één klant per branche aan. Controleer uw postcodes voordat een concurrent dat doet.
+              </div>
+            </div>
+
+            {/* Tier grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', alignItems: 'start' }}>
+
+              {/* Tier 1: Buurt */}
+              <div style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '28px 24px', background: 'var(--white)' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>Tier 1</div>
+                <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', fontWeight: 400, marginBottom: '4px' }}>Buurt</div>
+                <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '20px' }}>Uw eerste vaste klanten werven</div>
+                <div style={{ marginBottom: '6px' }}>
+                  <span style={{ fontFamily: 'var(--font-serif)', fontSize: '38px', fontWeight: 400, letterSpacing: '-0.02em' }}>€69</span>
+                  <span style={{ fontSize: '13px', color: 'var(--muted)', marginLeft: '4px' }}>/maand</span>
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '24px' }}>
+                  + €2,25 per extra flyer boven bundel
+                </div>
+                <div style={{ borderTop: '1px solid var(--line)', paddingTop: '20px', marginBottom: '24px' }}>
+                  {[
+                    '1 postcode actief',
+                    '20 flyers/maand inbegrepen',
+                    'A6 formaat · print + bezorging',
+                    '1 flyer-template',
+                    'Maandelijks rapport',
+                    'Per maand opzegbaar',
+                  ].map((f, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px', fontSize: '13px', color: '#444' }}>
+                      <span style={{ color: 'var(--green)', flexShrink: 0, marginTop: '2px' }}>✓</span>
+                      <span>{f}</span>
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px', fontSize: '13px', color: 'var(--muted)' }}>
+                    <span style={{ flexShrink: 0, marginTop: '2px' }}>—</span>
+                    <span>Geen exclusiviteitsgarantie</span>
+                  </div>
+                </div>
+                <div style={{ background: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '10px 12px', marginBottom: '20px', fontSize: '11px', color: '#555', fontFamily: 'var(--font-mono)' }}>
+                  Break-even: 1 nieuwe vaste klant per kwartaal dekt de volledige jaarkost.
+                </div>
+                <Link href="/login" style={{ display: 'block', textAlign: 'center', padding: '11px 16px', border: '1px solid var(--ink)', color: 'var(--ink)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px' }}>
+                  Start met Buurt →
+                </Link>
+              </div>
+
+              {/* Tier 2: Wijk — HERO */}
+              <div style={{ border: '2px solid var(--ink)', borderRadius: 'var(--radius)', padding: '28px 24px', background: 'var(--ink)', position: 'relative', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
+                <div style={{ position: 'absolute', top: '-13px', left: '50%', transform: 'translateX(-50%)', background: 'var(--green)', color: 'var(--ink)', fontSize: '10px', fontWeight: 800, fontFamily: 'var(--font-mono)', padding: '3px 12px', borderRadius: '20px', letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                  Meest gekozen
+                </div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>Tier 2</div>
+                <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', fontWeight: 400, marginBottom: '4px', color: '#fff' }}>Wijk</div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', marginBottom: '20px' }}>De vaste naam in de buurt worden</div>
+                <div style={{ marginBottom: '6px' }}>
+                  <span style={{ fontFamily: 'var(--font-serif)', fontSize: '38px', fontWeight: 400, letterSpacing: '-0.02em', color: '#fff' }}>€149</span>
+                  <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', marginLeft: '4px' }}>/maand</span>
+                </div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)', marginBottom: '24px' }}>
+                  + €1,85 per extra flyer boven bundel
+                </div>
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.12)', paddingTop: '20px', marginBottom: '24px' }}>
+                  {[
+                    '3 postcodes actief',
+                    '50 flyers/maand inbegrepen',
+                    'A5 dubbelzijdig · premium formaat',
+                    '3 flyer-templates (incl. seizoensvariant)',
+                    'Wekelijks rapport + statistieken',
+                    'A/B test twee templates',
+                    'Telefonische onboarding',
+                    'Per maand opzegbaar',
+                  ].map((f, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px', fontSize: '13px', color: 'rgba(255,255,255,0.8)' }}>
+                      <span style={{ color: 'var(--green)', flexShrink: 0, marginTop: '2px' }}>✓</span>
+                      <span>{f}</span>
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '12px', fontSize: '13px' }}>
+                    <span style={{ flexShrink: 0, marginTop: '2px' }}>
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L9 5H13L10 8L11 12L7 10L3 12L4 8L1 5H5L7 1Z" fill="#00E87A"/></svg>
+                    </span>
+                    <span style={{ color: 'var(--green)', fontWeight: 700 }}>Exclusiviteit per postcode, per branche</span>
+                  </div>
+                </div>
+                <div style={{ background: 'rgba(0,232,122,0.1)', border: '1px solid rgba(0,232,122,0.2)', borderRadius: 'var(--radius)', padding: '10px 12px', marginBottom: '20px', fontSize: '11px', color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>
+                  Break-even: 1 nieuwe vaste klant per 2 maanden. Typische return: 8–12× de abonnementskosten.
+                </div>
+                <Link href="/login" style={{ display: 'block', textAlign: 'center', padding: '12px 16px', background: 'var(--green)', color: 'var(--ink)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 800, fontSize: '13px' }}>
+                  Claim uw wijkpositie →
+                </Link>
+              </div>
+
+              {/* Tier 3: Stad */}
+              <div style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '28px 24px', background: 'var(--white)' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>Tier 3</div>
+                <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', fontWeight: 400, marginBottom: '4px' }}>Stad</div>
+                <div style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '20px' }}>Categorie-eigenaar in uw verzorgingsgebied</div>
+                <div style={{ marginBottom: '6px' }}>
+                  <span style={{ fontFamily: 'var(--font-serif)', fontSize: '38px', fontWeight: 400, letterSpacing: '-0.02em' }}>€299</span>
+                  <span style={{ fontSize: '13px', color: 'var(--muted)', marginLeft: '4px' }}>/maand</span>
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '24px' }}>
+                  + €1,45 per extra flyer boven bundel
+                </div>
+                <div style={{ borderTop: '1px solid var(--line)', paddingTop: '20px', marginBottom: '24px' }}>
+                  {[
+                    '10 postcodes actief',
+                    '150 flyers/maand inbegrepen',
+                    'A5 dubbelzijdig · gepersonaliseerd per woningtype',
+                    'Onbeperkt templates + auto-selectie',
+                    'Real-time dashboard',
+                    'Kwartaalgesprek met accountmanager',
+                    'Professioneel flyer-ontwerp (éénmalig inbegrepen)',
+                    'Per maand opzegbaar',
+                  ].map((f, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px', fontSize: '13px', color: '#444' }}>
+                      <span style={{ color: 'var(--green)', flexShrink: 0, marginTop: '2px' }}>✓</span>
+                      <span>{f}</span>
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '12px', fontSize: '13px' }}>
+                    <span style={{ flexShrink: 0, marginTop: '2px' }}>
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L9 5H13L10 8L11 12L7 10L3 12L4 8L1 5H5L7 1Z" fill="#111"/></svg>
+                    </span>
+                    <span style={{ fontWeight: 700 }}>Exclusiviteit voor het volledige verzorgingsgebied</span>
+                  </div>
+                </div>
+                <div style={{ background: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '10px 12px', marginBottom: '20px', fontSize: '11px', color: '#555', fontFamily: 'var(--font-mono)' }}>
+                  Voor installateurs, makelaars en multi-locatie ondernemers. Geen concurrent bereikt uw nieuwe bewoners.
+                </div>
+                <Link href="/login" style={{ display: 'block', textAlign: 'center', padding: '11px 16px', background: 'var(--ink)', color: 'var(--paper)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px' }}>
+                  Domineer uw markt →
+                </Link>
+              </div>
+            </div>
+
+            {/* Social proof + value anchor below grid */}
+            <div style={{ marginTop: '24px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+              {[
+                { n: '€69', label: 'per maand is minder dan 1 nieuwe klant ooit waard is', accent: false },
+                { n: '4–8%', label: 'conversieratio welkomstflyer — elke 20–25 flyers = 1 klant', accent: true },
+                { n: '25e', label: 'elke maand automatisch verstuurd — geen handmatig werk na setup', accent: false },
+              ].map((s, i) => (
+                <div key={i} style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '14px 16px' }}>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', color: s.accent ? 'var(--green-dim)' : 'var(--ink)', marginBottom: '4px' }}>{s.n}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', lineHeight: 1.4 }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Fine print / trust */}
+            <div style={{ marginTop: '16px', fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', textAlign: 'center', lineHeight: 1.6 }}>
+              Alle prijzen excl. BTW · Geen minimale looptijd · Maandelijks opzegbaar · Exclusiviteit geldt zolang abonnement actief is
+            </div>
+          </section>
+
           {/* FAQ */}
           <section style={{ marginBottom: '60px' }}>
             <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 400, marginBottom: '24px', letterSpacing: '-0.01em' }}>
@@ -223,9 +413,9 @@ export default function FlyersNieuweBewoners() {
             </h2>
             {[
               { q: 'Is het legaal om Kadaster-data te gebruiken voor marketingdoeleinden?', a: 'Ja. Eigendomsoverdrachten zijn openbare informatie die door het Kadaster beschikbaar wordt gesteld. LokaalKabaal gebruikt uitsluitend adresgegevens die publiek beschikbaar zijn voor postbezorging — dezelfde data die ook beschikbaar is via het Kadaster-informatieloket. LokaalKabaal verwerkt persoonsgegevens conform de AVG en levert u de gegevens niet rechtstreeks; de bezorging verloopt via geautoriseerde kanalen.' },
-              { q: 'Hoe snel na een verhuizing ontvangen nieuwe bewoners mijn flyer?', a: 'Het Kadaster registreert eigendomsoverdrachten doorgaans binnen 1–3 werkdagen na de notariële overdracht. LokaalKabaal pikt die registratie op en start direct het drukproces. Bezorging volgt binnen 2 werkdagen na detectie. In de meeste gevallen ligt uw flyer bij de nieuwe bewoner op de mat terwijl die nog aan het inpakken of uitpakken is — ruimschoots binnen het 30-dagen venster.' },
+              { q: 'Hoe snel na een verhuizing ontvangen nieuwe bewoners mijn flyer?', a: 'Altum publiceert maandelijks verhuisdata rond de 20e. LokaalKabaal verwerkt deze data en verstuurt op de 25e een bulkprintorder. Nieuwe bewoners ontvangen uw flyer gemiddeld 2–3 weken na hun verhuizing. Dat is ruimschoots binnen het 30-dagen venster waarin nieuwe bewoners hun vaste lokale leveranciers kiezen.' },
               { q: 'Kan ik zelf bepalen welke postcodes ik wil targeten?', a: 'Ja, volledig. U kiest zelf welke postcodes u wilt activeren. U kunt zo nauwkeurig zijn als één specifieke wijk, of zo breed als een heel stadsdeel. Er is geen minimum aantal postcodes. Een bakker in de Utrechtse Rivierenwijk kan kiezen voor uitsluitend de postcodes binnen loopafstand van zijn zaak.' },
-              { q: 'Wat als er een maand geen eigendomsoverdrachten zijn in mijn postcodes?', a: 'In stedelijk Nederland is dat vrijwel nooit het geval — de Kadasterdata tonen gemiddeld 2–5 overdrachten per postcode per maand. Maar als er een maand geen overdrachten zijn, verstuurt u die maand geen flyers en betaalt u alleen het basisabonnement. Er zijn geen kosten voor lege maanden bovenop het vaste bedrag.' },
+              { q: 'Wat als er een maand geen eigendomsoverdrachten zijn in mijn postcodes?', a: 'In stedelijk Nederland is dat vrijwel nooit het geval — Altum-data tonen gemiddeld 3–8 overdrachten per PC4-postcode per maand. Maar als er een maand geen overdrachten zijn, verstuurt u die maand geen flyers en betaalt u alleen het abonnement. Er zijn geen extra kosten voor lege maanden.' },
               { q: 'Kan ik meerdere flyer-templates instellen voor verschillende doelgroepen?', a: 'Ja. U kunt meerdere templates aanmaken voor verschillende typen panden (appartement vs. gezinswoning), verschillende seizoenen, of specifieke aanbiedingen. Het systeem selecteert automatisch de juiste template op basis van regels die u zelf instelt.' },
             ].map((f, i) => (
               <div key={i} style={{ borderBottom: '1px solid var(--line)', padding: '18px 0' }}>
@@ -238,10 +428,10 @@ export default function FlyersNieuweBewoners() {
           {/* CTA */}
           <section style={{ background: 'var(--ink)', borderRadius: 'var(--radius)', padding: '40px', textAlign: 'center' }}>
             <div style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', color: '#fff', marginBottom: '12px', lineHeight: 1.2 }}>
-              Start vandaag. Uw eerste flyer gaat de deur uit<br />zodra de eerste nieuwe eigenaar is geregistreerd.
+              Start vandaag. Op de 25e liggen<br />uw flyers bij de nieuwe bewoners.
             </div>
             <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', marginBottom: '24px', fontFamily: 'var(--font-mono)' }}>
-              Geen contract · Per maand opzegbaar · Setup in 20 minuten
+              Geen contract · Per maand opzegbaar · Setup in 20 minuten · Elke 25e automatisch verstuurd
             </p>
             <Link href="/login" style={{ display: 'inline-block', padding: '14px 32px', background: 'var(--green)', color: 'var(--ink)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 800, fontSize: '14px' }}>
               Gratis starten →
