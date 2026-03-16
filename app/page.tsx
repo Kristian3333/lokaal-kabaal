@@ -205,48 +205,120 @@ export default function Landing() {
 
       {/* PRIJZEN */}
       <section id="prijzen" style={{ background: 'var(--ink)', padding: '100px 40px' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Transparante prijzen</div>
-            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '38px', fontWeight: 400, color: '#fff', marginBottom: '12px' }}>Per flyer. <em style={{ color: 'rgba(255,255,255,.4)' }}>Geen verborgen kosten.</em></h2>
+            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Pakketten</div>
+            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '38px', fontWeight: 400, color: '#fff', marginBottom: '12px' }}>Kies je pakket. <em style={{ color: 'rgba(255,255,255,.4)' }}>Betaal per verstuurde flyer.</em></h2>
+            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,.4)', fontFamily: 'var(--font-mono)' }}>Geen abonnement · Geen setup kosten · Opstarten = gratis</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '24px' }}>
             {[
-              { label: 'Klein', prijs: '€0,59', sub: 'per flyer · A5 enkelvoudig', features: ['Vanaf 250 flyers', 'A5 formaat standaard', 'Heel Nederland', 'Bezorging op de 25e', 'Kadaster-data targeting'] },
-              { label: 'Groei', prijs: '€0,49', sub: 'per flyer · vanaf 500 stuks', aanbevolen: true, features: ['Vanaf 500 flyers', 'A5 of A4 formaat', 'Heel Nederland', 'Bezorging op de 25e', 'Kadaster-data targeting', 'Proef flyer optie'] },
-              { label: 'Volume', prijs: '€0,39', sub: 'per flyer · vanaf 1000 stuks', features: ['Vanaf 1000 flyers', 'Alle formaten', 'Dubbelzijdig mogelijk', 'Bezorging op de 25e', 'Kadaster-data targeting', 'Proef flyer + rapportage'] },
+              {
+                naam: 'Basis',
+                prijs: '€0,89',
+                sub: 'per flyer · A6 formaat',
+                formaat: 'A6 (10×15 cm)',
+                kleur: 'rgba(255,255,255,.15)',
+                border: 'rgba(255,255,255,0.1)',
+                features: [
+                  'A6 formaat — matte of glossy',
+                  'Professioneel AI-design',
+                  'Automatisch op de 25e',
+                  'Heel Nederland',
+                  'Kadaster-data targeting',
+                ],
+                geen: ['QR-code conversietracking', 'Maandrapportage'],
+              },
+              {
+                naam: 'Standaard',
+                prijs: '€1,09',
+                sub: 'per flyer · A5 formaat',
+                formaat: 'A5 (15×21 cm)',
+                aanbevolen: true,
+                kleur: 'rgba(0,232,122,0.06)',
+                border: 'var(--green)',
+                features: [
+                  'A5 formaat — matte of glossy',
+                  'Professioneel AI-design',
+                  'Automatisch op de 25e',
+                  'Heel Nederland',
+                  'Kadaster-data targeting',
+                  'QR-code per flyer',
+                  'Conversiedashboard (scan = klant)',
+                ],
+                geen: ['Maandrapportage'],
+              },
+              {
+                naam: 'Premium',
+                prijs: '€1,49',
+                sub: 'per flyer · A5 gloss + dubbelzijdig',
+                formaat: 'A5 gloss · dubbelzijdig',
+                kleur: 'rgba(200,169,126,0.06)',
+                border: 'rgba(200,169,126,0.4)',
+                features: [
+                  'A5 formaat — gloss finish',
+                  'Dubbelzijdig bedrukt',
+                  'Professioneel AI-design',
+                  'Automatisch op de 25e',
+                  'Heel Nederland',
+                  'Kadaster-data targeting',
+                  'QR-code per flyer',
+                  'Conversiedashboard (scan = klant)',
+                  'Maandelijkse ROI-rapportage',
+                ],
+                geen: [],
+              },
             ].map(t => (
-              <div key={t.label} style={{
+              <div key={t.naam} style={{
                 padding: '28px', borderRadius: 'var(--radius)',
-                border: t.aanbevolen ? '1px solid var(--green)' : '1px solid rgba(255,255,255,0.1)',
-                background: t.aanbevolen ? 'rgba(0,232,122,0.06)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${t.border}`,
+                background: t.kleur,
                 position: 'relative',
               }}>
                 {t.aanbevolen && (
-                  <div style={{ position: 'absolute', top: '-1px', right: '16px', background: 'var(--green)', color: 'var(--ink)', fontSize: '9px', fontWeight: 700, padding: '2px 10px', borderRadius: '0 0 4px 4px', fontFamily: 'var(--font-mono)' }}>meest gekozen</div>
+                  <div style={{ position: 'absolute', top: '-1px', right: '16px', background: 'var(--green)', color: 'var(--ink)', fontSize: '9px', fontWeight: 700, padding: '2px 10px', borderRadius: '0 0 4px 4px', fontFamily: 'var(--font-mono)', letterSpacing: '0.06em' }}>MEEST GEKOZEN</div>
                 )}
-                <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: t.aanbevolen ? 'var(--green)' : 'rgba(255,255,255,.3)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '12px' }}>{t.label}</div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '36px', fontWeight: 300, color: '#fff', lineHeight: 1, marginBottom: '4px' }}>{t.prijs}</div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.3)', fontFamily: 'var(--font-mono)', marginBottom: '24px' }}>{t.sub}</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: t.aanbevolen ? 'var(--green)' : 'rgba(255,255,255,.3)', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.naam}</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '34px', fontWeight: 300, color: '#fff', lineHeight: 1, marginBottom: '2px' }}>{t.prijs}</div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.3)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>{t.sub}</div>
+                <div style={{ display: 'inline-block', fontSize: '9px', fontFamily: 'var(--font-mono)', color: t.aanbevolen ? 'var(--green)' : 'rgba(255,255,255,.25)', border: `1px solid ${t.aanbevolen ? 'var(--green)' : 'rgba(255,255,255,.1)'}`, borderRadius: '3px', padding: '2px 6px', marginBottom: '20px' }}>{t.formaat}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', marginBottom: '20px' }}>
                   {t.features.map(f => (
-                    <div key={f} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <span style={{ color: 'var(--green)', fontSize: '12px' }}>✓</span>
-                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,.55)' }}>{f}</span>
+                    <div key={f} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                      <span style={{ color: 'var(--green)', fontSize: '11px', flexShrink: 0, marginTop: '1px' }}>✓</span>
+                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,.6)', lineHeight: 1.4 }}>{f}</span>
+                    </div>
+                  ))}
+                  {t.geen.map(f => (
+                    <div key={f} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                      <span style={{ color: 'rgba(255,255,255,.15)', fontSize: '11px', flexShrink: 0, marginTop: '1px' }}>—</span>
+                      <span style={{ fontSize: '12px', color: 'rgba(255,255,255,.2)', lineHeight: 1.4 }}>{f}</span>
                     </div>
                   ))}
                 </div>
                 <Link href="/login" style={{
-                  display: 'block', marginTop: '24px', padding: '10px',
+                  display: 'block', padding: '10px',
                   background: t.aanbevolen ? 'var(--green)' : 'rgba(255,255,255,0.07)',
                   color: t.aanbevolen ? 'var(--ink)' : '#fff',
                   borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px',
                   textAlign: 'center', textDecoration: 'none',
                 }}>
-                  Begin met {t.label}
+                  Starten met {t.naam}
                 </Link>
               </div>
             ))}
+          </div>
+          {/* Volume card */}
+          <div style={{ border: '1px solid rgba(255,255,255,0.08)', borderRadius: 'var(--radius)', padding: '24px 28px', background: 'rgba(255,255,255,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+            <div>
+              <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,.3)', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '6px' }}>Volume · 5.000+ flyers / maand</div>
+              <div style={{ fontSize: '17px', color: '#fff', fontFamily: 'var(--font-serif)' }}>Meer dan 5.000 flyers per maand? <span style={{ color: 'rgba(255,255,255,.4)' }}>Vraag maatwerkprijzen aan.</span></div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,.3)', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>Inclusief dedicated accountmanager · Alle formaten · Maximale korting</div>
+            </div>
+            <Link href="/contact" style={{ padding: '10px 22px', background: 'rgba(255,255,255,0.08)', color: '#fff', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', textDecoration: 'none', whiteSpace: 'nowrap' as const }}>Neem contact op →</Link>
+          </div>
+          <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '11px', color: 'rgba(255,255,255,.2)', fontFamily: 'var(--font-mono)' }}>
+            Alle prijzen exclusief BTW · Postcard 15×15 cm beschikbaar op aanvraag
           </div>
         </div>
       </section>
@@ -290,7 +362,12 @@ export default function Landing() {
                       </div>
                       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, borderTop: '1px solid rgba(255,255,255,0.1)', padding: '10px 18px 10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div><div style={{ fontWeight: 700, fontSize: '9px', color: '#fff' }}>{naam}</div><div style={{ fontSize: '7px', color: a, fontFamily: 'monospace', marginTop: '2px' }}>koffiehuis.nl</div></div>
-                        <div style={{ width: '28px', height: '28px', background: a, borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: k, fontWeight: 800, fontSize: '10px' }}>KH</div>
+                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                          <rect width="28" height="28" rx="4" fill="#E8A020"/>
+                          <path d="M6 20 Q6 10 14 10 Q22 10 22 20" stroke="#1C0F0A" strokeWidth="2" fill="none" strokeLinecap="round"/>
+                          <rect x="4" y="20" width="20" height="2.5" rx="1.25" fill="#1C0F0A"/>
+                          <path d="M11 9 Q11 6 14 6 Q17 6 17 9" stroke="#1C0F0A" strokeWidth="1.5" fill="none"/>
+                        </svg>
                       </div>
                       {/* Flip hint */}
                       <div style={{ position: 'absolute', top: '10px', right: '14px', fontSize: '7px', color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace' }}>klik ↺</div>
@@ -301,7 +378,12 @@ export default function Landing() {
                       <div style={{ padding: '20px 20px 16px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                           <div style={{ fontFamily: 'serif', fontSize: '14px', color: k, fontStyle: 'italic' }}>{naam}</div>
-                          <div style={{ width: '28px', height: '28px', background: a, borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: k, fontWeight: 800, fontSize: '10px' }}>KH</div>
+                          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                            <rect width="28" height="28" rx="4" fill="#E8A020"/>
+                            <path d="M6 20 Q6 10 14 10 Q22 10 22 20" stroke="#1C0F0A" strokeWidth="2" fill="none" strokeLinecap="round"/>
+                            <rect x="4" y="20" width="20" height="2.5" rx="1.25" fill="#1C0F0A"/>
+                            <path d="M11 9 Q11 6 14 6 Q17 6 17 9" stroke="#1C0F0A" strokeWidth="1.5" fill="none"/>
+                          </svg>
                         </div>
                         <div style={{ fontSize: '7.5px', color: '#555', fontStyle: 'italic', lineHeight: 1.6, marginBottom: '16px', borderLeft: `2px solid ${a}`, paddingLeft: '8px' }}>
                           &ldquo;Lekkerste koffie van de buurt. Kom langs en proef het zelf — je bent altijd welkom.&rdquo;
@@ -443,7 +525,13 @@ export default function Landing() {
                       <div style={{ padding: '16px 20px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
                           <div><div style={{ fontSize: '13px', color: k, letterSpacing: '0.02em' }}>{naam}</div><div style={{ fontSize: '7px', color: '#888', marginTop: '2px', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>Strak. Snel. Lokaal.</div></div>
-                          <div style={{ width: '32px', height: '32px', border: `1.5px solid ${k}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: k }}>SP</div>
+                          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                            <rect width="32" height="32" rx="2" stroke="#0D0D0D" strokeWidth="1.5"/>
+                            <path d="M8 22 L8 16 Q8 12 16 12 Q24 12 24 16 L24 22" stroke="#0D0D0D" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+                            <rect x="6" y="22" width="20" height="2" rx="1" fill="#FF6B35"/>
+                            <rect x="9" y="24" width="2" height="4" rx="1" fill="#0D0D0D"/>
+                            <rect x="21" y="24" width="2" height="4" rx="1" fill="#0D0D0D"/>
+                          </svg>
                         </div>
                         <div style={{ fontSize: '22px', color: k, lineHeight: 1.15, marginBottom: '6px', letterSpacing: '-0.02em' }}>Welkom in<br />de buurt.</div>
                         <div style={{ width: '24px', height: '2px', background: a, marginBottom: '12px' }} />
@@ -462,7 +550,13 @@ export default function Landing() {
                       <div style={{ padding: '16px 22px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
                           <div style={{ fontSize: '13px', color: k, fontFamily: 'monospace' }}>{naam}</div>
-                          <div style={{ width: '28px', height: '28px', border: `1.5px solid ${k}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: k }}>SP</div>
+                          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                            <rect width="32" height="32" rx="2" stroke="#0D0D0D" strokeWidth="1.5"/>
+                            <path d="M8 22 L8 16 Q8 12 16 12 Q24 12 24 16 L24 22" stroke="#0D0D0D" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+                            <rect x="6" y="22" width="20" height="2" rx="1" fill="#FF6B35"/>
+                            <rect x="9" y="24" width="2" height="4" rx="1" fill="#0D0D0D"/>
+                            <rect x="21" y="24" width="2" height="4" rx="1" fill="#0D0D0D"/>
+                          </svg>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
                           {[['Adres', 'Stucweg 3, Den Haag'], ['Tel', '070 – 111 22 33'], ['Web', 'stucpro.nl'], ['Mail', 'info@stucpro.nl']].map(([label, val], i) => (

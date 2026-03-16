@@ -1616,6 +1616,52 @@ function ConversiesDashboard({ campaigns, onStartCampagne }: {
   );
 }
 
+function getTourSteps(): Array<{
+  page: 'dashboard' | 'wizard' | 'flyer' | 'credits' | 'profiel' | 'conversies' | null;
+  targetId: string | null;
+  titel: string;
+  tekst: string;
+}> {
+  return [
+    {
+      page: 'dashboard',
+      targetId: null,
+      titel: 'Welkom bij LokaalKabaal 👋',
+      tekst: 'In 3 minuten laat ik je alles zien. Klik op de groene knop om verder te gaan.',
+    },
+    {
+      page: 'dashboard',
+      targetId: 'tour-nieuwe-campagne',
+      titel: '+ Nieuwe campagne',
+      tekst: 'Hier start je een nieuwe flyercampagne. De wizard begeleidt je stap voor stap: branche kiezen, regio tekenen, flyer maken, betalen.',
+    },
+    {
+      page: 'wizard',
+      targetId: 'tour-wizard-branche',
+      titel: 'Stap 1 — Kies je branche',
+      tekst: 'Kies je type bedrijf. De AI gebruikt dit om de tone-of-voice van je flyertekst te bepalen.',
+    },
+    {
+      page: 'dashboard',
+      targetId: 'tour-nav-conversies',
+      titel: 'Conversies & ROI',
+      tekst: 'In het Conversies-scherm zie je hoeveel flyers zijn verstuurd en hoeveel klanten de QR-code hebben gescand bij de kassa. Zo meet je de ROI van elke campagne.',
+    },
+    {
+      page: 'profiel',
+      targetId: 'tour-nav-profiel',
+      titel: 'Jouw profiel',
+      tekst: 'Sla je bedrijfsgegevens en factuuremails op. Facturen worden automatisch verstuurd op de 25e van elke maand.',
+    },
+    {
+      page: 'dashboard',
+      targetId: null,
+      titel: 'Klaar om te beginnen 🚀',
+      tekst: 'Dat was de rondleiding. Start je eerste campagne — je eerste flyer is live binnen 24 uur.',
+    },
+  ];
+}
+
 // ─── Main App ─────────────────────────────────────────────────────────────────
 
 export default function LokaalKabaal() {
@@ -1635,6 +1681,7 @@ export default function LokaalKabaal() {
   const [user, setUser] = useState<{ email: string; naam: string } | null>(null);
   const [showDemo, setShowDemo] = useState(false);
   const [demoStep, setDemoStep] = useState(0);
+  const [spotlightEl, setSpotlightEl] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
 
   useEffect(() => {
     try {
@@ -1650,6 +1697,25 @@ export default function LokaalKabaal() {
       }
     } catch {}
   }, []);
+
+  // Spotlight positioning for tour
+  useEffect(() => {
+    if (!showDemo) { setSpotlightEl(null); return; }
+    const TOUR = getTourSteps();
+    const step = TOUR[demoStep];
+    if (!step) { setSpotlightEl(null); return; }
+    if (step.page && step.page !== page) { setPage(step.page); return; }
+    if (!step.targetId) { setSpotlightEl(null); return; }
+    const timer = setTimeout(() => {
+      const el = document.querySelector(`[data-tour="${step.targetId}"]`) as HTMLElement | null;
+      if (el) {
+        const r = el.getBoundingClientRect();
+        setSpotlightEl({ top: r.top, left: r.left, width: r.width, height: r.height });
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 180);
+    return () => clearTimeout(timer);
+  }, [demoStep, showDemo, page]); // eslint-disable-line
 
   // Handle Stripe payment return
   useEffect(() => {
@@ -1878,7 +1944,7 @@ export default function LokaalKabaal() {
         {/* Dashboard header met nieuwe campagne knop */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', letterSpacing: '0.08em' }}>MIJN CAMPAGNES</div>
-          <button onClick={startNieuweCampagne} style={{
+          <button data-tour="tour-nieuwe-campagne" onClick={startNieuweCampagne} style={{
             padding: '8px 16px', background: 'var(--ink)', color: 'var(--paper)',
             border: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '12px',
             cursor: 'pointer', fontFamily: 'var(--font-mono)',
@@ -2067,7 +2133,7 @@ export default function LokaalKabaal() {
 
           {/* STAP 2: Branche */}
           {step === 2 && (
-            <div>
+            <div data-tour="tour-wizard-branche">
               <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '8px' }}>Wat voor bedrijf heb je?</h2>
               <p style={{ color: 'var(--muted)', marginBottom: '16px' }}>Kies je branche voor de juiste copy en targeting.</p>
               <input
@@ -3134,7 +3200,7 @@ export default function LokaalKabaal() {
             <p style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>Beheer je bedrijfsgegevens en instellingen</p>
           </div>
           <button
-            onClick={() => { setDemoStep(0); setShowDemo(true); }}
+            onClick={() => { setDemoStep(0); setSpotlightEl(null); setShowDemo(true); }}
             style={{ padding: '8px 16px', background: 'var(--green)', color: 'var(--ink)', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: 700, fontSize: '12px', fontFamily: 'var(--font-mono)' }}
           >
             ▶ Product demo
@@ -3221,7 +3287,7 @@ export default function LokaalKabaal() {
         </div>
         <div style={{ flex: 1, padding: '8px 0' }}>
           {navItems.map(({ id, label, icon }) => (
-            <button key={id} onClick={() => setPage(id)}
+            <button key={id} data-tour={`tour-nav-${id}`} onClick={() => setPage(id)}
               style={{
                 width: '100%', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px',
                 background: page === id ? 'rgba(255,255,255,0.06)' : 'none',
@@ -3281,110 +3347,117 @@ export default function LokaalKabaal() {
         </div>
       </main>
 
-      {/* Demo modal */}
+      {/* Spotlight tour */}
       {showDemo && (() => {
-        const steps = [
-          {
-            icon: '👋',
-            titel: 'Welkom bij LokaalKabaal',
-            sub: 'Bereik nieuwe bewoners in jouw regio automatisch — elke maand, op adres.',
-            tekst: 'LokaalKabaal koppelt Kadaster-data aan jouw flyercampagne. Zodra iemand verhuist naar jouw verzorgingsgebied, ontvangen zij automatisch jouw flyer — nog vóór concurrenten ze kennen.',
-            cta: 'Laten we beginnen →',
-          },
-          {
-            icon: '🗺',
-            titel: 'Stap 1: Kies je regio',
-            sub: 'Teken je verzorgingsgebied op de kaart.',
-            tekst: 'Selecteer jouw straal op de kaart. Wij berekenen automatisch hoeveel nieuwe bewoners je elke maand bereikt op basis van historische verhuisdata. Gemiddeld 3–8% van de woningen in een postcode wisselt per jaar van eigenaar.',
-            cta: 'Volgende →',
-          },
-          {
-            icon: '🎨',
-            titel: 'Stap 2: Kies je design',
-            sub: 'AI schrijft je flyertekst op basis van je website.',
-            tekst: 'Voer je website-URL in en onze AI analyseert je merkstijl, kleuren en tone-of-voice. Je krijgt 9 professionele designs om uit te kiezen. Alles aanpasbaar: tekst, kleuren, logo, foto.',
-            cta: 'Volgende →',
-          },
-          {
-            icon: '📬',
-            titel: 'Stap 3: Activeer je campagne',
-            sub: 'Betaal per verstuurde flyer. Geen abonnement.',
-            tekst: 'Jij kiest het budget. Elke 25e van de maand versturen wij naar alle nieuwe bewoners die die maand zijn ingeschreven in het Kadaster binnen jouw regio. Geen actie nodig — volledig automatisch.',
-            cta: 'Start mijn eerste campagne →',
-          },
-        ];
-        const step = steps[demoStep];
-        const isLast = demoStep === steps.length - 1;
+        const TOUR = getTourSteps();
+        const step = TOUR[demoStep];
+        if (!step) return null;
+        const isLast = demoStep === TOUR.length - 1;
+
+        const pad = 8;
+        const tooltipWidth = 280;
+        const tooltipLeft = spotlightEl
+          ? (spotlightEl.left < 320 ? spotlightEl.left + spotlightEl.width + 16 : Math.min(spotlightEl.left, window.innerWidth - tooltipWidth - 16))
+          : 0;
+        const tooltipTop = spotlightEl
+          ? (spotlightEl.left < 320 ? spotlightEl.top : spotlightEl.top + spotlightEl.height + 14)
+          : 0;
 
         return (
-          <div style={{
-            position: 'fixed', inset: 0, zIndex: 9999,
-            background: 'rgba(10,10,10,0.82)', backdropFilter: 'blur(4px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: '20px',
-          }} onClick={e => { if (e.target === e.currentTarget) { localStorage.setItem('lk_demo_done', '1'); setShowDemo(false); } }}>
-            <div style={{
-              background: 'var(--white)', borderRadius: '16px',
-              padding: '40px', maxWidth: '480px', width: '100%',
-              boxShadow: '0 32px 80px rgba(0,0,0,0.4)',
-              position: 'relative',
-            }}>
-              {/* Close */}
-              <button onClick={() => { localStorage.setItem('lk_demo_done', '1'); setShowDemo(false); }} style={{
-                position: 'absolute', top: '16px', right: '16px',
-                background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: 'var(--muted)',
-              }}>×</button>
+          <>
+            {/* Dark overlay */}
+            <div
+              style={{ position: 'fixed', inset: 0, zIndex: 9000, background: 'rgba(0,0,0,0.72)', pointerEvents: 'all' }}
+              onClick={() => { localStorage.setItem('lk_demo_done', '1'); setShowDemo(false); setSpotlightEl(null); }}
+            />
 
-              {/* Progress dots */}
-              <div style={{ display: 'flex', gap: '6px', marginBottom: '28px' }}>
-                {steps.map((_, i) => (
-                  <div key={i} style={{
-                    height: '3px', flex: 1, borderRadius: '2px',
-                    background: i <= demoStep ? 'var(--green)' : 'var(--line)',
-                    transition: 'background 0.3s',
-                  }} />
-                ))}
+            {/* Spotlight box (above overlay) */}
+            {spotlightEl && (
+              <div style={{
+                position: 'fixed',
+                top: spotlightEl.top - pad,
+                left: spotlightEl.left - pad,
+                width: spotlightEl.width + pad * 2,
+                height: spotlightEl.height + pad * 2,
+                borderRadius: '8px',
+                border: '2px solid var(--green)',
+                boxShadow: '0 0 0 2px rgba(0,232,122,0.2), 0 0 20px rgba(0,232,122,0.15)',
+                zIndex: 9001,
+                pointerEvents: 'none',
+              }} />
+            )}
+
+            {/* Tooltip / modal */}
+            {spotlightEl ? (
+              <div style={{
+                position: 'fixed',
+                top: tooltipTop,
+                left: tooltipLeft,
+                width: tooltipWidth,
+                zIndex: 9002,
+                background: 'var(--white)',
+                borderRadius: '12px',
+                padding: '20px',
+                boxShadow: '0 8px 40px rgba(0,0,0,0.4)',
+                pointerEvents: 'all',
+              }}>
+                {/* Arrow indicator */}
+                <div style={{ width: '28px', height: '3px', background: 'var(--green)', borderRadius: '2px', marginBottom: '10px' }} />
+                <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '8px', color: 'var(--ink)' }}>{step.titel}</div>
+                <div style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.65, marginBottom: '16px' }}>{step.tekst}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '4px' }}>
+                    {TOUR.map((_, i) => (
+                      <div key={i} style={{ width: i === demoStep ? '16px' : '6px', height: '6px', borderRadius: '3px', background: i === demoStep ? 'var(--green)' : 'var(--line)', transition: 'width 0.2s' }} />
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => { localStorage.setItem('lk_demo_done', '1'); setShowDemo(false); setSpotlightEl(null); }} style={{ background: 'none', border: 'none', fontSize: '11px', color: 'var(--muted)', cursor: 'pointer', fontFamily: 'var(--font-mono)' }}>
+                      Stoppen
+                    </button>
+                    <button onClick={() => {
+                      if (isLast) { localStorage.setItem('lk_demo_done', '1'); setShowDemo(false); setSpotlightEl(null); setPage('wizard'); }
+                      else setDemoStep(s => s + 1);
+                    }} style={{ padding: '6px 14px', background: 'var(--ink)', color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: 700, fontSize: '12px' }}>
+                      {isLast ? 'Start campagne →' : 'Volgende →'}
+                    </button>
+                  </div>
+                </div>
               </div>
-
-              {/* Icon */}
-              <div style={{ fontSize: '40px', marginBottom: '16px' }}>{step.icon}</div>
-
-              {/* Content */}
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', marginBottom: '8px', lineHeight: 1.2 }}>{step.titel}</div>
-              <div style={{ fontSize: '13px', color: 'var(--green)', fontFamily: 'var(--font-mono)', marginBottom: '16px' }}>{step.sub}</div>
-              <div style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.7, marginBottom: '32px' }}>{step.tekst}</div>
-
-              {/* Actions */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <button onClick={() => { localStorage.setItem('lk_demo_done', '1'); setShowDemo(false); }} style={{
-                  background: 'none', border: 'none', fontSize: '12px', color: 'var(--muted)',
-                  cursor: 'pointer', fontFamily: 'var(--font-mono)',
+            ) : (
+              /* Full-screen welcome/conclusion card */
+              <div style={{
+                position: 'fixed', inset: 0, zIndex: 9002,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                pointerEvents: 'none',
+              }}>
+                <div style={{
+                  background: 'var(--white)', borderRadius: '16px', padding: '40px',
+                  maxWidth: '440px', width: '100%', margin: '20px',
+                  boxShadow: '0 32px 80px rgba(0,0,0,0.4)', pointerEvents: 'all',
+                  position: 'relative',
                 }}>
-                  Overslaan
-                </button>
-                <button onClick={() => {
-                  if (isLast) {
-                    localStorage.setItem('lk_demo_done', '1');
-                    setShowDemo(false);
-                    setPage('wizard');
-                  } else {
-                    setDemoStep(prev => prev + 1);
-                  }
-                }} style={{
-                  padding: '12px 24px', background: 'var(--ink)', color: 'var(--paper)',
-                  border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer',
-                  fontWeight: 700, fontSize: '13px',
-                }}>
-                  {step.cta}
-                </button>
+                  <button onClick={() => { localStorage.setItem('lk_demo_done', '1'); setShowDemo(false); setSpotlightEl(null); }} style={{ position: 'absolute', top: '14px', right: '16px', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: 'var(--muted)' }}>×</button>
+                  <div style={{ display: 'flex', gap: '4px', marginBottom: '28px' }}>
+                    {TOUR.map((_, i) => (
+                      <div key={i} style={{ height: '3px', flex: 1, borderRadius: '2px', background: i <= demoStep ? 'var(--green)' : 'var(--line)', transition: 'background 0.3s' }} />
+                    ))}
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', marginBottom: '10px', lineHeight: 1.2 }}>{step.titel}</div>
+                  <div style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.7, marginBottom: '32px' }}>{step.tekst}</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <button onClick={() => { localStorage.setItem('lk_demo_done', '1'); setShowDemo(false); setSpotlightEl(null); }} style={{ background: 'none', border: 'none', fontSize: '12px', color: 'var(--muted)', cursor: 'pointer', fontFamily: 'var(--font-mono)' }}>Overslaan</button>
+                    <button onClick={() => {
+                      if (isLast) { localStorage.setItem('lk_demo_done', '1'); setShowDemo(false); setSpotlightEl(null); setPage('wizard'); }
+                      else setDemoStep(s => s + 1);
+                    }} style={{ padding: '12px 24px', background: 'var(--ink)', color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>
+                      {isLast ? 'Start mijn campagne →' : 'Laten we beginnen →'}
+                    </button>
+                  </div>
+                </div>
               </div>
-
-              {/* Step counter */}
-              <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                {demoStep + 1} / {steps.length}
-              </div>
-            </div>
-          </div>
+            )}
+          </>
         );
       })()}
     </div>
