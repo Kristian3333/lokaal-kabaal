@@ -1,19 +1,20 @@
 'use client';
 import { useRef, useState } from 'react';
 
-// Print dimensions in mm (incl. 3mm bleed rondom)
+// Print dimensions in mm (incl. 3mm bleed rondom) — alle formaten portrait
+// print.one specs: A6 105×148mm, A5 148×210mm, A4 210×297mm + 3mm bleed rondom
 export const PRINT_DIMS = {
-  a6: { w: 111, h: 154, trimW: 105, trimH: 148, label: 'A6' },
-  a5: { w: 216, h: 154, trimW: 210, trimH: 148, label: 'A5' },
-  a4: { w: 303, h: 216, trimW: 297, trimH: 210, label: 'A4' },
+  a6: { w: 111, h: 154, trimW: 105, trimH: 148, label: 'A6 (105×148mm)' },
+  a5: { w: 154, h: 216, trimW: 148, trimH: 210, label: 'A5 (148×210mm)' },
+  a4: { w: 216, h: 303, trimW: 210, trimH: 297, label: 'A4 (210×297mm)' },
 };
 
-// px dimensions for on-screen preview (scale: 3px per mm at 300dpi equivalent)
-const SCALE = 1.5; // screen preview scale
+// Schermpreview pixels (SCALE = 1.5 px/mm)
+export const SCREEN_SCALE = 1.5;
 export const PREVIEW_PX = {
-  a6: { w: Math.round(111 * SCALE), h: Math.round(154 * SCALE) },
-  a5: { w: Math.round(154 * SCALE), h: Math.round(216 * SCALE) },
-  a4: { w: Math.round(210 * SCALE), h: Math.round(297 * SCALE) },
+  a6: { w: Math.round(111 * SCREEN_SCALE), h: Math.round(154 * SCREEN_SCALE) }, // 167×231
+  a5: { w: Math.round(154 * SCREEN_SCALE), h: Math.round(216 * SCREEN_SCALE) }, // 231×324
+  a4: { w: Math.round(216 * SCREEN_SCALE), h: Math.round(303 * SCREEN_SCALE) }, // 324×455
 };
 
 interface FlyerExportProps {
