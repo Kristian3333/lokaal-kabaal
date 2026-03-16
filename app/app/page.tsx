@@ -1633,11 +1633,21 @@ export default function LokaalKabaal() {
     if (typeof window !== 'undefined') localStorage.setItem('lk_campaigns', JSON.stringify(campaigns));
   }, [campaigns]);
   const [user, setUser] = useState<{ email: string; naam: string } | null>(null);
+  const [showDemo, setShowDemo] = useState(false);
+  const [demoStep, setDemoStep] = useState(0);
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem('lk_user');
       if (raw) setUser(JSON.parse(raw));
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem('lk_demo_done')) {
+        setShowDemo(true);
+      }
     } catch {}
   }, []);
 
@@ -3118,9 +3128,20 @@ export default function LokaalKabaal() {
   function renderProfiel() {
     return (
       <div className="fade-in">
-        <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '4px' }}>Mijn profiel</h1>
-        <p style={{ color: 'var(--muted)', marginBottom: '20px', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>Beheer je bedrijfsgegevens en instellingen</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+          <div>
+            <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '4px' }}>Mijn profiel</h1>
+            <p style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>Beheer je bedrijfsgegevens en instellingen</p>
+          </div>
+          <button
+            onClick={() => { setDemoStep(0); setShowDemo(true); }}
+            style={{ padding: '8px 16px', background: 'var(--green)', color: 'var(--ink)', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: 700, fontSize: '12px', fontFamily: 'var(--font-mono)' }}
+          >
+            ▶ Product demo
+          </button>
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          {/* Bedrijfsgegevens */}
           <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
             <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '16px' }}>Bedrijfsgegevens</div>
             {[
@@ -3132,33 +3153,44 @@ export default function LokaalKabaal() {
             ].map(f => (
               <div key={f.label} style={{ marginBottom: '12px' }}>
                 <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>{f.label.toUpperCase()}</label>
-                <input placeholder={f.ph} style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)', boxSizing: 'border-box' }} />
+                <input placeholder={f.ph} style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)', boxSizing: 'border-box' as const }} />
               </div>
             ))}
             <button style={{ padding: '10px 20px', background: 'var(--ink)', color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>Opslaan</button>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Facturatie */}
             <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '16px' }}>Financieel</div>
-              {[
-                { label: 'IBAN', ph: 'NL00 BANK 0000 0000 00' },
-                { label: 'BTW-nummer', ph: 'NL000000000B01' },
-                { label: 'Factuuradres', ph: 'Zelfde als bedrijfsadres' },
-              ].map(f => (
-                <div key={f.label} style={{ marginBottom: '12px' }}>
-                  <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>{f.label.toUpperCase()}</label>
-                  <input placeholder={f.ph} style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)', boxSizing: 'border-box' }} />
-                </div>
-              ))}
-              <button style={{ padding: '10px 20px', background: 'var(--ink)', color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>Opslaan</button>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '4px' }}>Facturatie</div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '16px' }}>Facturen worden automatisch verstuurd op de 25e van de maand</div>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>BTW-NUMMER</label>
+                <input placeholder="NL000000000B01" style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)', boxSizing: 'border-box' as const }} />
+              </div>
+              <div style={{ marginBottom: '4px' }}>
+                <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '8px' }}>FACTUUR-EMAILS (max. 3)</label>
+                {[1, 2, 3].map(n => (
+                  <div key={n} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <div style={{ width: '20px', height: '20px', background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', flexShrink: 0 }}>{n}</div>
+                    <input
+                      type="email"
+                      placeholder={n === 1 ? 'factuur@jouwbedrijf.nl' : n === 2 ? 'boekhouder@kantoor.nl (optioneel)' : 'extra@email.nl (optioneel)'}
+                      style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)', fontSize: '13px', boxSizing: 'border-box' as const }}
+                    />
+                  </div>
+                ))}
+              </div>
+              <button style={{ padding: '10px 20px', background: 'var(--ink)', color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: 700, fontSize: '13px', marginTop: '8px' }}>Opslaan</button>
             </div>
+
+            {/* Wachtwoord */}
             <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
               <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '16px' }}>Wachtwoord</div>
               {['Huidig wachtwoord', 'Nieuw wachtwoord', 'Bevestig wachtwoord'].map(f => (
                 <div key={f} style={{ marginBottom: '12px' }}>
                   <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>{f.toUpperCase()}</label>
-                  <input type="password" style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)', boxSizing: 'border-box' }} />
+                  <input type="password" style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)', boxSizing: 'border-box' as const }} />
                 </div>
               ))}
               <button style={{ padding: '10px 20px', background: 'var(--ink)', color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>Wachtwoord wijzigen</button>
@@ -3248,6 +3280,113 @@ export default function LokaalKabaal() {
           {page === 'profiel' && renderProfiel()}
         </div>
       </main>
+
+      {/* Demo modal */}
+      {showDemo && (() => {
+        const steps = [
+          {
+            icon: '👋',
+            titel: 'Welkom bij LokaalKabaal',
+            sub: 'Bereik nieuwe bewoners in jouw regio automatisch — elke maand, op adres.',
+            tekst: 'LokaalKabaal koppelt Kadaster-data aan jouw flyercampagne. Zodra iemand verhuist naar jouw verzorgingsgebied, ontvangen zij automatisch jouw flyer — nog vóór concurrenten ze kennen.',
+            cta: 'Laten we beginnen →',
+          },
+          {
+            icon: '🗺',
+            titel: 'Stap 1: Kies je regio',
+            sub: 'Teken je verzorgingsgebied op de kaart.',
+            tekst: 'Selecteer jouw straal op de kaart. Wij berekenen automatisch hoeveel nieuwe bewoners je elke maand bereikt op basis van historische verhuisdata. Gemiddeld 3–8% van de woningen in een postcode wisselt per jaar van eigenaar.',
+            cta: 'Volgende →',
+          },
+          {
+            icon: '🎨',
+            titel: 'Stap 2: Kies je design',
+            sub: 'AI schrijft je flyertekst op basis van je website.',
+            tekst: 'Voer je website-URL in en onze AI analyseert je merkstijl, kleuren en tone-of-voice. Je krijgt 9 professionele designs om uit te kiezen. Alles aanpasbaar: tekst, kleuren, logo, foto.',
+            cta: 'Volgende →',
+          },
+          {
+            icon: '📬',
+            titel: 'Stap 3: Activeer je campagne',
+            sub: 'Betaal per verstuurde flyer. Geen abonnement.',
+            tekst: 'Jij kiest het budget. Elke 25e van de maand versturen wij naar alle nieuwe bewoners die die maand zijn ingeschreven in het Kadaster binnen jouw regio. Geen actie nodig — volledig automatisch.',
+            cta: 'Start mijn eerste campagne →',
+          },
+        ];
+        const step = steps[demoStep];
+        const isLast = demoStep === steps.length - 1;
+
+        return (
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            background: 'rgba(10,10,10,0.82)', backdropFilter: 'blur(4px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '20px',
+          }} onClick={e => { if (e.target === e.currentTarget) { localStorage.setItem('lk_demo_done', '1'); setShowDemo(false); } }}>
+            <div style={{
+              background: 'var(--white)', borderRadius: '16px',
+              padding: '40px', maxWidth: '480px', width: '100%',
+              boxShadow: '0 32px 80px rgba(0,0,0,0.4)',
+              position: 'relative',
+            }}>
+              {/* Close */}
+              <button onClick={() => { localStorage.setItem('lk_demo_done', '1'); setShowDemo(false); }} style={{
+                position: 'absolute', top: '16px', right: '16px',
+                background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', color: 'var(--muted)',
+              }}>×</button>
+
+              {/* Progress dots */}
+              <div style={{ display: 'flex', gap: '6px', marginBottom: '28px' }}>
+                {steps.map((_, i) => (
+                  <div key={i} style={{
+                    height: '3px', flex: 1, borderRadius: '2px',
+                    background: i <= demoStep ? 'var(--green)' : 'var(--line)',
+                    transition: 'background 0.3s',
+                  }} />
+                ))}
+              </div>
+
+              {/* Icon */}
+              <div style={{ fontSize: '40px', marginBottom: '16px' }}>{step.icon}</div>
+
+              {/* Content */}
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', marginBottom: '8px', lineHeight: 1.2 }}>{step.titel}</div>
+              <div style={{ fontSize: '13px', color: 'var(--green)', fontFamily: 'var(--font-mono)', marginBottom: '16px' }}>{step.sub}</div>
+              <div style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.7, marginBottom: '32px' }}>{step.tekst}</div>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <button onClick={() => { localStorage.setItem('lk_demo_done', '1'); setShowDemo(false); }} style={{
+                  background: 'none', border: 'none', fontSize: '12px', color: 'var(--muted)',
+                  cursor: 'pointer', fontFamily: 'var(--font-mono)',
+                }}>
+                  Overslaan
+                </button>
+                <button onClick={() => {
+                  if (isLast) {
+                    localStorage.setItem('lk_demo_done', '1');
+                    setShowDemo(false);
+                    setPage('wizard');
+                  } else {
+                    setDemoStep(prev => prev + 1);
+                  }
+                }} style={{
+                  padding: '12px 24px', background: 'var(--ink)', color: 'var(--paper)',
+                  border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer',
+                  fontWeight: 700, fontSize: '13px',
+                }}>
+                  {step.cta}
+                </button>
+              </div>
+
+              {/* Step counter */}
+              <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                {demoStep + 1} / {steps.length}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

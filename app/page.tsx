@@ -16,6 +16,7 @@ const TICKERS = [
 export default function Landing() {
   const [email, setEmail] = useState('');
   const [ww, setWw] = useState('');
+  const [flipped, setFlipped] = useState<number | null>(null);
 
   return (
     <div style={{ fontFamily: 'var(--font-sans)', background: 'var(--paper)', minHeight: '100vh', color: 'var(--ink)' }}>
@@ -255,31 +256,85 @@ export default function Landing() {
         <div style={{ textAlign: 'center', marginBottom: '60px' }}>
           <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Flyervoorbeelden</div>
           <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '38px', fontWeight: 400, marginBottom: '12px' }}>Zo ziet jouw flyer <em style={{ color: 'var(--muted)' }}>eruit</em></h2>
-          <p style={{ color: 'var(--muted)', fontSize: '14px', maxWidth: '480px', margin: '0 auto' }}>Kies een template of upload je eigen ontwerp. De AI schrijft de tekst op maat.</p>
+          <p style={{ color: 'var(--muted)', fontSize: '14px', maxWidth: '480px', margin: '0 auto' }}>Klik op een flyer om de achterzijde te zien. Kies een template of upload je eigen ontwerp.</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '32px', alignItems: 'start' }}>
+
           {/* Design 1: Editorial — Koffiebar */}
           {(() => {
             const k = '#1C0F0A', a = '#E8A020';
             const naam = 'Koffiehuis de Hoek';
             const usps = ['€5 welkomstkorting bij €20', 'Vers gezette specialty koffie', 'Je nieuwe stamkroeg'];
+            const isFlipped = flipped === 0;
             return (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                <div style={{ width: '240px', height: '340px', background: k, borderRadius: '8px', overflow: 'hidden', position: 'relative', boxShadow: '0 16px 48px rgba(0,0,0,0.22)', fontFamily: 'sans-serif' }}>
-                  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: a }} />
-                  <div style={{ padding: '20px 18px 0 20px' }}>
-                    <div style={{ fontFamily: 'monospace', fontSize: '7px', letterSpacing: '0.15em', color: a, textTransform: 'uppercase', marginBottom: '10px' }}>Nieuwe bewoners — Welkomstaanbieding</div>
-                    <div style={{ fontSize: '28px', fontStyle: 'italic', color: '#fff', lineHeight: 1.05, marginBottom: '10px', letterSpacing: '-0.02em' }}>Welkom<br /><span style={{ color: a }}>in de buurt.</span></div>
-                    <div style={{ width: '32px', height: '2px', background: a, marginBottom: '10px' }} />
-                    <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.72)', lineHeight: 1.65, marginBottom: '12px' }}>Net ingetrokken? Welkom! Kom kennismaken en geniet van de beste koffie in de wijk. Bij een besteding van €20 of meer, krijg jij €5 korting.</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>{usps.map((u,i) => <div key={i} style={{ display: 'flex', gap: '7px' }}><span style={{ color: a, fontSize: '9px' }}>—</span><span style={{ color: 'rgba(255,255,255,0.88)', fontSize: '8px' }}>{u}</span></div>)}</div>
-                  </div>
-                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, borderTop: '1px solid rgba(255,255,255,0.1)', padding: '10px 18px 10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div><div style={{ fontWeight: 700, fontSize: '9px', color: '#fff' }}>{naam}</div><div style={{ fontSize: '7px', color: a, fontFamily: 'monospace', marginTop: '2px' }}>koffiehuis.nl</div></div>
-                    <div style={{ width: '28px', height: '28px', background: a, borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: k, fontWeight: 800, fontSize: '10px' }}>KH</div>
+                <div
+                  onClick={() => setFlipped(isFlipped ? null : 0)}
+                  style={{ width: '240px', height: '340px', perspective: '1200px', cursor: 'pointer' }}
+                >
+                  <div style={{
+                    width: '100%', height: '100%', position: 'relative',
+                    transformStyle: 'preserve-3d',
+                    transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                    transition: 'transform 0.55s cubic-bezier(0.4,0,0.2,1)',
+                  }}>
+                    {/* Front */}
+                    <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', background: k, borderRadius: '8px', overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.22)', fontFamily: 'sans-serif' }}>
+                      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '6px', background: a }} />
+                      <div style={{ padding: '20px 18px 0 20px' }}>
+                        <div style={{ fontFamily: 'monospace', fontSize: '7px', letterSpacing: '0.15em', color: a, textTransform: 'uppercase' as const, marginBottom: '10px' }}>Nieuwe bewoners — Welkomstaanbieding</div>
+                        <div style={{ fontSize: '28px', fontStyle: 'italic', color: '#fff', lineHeight: 1.05, marginBottom: '10px', letterSpacing: '-0.02em' }}>Welkom<br /><span style={{ color: a }}>in de buurt.</span></div>
+                        <div style={{ width: '32px', height: '2px', background: a, marginBottom: '10px' }} />
+                        <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.72)', lineHeight: 1.65, marginBottom: '12px' }}>Net ingetrokken? Welkom! Kom kennismaken en geniet van de beste koffie in de wijk. Bij een besteding van €20 of meer, krijg jij €5 korting.</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>{usps.map((u,i) => <div key={i} style={{ display: 'flex', gap: '7px' }}><span style={{ color: a, fontSize: '9px' }}>—</span><span style={{ color: 'rgba(255,255,255,0.88)', fontSize: '8px' }}>{u}</span></div>)}</div>
+                      </div>
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, borderTop: '1px solid rgba(255,255,255,0.1)', padding: '10px 18px 10px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div><div style={{ fontWeight: 700, fontSize: '9px', color: '#fff' }}>{naam}</div><div style={{ fontSize: '7px', color: a, fontFamily: 'monospace', marginTop: '2px' }}>koffiehuis.nl</div></div>
+                        <div style={{ width: '28px', height: '28px', background: a, borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: k, fontWeight: 800, fontSize: '10px' }}>KH</div>
+                      </div>
+                      {/* Flip hint */}
+                      <div style={{ position: 'absolute', top: '10px', right: '14px', fontSize: '7px', color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace' }}>klik ↺</div>
+                    </div>
+                    {/* Back */}
+                    <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)', background: '#F5F0E8', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.22)', fontFamily: 'sans-serif' }}>
+                      <div style={{ height: '6px', background: a }} />
+                      <div style={{ padding: '20px 20px 16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                          <div style={{ fontFamily: 'serif', fontSize: '14px', color: k, fontStyle: 'italic' }}>{naam}</div>
+                          <div style={{ width: '28px', height: '28px', background: a, borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: k, fontWeight: 800, fontSize: '10px' }}>KH</div>
+                        </div>
+                        <div style={{ fontSize: '7.5px', color: '#555', fontStyle: 'italic', lineHeight: 1.6, marginBottom: '16px', borderLeft: `2px solid ${a}`, paddingLeft: '8px' }}>
+                          &ldquo;Lekkerste koffie van de buurt. Kom langs en proef het zelf — je bent altijd welkom.&rdquo;
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                          {[['📍', 'Koffiestraat 12, Amsterdam'], ['📞', '020 – 123 45 67'], ['🌐', 'koffiehuis.nl'], ['✉', 'hallo@koffiehuis.nl']].map(([ic, v], i) => (
+                            <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                              <span style={{ fontSize: '8px', width: '14px' }}>{ic}</span>
+                              <span style={{ fontSize: '7.5px', color: k, fontFamily: 'monospace' }}>{v}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ background: k, borderRadius: '4px', padding: '8px 12px', marginBottom: '10px' }}>
+                          <div style={{ fontSize: '7px', color: a, fontFamily: 'monospace', letterSpacing: '0.1em', marginBottom: '4px' }}>OPENINGSTIJDEN</div>
+                          {[['Ma – Vr', '07:30 – 18:00'], ['Za', '08:00 – 17:00'], ['Zo', '09:00 – 15:00']].map(([d, t], i) => (
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span style={{ fontSize: '7px', color: 'rgba(255,255,255,0.5)' }}>{d}</span>
+                              <span style={{ fontSize: '7px', color: '#fff' }}>{t}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: a, padding: '8px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '7px', fontWeight: 700, color: k }}>Laat je gezicht zien.</span>
+                        <span style={{ fontSize: '7px', color: k, fontFamily: 'monospace' }}>klik ↺</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div style={{ textAlign: 'center' }}><div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Editorial</div><div style={{ fontSize: '12px', color: 'var(--muted)' }}>Magazine-stijl · aanpasbaar</div></div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Editorial</div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>Magazine-stijl · aanpasbaar</div>
+                </div>
               </div>
             );
           })()}
@@ -289,26 +344,76 @@ export default function Landing() {
             const k = '#14213D', a = '#C8A97E';
             const naam = 'Wonen & Zo';
             const usps = ['10% welkomstkorting', 'Grote showroom', 'Gratis levering in regio'];
+            const isFlipped = flipped === 1;
             return (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                <div style={{ width: '240px', height: '340px', background: '#f5f4f0', borderRadius: '8px', overflow: 'hidden', position: 'relative', boxShadow: '0 16px 48px rgba(0,0,0,0.18)', fontFamily: 'sans-serif' }}>
-                  <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: k, opacity: 0.08 }} />
-                  <div style={{ background: k, padding: '18px 18px 22px', position: 'relative', overflow: 'hidden' }}>
-                    <div style={{ position: 'absolute', bottom: '-30px', right: '-20px', width: '90px', height: '90px', borderRadius: '50%', border: `12px solid ${a}`, opacity: 0.3 }} />
-                    <div style={{ fontFamily: 'monospace', fontSize: '7px', color: a, letterSpacing: '0.12em', marginBottom: '8px' }}>WELKOM IN DE BUURT</div>
-                    <div style={{ fontSize: '26px', color: '#fff', lineHeight: 1.0, letterSpacing: '-0.02em' }}>{naam}</div>
-                    <div style={{ fontSize: '9px', color: a, marginTop: '4px', fontStyle: 'italic' }}>Jouw thuis, jouw stijl.</div>
-                  </div>
-                  <div style={{ padding: '14px 18px' }}>
-                    <div style={{ fontSize: '8.5px', color: '#333', lineHeight: 1.65, marginBottom: '12px' }}>Een nieuw huis verdient een nieuw begin. Als nieuwe bewoner krijg je 10% welkomstkorting op je eerste aankoop.</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>{usps.map((u,i) => <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: `${k}0f`, borderRadius: '20px', padding: '5px 10px' }}><div style={{ width: '16px', height: '16px', borderRadius: '50%', background: a, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: k, fontSize: '8px', fontWeight: 800 }}>✓</span></div><span style={{ fontSize: '7.5px', color: k, fontWeight: 600 }}>{u}</span></div>)}</div>
-                  </div>
-                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: a, padding: '8px 18px', display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '8px', fontWeight: 700, color: k }}>wonen-en-zo.nl</span>
-                    <span style={{ fontSize: '8px', color: k, fontFamily: 'monospace' }}>020-1234567</span>
+                <div
+                  onClick={() => setFlipped(isFlipped ? null : 1)}
+                  style={{ width: '240px', height: '340px', perspective: '1200px', cursor: 'pointer' }}
+                >
+                  <div style={{
+                    width: '100%', height: '100%', position: 'relative',
+                    transformStyle: 'preserve-3d',
+                    transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                    transition: 'transform 0.55s cubic-bezier(0.4,0,0.2,1)',
+                  }}>
+                    {/* Front */}
+                    <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', background: '#f5f4f0', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.18)', fontFamily: 'sans-serif' }}>
+                      <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: k, opacity: 0.08 }} />
+                      <div style={{ background: k, padding: '18px 18px 22px', position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ position: 'absolute', bottom: '-30px', right: '-20px', width: '90px', height: '90px', borderRadius: '50%', border: `12px solid ${a}`, opacity: 0.3 }} />
+                        <div style={{ fontFamily: 'monospace', fontSize: '7px', color: a, letterSpacing: '0.12em', marginBottom: '8px' }}>WELKOM IN DE BUURT</div>
+                        <div style={{ fontSize: '26px', color: '#fff', lineHeight: 1.0, letterSpacing: '-0.02em' }}>{naam}</div>
+                        <div style={{ fontSize: '9px', color: a, marginTop: '4px', fontStyle: 'italic' }}>Jouw thuis, jouw stijl.</div>
+                      </div>
+                      <div style={{ padding: '14px 18px' }}>
+                        <div style={{ fontSize: '8.5px', color: '#333', lineHeight: 1.65, marginBottom: '12px' }}>Een nieuw huis verdient een nieuw begin. Als nieuwe bewoner krijg je 10% welkomstkorting op je eerste aankoop.</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>{usps.map((u,i) => <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: `${k}0f`, borderRadius: '20px', padding: '5px 10px' }}><div style={{ width: '16px', height: '16px', borderRadius: '50%', background: a, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ color: k, fontSize: '8px', fontWeight: 800 }}>✓</span></div><span style={{ fontSize: '7.5px', color: k, fontWeight: 600 }}>{u}</span></div>)}</div>
+                      </div>
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: a, padding: '8px 18px', display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '8px', fontWeight: 700, color: k }}>wonen-en-zo.nl</span>
+                        <span style={{ fontSize: '8px', color: k, fontFamily: 'monospace' }}>klik ↺</span>
+                      </div>
+                    </div>
+                    {/* Back */}
+                    <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)', background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.18)', fontFamily: 'sans-serif' }}>
+                      <div style={{ background: k, padding: '16px 18px' }}>
+                        <div style={{ fontSize: '7px', color: a, fontFamily: 'monospace', letterSpacing: '0.12em', marginBottom: '4px' }}>CONTACTGEGEVENS</div>
+                        <div style={{ fontSize: '15px', color: '#fff', lineHeight: 1.1 }}>{naam}</div>
+                      </div>
+                      <div style={{ padding: '16px 18px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '14px' }}>
+                          {[['📍', 'Meubellaan 5, Rotterdam'], ['📞', '010 – 987 65 43'], ['🌐', 'wonen-en-zo.nl'], ['✉', 'info@wonen-en-zo.nl']].map(([ic, v], i) => (
+                            <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', borderBottom: '1px solid #f0ede6', paddingBottom: '8px' }}>
+                              <span style={{ fontSize: '9px', width: '14px' }}>{ic}</span>
+                              <span style={{ fontSize: '7.5px', color: '#333', fontFamily: 'monospace' }}>{v}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ background: `${k}08`, borderRadius: '6px', padding: '10px 12px', marginBottom: '10px' }}>
+                          <div style={{ fontSize: '7px', color: '#888', fontFamily: 'monospace', letterSpacing: '0.1em', marginBottom: '6px' }}>SHOWROOM OPEN</div>
+                          {[['Ma – Vr', '10:00 – 18:00'], ['Za', '10:00 – 17:00'], ['Zo', 'Gesloten']].map(([d, t], i) => (
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                              <span style={{ fontSize: '7px', color: '#666' }}>{d}</span>
+                              <span style={{ fontSize: '7px', color: k, fontWeight: t === 'Gesloten' ? 400 : 600 }}>{t}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ background: a, borderRadius: '20px', padding: '6px 12px', textAlign: 'center' as const }}>
+                          <span style={{ fontSize: '8px', fontWeight: 700, color: k }}>10% welkomstkorting — Laat deze flyer zien</span>
+                        </div>
+                      </div>
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: a, padding: '7px 18px', display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '7px', fontWeight: 700, color: k }}>Gratis levering in de regio</span>
+                        <span style={{ fontSize: '7px', color: k, fontFamily: 'monospace' }}>klik ↺</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div style={{ textAlign: 'center' }}><div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Geometric</div><div style={{ fontSize: '12px', color: 'var(--muted)' }}>Bold & modern · aanpasbaar</div></div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Geometric</div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>Bold & modern · aanpasbaar</div>
+                </div>
               </div>
             );
           })()}
@@ -318,27 +423,79 @@ export default function Landing() {
             const k = '#0D0D0D', a = '#FF6B35';
             const naam = 'StucPro Regio';
             const usps = ['Gratis offerte aan huis', 'Lokale vakman', 'Binnen 2 weken op locatie'];
+            const isFlipped = flipped === 2;
             return (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-                <div style={{ width: '240px', height: '340px', background: '#faf9f7', borderRadius: '8px', overflow: 'hidden', position: 'relative', boxShadow: '0 16px 48px rgba(0,0,0,0.18)', fontFamily: 'sans-serif' }}>
-                  <div style={{ height: '8px', background: a }} />
-                  <div style={{ height: '1px', background: k, margin: '0 20px' }} />
-                  <div style={{ padding: '16px 20px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-                      <div><div style={{ fontSize: '13px', color: k, letterSpacing: '0.02em' }}>{naam}</div><div style={{ fontSize: '7px', color: '#888', marginTop: '2px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Strak. Snel. Lokaal.</div></div>
-                      <div style={{ width: '32px', height: '32px', border: `1.5px solid ${k}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: k }}>SP</div>
+                <div
+                  onClick={() => setFlipped(isFlipped ? null : 2)}
+                  style={{ width: '240px', height: '340px', perspective: '1200px', cursor: 'pointer' }}
+                >
+                  <div style={{
+                    width: '100%', height: '100%', position: 'relative',
+                    transformStyle: 'preserve-3d',
+                    transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                    transition: 'transform 0.55s cubic-bezier(0.4,0,0.2,1)',
+                  }}>
+                    {/* Front */}
+                    <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', background: '#faf9f7', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.18)', fontFamily: 'sans-serif' }}>
+                      <div style={{ height: '8px', background: a }} />
+                      <div style={{ height: '1px', background: k, margin: '0 20px' }} />
+                      <div style={{ padding: '16px 20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+                          <div><div style={{ fontSize: '13px', color: k, letterSpacing: '0.02em' }}>{naam}</div><div style={{ fontSize: '7px', color: '#888', marginTop: '2px', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>Strak. Snel. Lokaal.</div></div>
+                          <div style={{ width: '32px', height: '32px', border: `1.5px solid ${k}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: k }}>SP</div>
+                        </div>
+                        <div style={{ fontSize: '22px', color: k, lineHeight: 1.15, marginBottom: '6px', letterSpacing: '-0.02em' }}>Welkom in<br />de buurt.</div>
+                        <div style={{ width: '24px', height: '2px', background: a, marginBottom: '12px' }} />
+                        <div style={{ fontSize: '8px', color: '#555', lineHeight: 1.7, marginBottom: '14px' }}>Nieuwe woning, nieuwe muren. Gratis offerte aan huis — wij zijn dé vakman in jouw regio.</div>
+                        <div style={{ borderTop: '1px solid #e8e6e0', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>{usps.map((u,i) => <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><div style={{ width: '4px', height: '4px', borderRadius: '50%', background: a, flexShrink: 0 }} /><span style={{ fontSize: '7.5px', color: '#444' }}>{u}</span></div>)}</div>
+                      </div>
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 20px', borderTop: '1px solid #e8e6e0', display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '7px', color: '#888', fontFamily: 'monospace' }}>stucpro.nl</span>
+                        <span style={{ fontSize: '7px', color: '#999', fontFamily: 'monospace' }}>klik ↺</span>
+                      </div>
                     </div>
-                    <div style={{ fontSize: '22px', color: k, lineHeight: 1.15, marginBottom: '6px', letterSpacing: '-0.02em' }}>Welkom in<br />de buurt.</div>
-                    <div style={{ width: '24px', height: '2px', background: a, marginBottom: '12px' }} />
-                    <div style={{ fontSize: '8px', color: '#555', lineHeight: 1.7, marginBottom: '14px' }}>Nieuwe woning, nieuwe muren. Gratis offerte aan huis — wij zijn dé vakman in jouw regio.</div>
-                    <div style={{ borderTop: '1px solid #e8e6e0', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>{usps.map((u,i) => <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}><div style={{ width: '4px', height: '4px', borderRadius: '50%', background: a, flexShrink: 0 }} /><span style={{ fontSize: '7.5px', color: '#444' }}>{u}</span></div>)}</div>
-                  </div>
-                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 20px', borderTop: '1px solid #e8e6e0', display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '7px', color: '#888', fontFamily: 'monospace' }}>stucpro.nl</span>
-                    <span style={{ fontSize: '7px', color: '#888', fontFamily: 'monospace' }}>010-9876543</span>
+                    {/* Back */}
+                    <div style={{ position: 'absolute', width: '100%', height: '100%', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)', background: '#faf9f7', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.18)', fontFamily: 'sans-serif' }}>
+                      <div style={{ height: '8px', background: a }} />
+                      <div style={{ height: '1px', background: k, margin: '0 20px' }} />
+                      <div style={{ padding: '16px 22px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+                          <div style={{ fontSize: '13px', color: k, fontFamily: 'monospace' }}>{naam}</div>
+                          <div style={{ width: '28px', height: '28px', border: `1.5px solid ${k}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: k }}>SP</div>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
+                          {[['Adres', 'Stucweg 3, Den Haag'], ['Tel', '070 – 111 22 33'], ['Web', 'stucpro.nl'], ['Mail', 'info@stucpro.nl']].map(([label, val], i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'baseline', gap: '10px', borderBottom: '1px solid #f0ede6', paddingBottom: '7px' }}>
+                              <span style={{ fontSize: '7px', color: '#bbb', fontFamily: 'monospace', width: '26px', flexShrink: 0 }}>{label}</span>
+                              <span style={{ fontSize: '7.5px', color: k, fontFamily: 'monospace' }}>{val}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ marginBottom: '12px' }}>
+                          <div style={{ fontSize: '7px', color: '#ccc', fontFamily: 'monospace', letterSpacing: '0.1em', marginBottom: '6px' }}>BESCHIKBAARHEID</div>
+                          {[['Ma – Vr', '07:00 – 17:00'], ['Za', 'Op afspraak'], ['Zo', 'Gesloten']].map(([d, t], i) => (
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                              <span style={{ fontSize: '7px', color: '#888' }}>{d}</span>
+                              <span style={{ fontSize: '7px', color: k }}>{t}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ background: `${a}15`, borderLeft: `2px solid ${a}`, borderRadius: '2px', padding: '6px 10px' }}>
+                          <span style={{ fontSize: '7.5px', color: k }}>Gratis offerte — bel of mail gerust</span>
+                        </div>
+                      </div>
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '8px 20px', borderTop: '1px solid #e8e6e0', display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '7px', color: a, fontFamily: 'monospace', fontWeight: 700 }}>Vakwerk, gegarandeerd.</span>
+                        <span style={{ fontSize: '7px', color: '#999', fontFamily: 'monospace' }}>klik ↺</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div style={{ textAlign: 'center' }}><div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Minimal Luxury</div><div style={{ fontSize: '12px', color: 'var(--muted)' }}>Clean & premium · aanpasbaar</div></div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Minimal Luxury</div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>Clean & premium · aanpasbaar</div>
+                </div>
               </div>
             );
           })()}
