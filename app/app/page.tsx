@@ -58,11 +58,32 @@ function estimeerDekkingsgebied(straalKm: number): {
 }
 
 function berekenPrijs(aantalFlyers: number, formaat: string, dubbelzijdig: boolean): number {
-  // Basisprijzen: print.one-kostprijs + €0,04 marge
-  // A6 €0,69 + €0,04 = €0,73 · A5 €0,79 + €0,04 = €0,83 · A4 A5 + €0,08 = €0,91
   const base = formaat === 'a6' ? 0.73 : formaat === 'a4' ? 0.91 : 0.83;
   const dubbelExtra = dubbelzijdig ? 0.06 : 0;
   return aantalFlyers * (base + dubbelExtra);
+}
+
+// Abonnementsmodel: prijs per PC4-postcode, alle overdrachten inbegrepen
+const ABONNEMENT_TIERS = [
+  { name: 'Buurt', pc4s: 1,  monthly: 69,  extraPc4: 29 },
+  { name: 'Wijk',  pc4s: 3,  monthly: 149, extraPc4: 23 },
+  { name: 'Stad',  pc4s: 10, monthly: 299, extraPc4: 18 },
+];
+
+function berekenAbonnement(pc4Count: number): {
+  tier: string; includedPc4s: number; base: number;
+  extraPc4s: number; extraKosten: number; total: number;
+} {
+  const n = Math.max(1, pc4Count);
+  for (const t of ABONNEMENT_TIERS) {
+    if (n <= t.pc4s) {
+      return { tier: t.name, includedPc4s: t.pc4s, base: t.monthly, extraPc4s: 0, extraKosten: 0, total: t.monthly };
+    }
+  }
+  const stad = ABONNEMENT_TIERS[2];
+  const extra = n - stad.pc4s;
+  const extraKosten = extra * stad.extraPc4;
+  return { tier: 'Stad', includedPc4s: stad.pc4s, base: stad.monthly, extraPc4s: extra, extraKosten, total: stad.monthly + extraKosten };
 }
 
 function formatPrijs(x: number): string {
@@ -2105,7 +2126,9 @@ export default function LokaalKabaal() {
     const { step, akkoord, kluswaarde, spec, specQ, datum, centrum, straal, aantalFlyers, formaat, dubbelzijdig, proefFlyer, proefAdres, flyerIndex } = wiz;
     const availableMonths = getAvailableMonths();
     const stats = estimeerDekkingsgebied(straal);
-    const prijs = berekenPrijs(aantalFlyers, formaat, dubbelzijdig);
+    const actualPc4Count = wiz.pc4Lijst.length > 0 ? wiz.pc4Lijst.length : stats.pc4Count;
+    const abonnement = berekenAbonnement(actualPc4Count);
+    const prijs = abonnement.total;
     const proefPrijs = 4.95;
     const totaal = prijs + (proefFlyer ? proefPrijs : 0);
 
@@ -2114,7 +2137,7 @@ export default function LokaalKabaal() {
       (step === 2 && spec !== '') ||
       (step === 3 && datum !== '') ||
       (step === 4 && centrum !== '') ||
-      (step === 5 && aantalFlyers >= 250) ||
+      step === 5 ||
       (step === 6 && (wiz.email || '').includes('@') && (!proefFlyer || adresStatus === 'ok')) ||
       step === 7
     );
@@ -2146,7 +2169,7 @@ export default function LokaalKabaal() {
                 Welkom bij LokaalKabaal
               </h2>
               <p style={{ color: 'var(--muted)', marginBottom: '20px', lineHeight: 1.6 }}>
-                Bereik nieuwe huiseigenaren in jouw postcodes met een fysieke flyer. Altum publiceert elke maand op de 20e alle eigendomsoverdrachten — wij verwerken ze en sturen op de 25e automatisch jouw flyer naar elk nieuw adres. Geen handmatig werk.
+                Bereik nieuwe huiseigenaren in jouw postcodes met een fysieke flyer. Elke maand verwerken wij alle eigendomsoverdrachten en sturen op de 25e automatisch jouw flyer naar elk nieuw adres. Geen handmatig werk.
               </p>
               <RoiCalc kluswaarde={kluswaarde} onChange={v => updateWiz({ kluswaarde: v })} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -2305,88 +2328,30 @@ export default function LokaalKabaal() {
                 </label>
               </div>
 
-              {/* Aantal */}
-              {(() => {
-                const maxFlyers = stats.estAdressenMaand;
-                const presets = [250, 500, 750, 1000, 1500, 2000, 2500, 3000, 4000, 5000].filter(n => n <= maxFlyers);
-                // Als huidig gekozen aantal > max, reset naar max
-                if (aantalFlyers > maxFlyers) updateWiz({ aantalFlyers: Math.max(250, roundUp50(maxFlyers)) });
-                return (
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '10px' }}>
-                  <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                    MAXIMAAL AANTAL FLYERS PER MAAND
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                    max <strong style={{ color: 'var(--ink)' }}>{maxFlyers.toLocaleString('nl')}</strong> op basis van jouw regio
-                  </div>
+              {/* Abonnementsoverzicht op basis van werkgebied */}
+              <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px', marginBottom: '16px' }}>
+                <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>
+                  ABONNEMENT — {actualPc4Count} PC4-POSTCODE{actualPc4Count !== 1 ? 'S' : ''} IN UW WERKGEBIED
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '10px' }}>
-                  {presets.map(n => (
-                    <button key={n} onClick={() => updateWiz({ aantalFlyers: n })}
-                      style={{
-                        padding: '10px 6px', border: `1px solid ${aantalFlyers === n ? 'var(--green)' : 'var(--line)'}`,
-                        borderRadius: 'var(--radius)', background: aantalFlyers === n ? 'var(--green-bg)' : 'var(--paper)',
-                        cursor: 'pointer', fontSize: '13px', fontFamily: 'var(--font-mono)',
-                        fontWeight: aantalFlyers === n ? 700 : 400, color: aantalFlyers === n ? 'var(--green-dim)' : 'var(--ink)',
-                      }}>{n.toLocaleString('nl')}</button>
-                  ))}
-                </div>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '12px' }}>
-                  <span style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>Of voer in:</span>
-                  <input
-                    type="number" min={250} max={maxFlyers} step={50} value={aantalFlyers}
-                    onChange={e => updateWiz({ aantalFlyers: Math.min(maxFlyers, Math.max(250, Number(e.target.value))) })}
-                    style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', fontFamily: 'var(--font-mono)', fontSize: '14px', background: 'var(--paper2)' }}
-                  />
-                </div>
-                <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.25)', borderRadius: 'var(--radius)', padding: '12px 14px', fontSize: '12px', lineHeight: 1.6, color: 'var(--ink)' }}>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--green-dim)', marginBottom: '6px', letterSpacing: '0.08em' }}>
-                    HOE WERKT HET MAXIMALE BUDGET?
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                    <span>{abonnement.tier} ({abonnement.includedPc4s} PC4{abonnement.includedPc4s !== 1 ? 's' : ''} inbegrepen)</span>
+                    <span style={{ fontFamily: 'var(--font-mono)' }}>{formatPrijs(abonnement.base)}/mnd</span>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <span style={{ color: 'var(--green)', flexShrink: 0, fontWeight: 700, fontSize: '14px' }}>1</span>
-                      <span style={{ fontSize: '12px', color: '#444' }}>
-                        <strong>Jij kiest een maximum</strong> — dit is het hoogste aantal flyers dat we per maand versturen. Je betaalt nooit meer dan dit maximum.
-                      </span>
+                  {abonnement.extraPc4s > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--muted)' }}>
+                      <span>+ {abonnement.extraPc4s} extra postcode{abonnement.extraPc4s !== 1 ? 's' : ''} × €{ABONNEMENT_TIERS[2].extraPc4}/mnd</span>
+                      <span style={{ fontFamily: 'var(--font-mono)' }}>{formatPrijs(abonnement.extraKosten)}/mnd</span>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <span style={{ color: 'var(--green)', flexShrink: 0, fontWeight: 700, fontSize: '14px' }}>2</span>
-                      <span style={{ fontSize: '12px', color: '#444' }}>
-                        <strong>Op de 20e weten we het exacte aantal</strong> — dan verwerken we de verhuisdata voor jouw gebied. Je ziet dit in het dashboard vóór de verzending.
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <span style={{ color: 'var(--green)', flexShrink: 0, fontWeight: 700, fontSize: '14px' }}>3</span>
-                      <span style={{ fontSize: '12px', color: '#444' }}>
-                        <strong>Op de 25e wordt alles verstuurd</strong> — je betaalt alleen voor de daadwerkelijk verstuurde flyers. Minder verhuizingen = lagere factuur.
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid rgba(0,232,122,0.2)', paddingTop: '8px' }}>
-                      <span style={{ color: '#888', flexShrink: 0, fontWeight: 700, fontSize: '14px' }}>★</span>
-                      <span style={{ fontSize: '12px', color: '#666' }}>
-                        Bij minder verhuizingen dan verwacht: kies voor <strong>credit</strong> (terugboeking volgende factuur) of <strong>rollover</strong> (resterende flyers volgende maand als eerste verstuurd).
-                      </span>
-                    </div>
+                  )}
+                  <div style={{ height: '1px', background: 'var(--line)', margin: '2px 0' }} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                    <span style={{ fontWeight: 700 }}>Totaal per maand</span>
+                    <span style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', color: 'var(--green)' }}>{formatPrijs(abonnement.total)}</span>
                   </div>
                 </div>
-              </div>
-                );
-              })()}
-
-              {/* Prijsoverzicht */}
-              <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '6px', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '13px', color: 'var(--muted)' }}>Max {aantalFlyers.toLocaleString('nl')} flyers × {formaat.toUpperCase()}{dubbelzijdig ? ' dubbelzijdig' : ''}</span>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>
-                    €{(berekenPrijs(aantalFlyers, formaat, dubbelzijdig) / aantalFlyers).toFixed(2)}/stuk
-                  </span>
-                </div>
-                <div style={{ height: '1px', background: 'var(--line)', margin: '10px 0' }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <span style={{ fontWeight: 700 }}>Max budget per maand</span>
-                  <span style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', color: 'var(--green)' }}>{formatPrijs(prijs)}</span>
+                <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.2)', borderRadius: 'var(--radius)', padding: '10px 12px', fontSize: '12px', color: 'var(--ink)', lineHeight: 1.6 }}>
+                  Alle nieuwe bewoners in uw {actualPc4Count} postcode{actualPc4Count !== 1 ? 's' : ''} zijn inbegrepen — geen limiet op het aantal flyers. Jaarcontract: 25% korting.
                 </div>
               </div>
             </div>
@@ -2433,7 +2398,7 @@ export default function LokaalKabaal() {
                   { l: 'Werkgebied', v: centrum ? `${centrum} · ${straal} km` : '—' },
                   { l: 'PC4-gebieden', v: wiz.pc4Lijst.length > 0 ? wiz.pc4Lijst.join(', ') : `~${stats.pc4Count} gebieden` },
                   { l: 'Formaat', v: `${formaat.toUpperCase()}${dubbelzijdig ? ' dubbelzijdig' : ' enkelvoudig'}` },
-                  { l: 'Aantal flyers', v: `${aantalFlyers.toLocaleString('nl')} / maand` },
+                  { l: 'Abonnement', v: `${abonnement.tier} · ${actualPc4Count} PC4s · ${formatPrijs(abonnement.total)}/mnd` },
                   { l: 'Bezorging', v: 'Elke 25e van de maand' },
                 ].map(({ l, v }) => (
                   <div key={l} style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '12px' }}>
@@ -2547,8 +2512,8 @@ export default function LokaalKabaal() {
               {/* Totaal */}
               <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <span style={{ color: 'var(--muted)', fontSize: '13px' }}>{aantalFlyers.toLocaleString('nl')} flyers/maand ({formaat.toUpperCase()})</span>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{formatPrijs(prijs)}</span>
+                  <span style={{ color: 'var(--muted)', fontSize: '13px' }}>{abonnement.tier} abonnement · {actualPc4Count} PC4-postcodes ({formaat.toUpperCase()})</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{formatPrijs(prijs)}/mnd</span>
                 </div>
                 {proefFlyer && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
@@ -2614,11 +2579,11 @@ export default function LokaalKabaal() {
                   </p>
                   <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px', maxWidth: '420px', margin: '0 auto 20px', textAlign: 'left' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <span style={{ color: 'var(--muted)', fontSize: '13px' }}>Max {aantalFlyers.toLocaleString('nl')} flyers/maand</span>
+                      <span style={{ color: 'var(--muted)', fontSize: '13px' }}>{abonnement.tier} · {actualPc4Count} PC4-postcodes · alle bewoners inbegrepen</span>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{formatPrijs(prijs)}/mnd</span>
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                      Je betaalt alleen voor daadwerkelijk verstuurde flyers. Factuur op de 25e v/d maand.
+                      Vaste maandprijs — geen verassingen. Factuur op de 1e v/d maand.
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>

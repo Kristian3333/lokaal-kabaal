@@ -10,11 +10,12 @@ const TIERS = [
     monthly: 69,
     yearly: 52,
     yearlyTotal: 624,
-    extraMonthly: 2.25,
-    extraYearly: 1.69,
+    pc4s: 1,
+    extraPc4Monthly: 29,
+    extraPc4Yearly: 22,
     features: [
       '1 postcode actief',
-      '20 flyers/maand inbegrepen',
+      'Alle nieuwe bewoners in uw postcode inbegrepen',
       'A6 · print + bezorging',
       '1 flyer-template',
       'Maandelijks rapport',
@@ -32,11 +33,12 @@ const TIERS = [
     monthly: 149,
     yearly: 112,
     yearlyTotal: 1344,
-    extraMonthly: 1.85,
-    extraYearly: 1.39,
+    pc4s: 3,
+    extraPc4Monthly: 23,
+    extraPc4Yearly: 17,
     features: [
       '3 postcodes actief',
-      '50 flyers/maand inbegrepen',
+      'Alle nieuwe bewoners in uw postcodes inbegrepen',
       'A5 dubbelzijdig · premium formaat',
       '3 templates (incl. seizoensvariant)',
       'Wekelijks rapport + statistieken',
@@ -56,11 +58,12 @@ const TIERS = [
     monthly: 299,
     yearly: 224,
     yearlyTotal: 2688,
-    extraMonthly: 1.45,
-    extraYearly: 1.09,
+    pc4s: 10,
+    extraPc4Monthly: 18,
+    extraPc4Yearly: 14,
     features: [
       '10 postcodes actief',
-      '150 flyers/maand inbegrepen',
+      'Alle nieuwe bewoners in uw postcodes inbegrepen',
       'A5 dubbelzijdig · gepersonaliseerd',
       'Onbeperkt templates + auto-selectie',
       'Real-time dashboard',
@@ -70,7 +73,7 @@ const TIERS = [
     noFeature: null,
     exclusive: 'Exclusiviteit voor het volledige verzorgingsgebied',
     hero: false,
-    breakEven: 'Voor installateurs, makelaars en multi-locatie ondernemers.',
+    breakEven: 'Voor installateurs en multi-locatie ondernemers met groter bereik.',
     cta: 'Domineer uw markt →',
   },
 ];
@@ -95,8 +98,8 @@ export default function PricingSection() {
             Welke positie wilt u innemen<br />
             <em style={{ color: 'rgba(255,255,255,.35)' }}>in uw buurt?</em>
           </h2>
-          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,.4)', fontFamily: 'var(--font-mono)', maxWidth: '500px', margin: '0 auto 32px' }}>
-            Per postcode neemt LokaalKabaal slechts één klant per branche aan.
+          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,.4)', fontFamily: 'var(--font-mono)', maxWidth: '520px', margin: '0 auto 32px' }}>
+            U betaalt per postcode — alle nieuwe bewoners daarin zijn inbegrepen. Geen verassingen.
           </p>
 
           {/* Billing toggle */}
@@ -120,7 +123,7 @@ export default function PricingSection() {
               <span style={{
                 fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px',
                 background: yearly ? 'rgba(0,0,0,0.15)' : 'var(--green)',
-                color: yearly ? 'var(--ink)' : 'var(--ink)',
+                color: 'var(--ink)',
               }}>
                 −25%
               </span>
@@ -128,7 +131,7 @@ export default function PricingSection() {
           </div>
           {yearly && (
             <div style={{ marginTop: '10px', fontSize: '11px', color: 'rgba(255,255,255,.35)', fontFamily: 'var(--font-mono)' }}>
-              25% korting op abonnement én extra flyers · per jaar vooruit gefactureerd
+              25% korting op abonnement én extra postcodes · per jaar vooruit gefactureerd
             </div>
           )}
         </div>
@@ -184,8 +187,9 @@ export default function PricingSection() {
                 </div>
               )}
 
+              {/* Extra PC4 pricing */}
               <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.25)', fontFamily: 'var(--font-mono)', marginBottom: '24px' }}>
-                + €{yearly ? fmt(t.extraYearly) : fmt(t.extraMonthly)} per extra flyer boven bundel
+                + €{yearly ? t.extraPc4Yearly : t.extraPc4Monthly} per extra postcode/maand
               </div>
 
               {/* Features */}
@@ -230,10 +234,8 @@ export default function PricingSection() {
         </div>
 
         {/* Footer note */}
-        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.2)', fontFamily: 'var(--font-mono)' }}>
-            Alle prijzen excl. BTW · {yearly ? 'Jaarcontract: per jaar vooruit gefactureerd, niet tussentijds opzegbaar' : 'Maandelijks contract: per maand opzegbaar'}
-          </div>
+        <div style={{ marginTop: '20px', fontSize: '11px', color: 'rgba(255,255,255,.2)', fontFamily: 'var(--font-mono)' }}>
+          Alle prijzen excl. BTW · {yearly ? 'Jaarcontract: per jaar vooruit gefactureerd, niet tussentijds opzegbaar' : 'Maandelijks contract: per maand opzegbaar'} · Geen limiet op het aantal flyers per postcode
         </div>
       </div>
     </section>
