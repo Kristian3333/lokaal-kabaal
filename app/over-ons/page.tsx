@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Nav from '@/components/Nav';
 
 const PIJLERS = [
   {
@@ -37,15 +38,7 @@ const STATS = [
 export default function OverOns() {
   return (
     <div style={{ fontFamily: 'var(--font-sans)', background: 'var(--paper)', minHeight: '100vh', color: 'var(--ink)' }}>
-      <nav style={{ borderBottom: '1px solid var(--line)', padding: '16px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
-          <div style={{ width: '22px', height: '22px', background: 'var(--ink)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg viewBox="0 0 12 12" fill="none" width="10" height="10"><path d="M6 1L10 4V8L6 11L2 8V4L6 1Z" fill="#00E87A" /></svg>
-          </div>
-          <span style={{ fontWeight: 700, fontSize: '13px', letterSpacing: '-.02em' }}>Lokaal<span style={{ color: 'var(--green)' }}>Kabaal</span></span>
-        </Link>
-        <Link href="/" style={{ fontSize: '12px', color: 'var(--muted)', textDecoration: 'none', fontFamily: 'var(--font-mono)' }}>← Terug naar home</Link>
-      </nav>
+      <Nav />
 
       {/* Hero */}
       <section style={{ maxWidth: '1080px', margin: '0 auto', padding: '80px 40px 60px' }}>

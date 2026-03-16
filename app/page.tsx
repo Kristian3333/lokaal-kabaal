@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Nav from '@/components/Nav';
 
 const TICKERS = [
   "🟢 Kapper Bloemendaal — 340 flyers verstuurd",
@@ -16,33 +17,10 @@ export default function Landing() {
   return (
     <div style={{ fontFamily: 'var(--font-sans)', background: 'var(--paper)', minHeight: '100vh', color: 'var(--ink)' }}>
 
-      {/* NAV */}
-      <nav style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-        background: 'var(--ink)', borderBottom: '1px solid rgba(255,255,255,0.07)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 40px', height: '52px',
-      }}>
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-          <div style={{ width: '26px', height: '26px', background: 'var(--green)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg viewBox="0 0 12 12" fill="none" width="12" height="12"><path d="M6 1L10 4V8L6 11L2 8V4L6 1Z" fill="#0A0A0A" /></svg>
-          </div>
-          <span style={{ fontWeight: 700, fontSize: '13px', color: '#fff', letterSpacing: '-.02em' }}>Lokaal<span style={{ color: 'var(--green)' }}>Kabaal</span></span>
-        </Link>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
-          <Link href="/flyers-versturen-nieuwe-bewoners" style={{ fontSize: '12px', color: 'rgba(255,255,255,.5)', textDecoration: 'none' }}>Nieuwe bewoners</Link>
-          <Link href="/direct-mail-mkb" style={{ fontSize: '12px', color: 'rgba(255,255,255,.5)', textDecoration: 'none' }}>Direct mail</Link>
-          <a href="#prijzen" style={{ fontSize: '12px', color: 'rgba(255,255,255,.5)', textDecoration: 'none' }}>Prijzen</a>
-          <Link href="/blog" style={{ fontSize: '12px', color: 'rgba(255,255,255,.5)', textDecoration: 'none' }}>Blog</Link>
-          <Link href="/login" style={{ fontSize: '12px', color: 'rgba(255,255,255,.6)', textDecoration: 'none', fontFamily: 'var(--font-mono)' }}>Inloggen</Link>
-          <Link href="/login" style={{ padding: '7px 16px', background: 'var(--green)', color: 'var(--ink)', borderRadius: 'var(--radius)', fontSize: '12px', fontWeight: 700, textDecoration: 'none' }}>
-            Aan de slag
-          </Link>
-        </div>
-      </nav>
+      <Nav />
 
       {/* HERO */}
-      <section style={{ paddingTop: '140px', paddingBottom: '100px', maxWidth: '860px', margin: '0 auto', padding: '140px 40px 100px' }}>
+      <section style={{ maxWidth: '860px', margin: '0 auto', padding: '100px 40px 100px' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '4px 12px', background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.2)', borderRadius: '20px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)', marginBottom: '28px' }}>
           <span style={{ width: '6px', height: '6px', background: 'var(--green)', borderRadius: '50%', display: 'inline-block' }} />
           Actief in heel Nederland · elke 25e automatisch verstuurd
