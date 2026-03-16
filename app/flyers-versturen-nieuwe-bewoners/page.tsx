@@ -5,11 +5,11 @@ import PricingSection from '@/components/PricingSection';
 
 export const metadata: Metadata = {
   title: 'Flyers naar Nieuwe Bewoners Versturen | Maandelijks Automatisch',
-  description: 'Bereik nieuwe huiseigenaren elke maand automatisch. LokaalKabaal verwerkt Altum-verhuisdata op de 20e en bezorgt gepersonaliseerde flyers op de 25e. Geen handmatig werk.',
+  description: 'Bereik nieuwe huiseigenaren elke maand automatisch. LokaalKabaal verstuurt elke 25e gepersonaliseerde flyers naar alle nieuwe bewoners in uw postcodes. Geen handmatig werk.',
   alternates: { canonical: 'https://lokaalkabaal.agency/flyers-versturen-nieuwe-bewoners' },
   openGraph: {
     title: 'Flyers naar Nieuwe Bewoners Versturen | LokaalKabaal',
-    description: 'Elke 25e van de maand bereikt u alle nieuwe eigenaren in uw postcodes. Automatisch via Altum-verhuisdata.',
+    description: 'Elke 25e van de maand bereikt u alle nieuwe eigenaren in uw postcodes. Automatisch, zonder handmatig werk.',
     url: 'https://lokaalkabaal.agency/flyers-versturen-nieuwe-bewoners',
   },
 };
@@ -20,10 +20,10 @@ const faqSchema = {
   mainEntity: [
     {
       '@type': 'Question',
-      name: 'Is het legaal om Kadaster-data te gebruiken voor marketingdoeleinden?',
+      name: 'Is het legaal om verhuisdata te gebruiken voor marketingdoeleinden?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Ja. Eigendomsoverdrachten zijn openbare informatie die door het Kadaster beschikbaar wordt gesteld. LokaalKabaal gebruikt uitsluitend adresgegevens die publiek beschikbaar zijn voor postbezorging. LokaalKabaal verwerkt persoonsgegevens conform de AVG en levert u de gegevens niet rechtstreeks; de bezorging verloopt via geautoriseerde kanalen.',
+        text: 'Ja. Eigendomsoverdrachten zijn openbare informatie. LokaalKabaal gebruikt uitsluitend adresgegevens die publiek beschikbaar zijn voor postbezorging. Persoonsgegevens worden verwerkt conform de AVG; de bezorging verloopt via geautoriseerde kanalen.',
       },
     },
     {
@@ -31,7 +31,7 @@ const faqSchema = {
       name: 'Hoe snel na een verhuizing ontvangen nieuwe bewoners mijn flyer?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Altum verwerkt eigendomsoverdrachten uit het Kadaster en publiceert deze maandelijks rond de 20e. LokaalKabaal pikt die data op, verwerkt alle adressen en stuurt op de 25e van diezelfde maand een gebundelde printorder. De nieuwe bewoner ontvangt uw flyer gemiddeld binnen 2–3 weken na hun verhuizing — ruimschoots in het 30-dagen beslissingsvenster.',
+        text: 'Maandelijks verwerkt LokaalKabaal alle nieuwe eigendomsoverdrachten en verstuurt op de 25e een bulkprintorder. De nieuwe bewoner ontvangt uw flyer gemiddeld binnen 2–3 weken na hun verhuizing — ruimschoots in het 30-dagen beslissingsvenster.',
       },
     },
     {
@@ -72,13 +72,13 @@ export default function FlyersNieuweBewoners() {
         {/* Hero */}
         <section style={{ maxWidth: '800px', margin: '0 auto', padding: '80px 40px 60px' }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--green-dim)', letterSpacing: '0.12em', marginBottom: '16px', textTransform: 'uppercase' }}>
-            Direct mail · Nieuwe bewoners · Altum-verhuisdata
+            Direct mail · Nieuwe bewoners · Elke 25e automatisch
           </div>
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '48px', fontWeight: 400, lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: '20px' }}>
             Elke 25e liggen uw flyers<br />bij de nieuwe bewoners<br /><em style={{ color: 'var(--green-dim)' }}>op de mat</em>
           </h1>
           <p style={{ fontSize: '16px', color: 'var(--muted)', lineHeight: 1.7, maxWidth: '620px', marginBottom: '32px' }}>
-            Elke maand wisselt het Kadaster tienduizenden woningen van eigenaar. Altum verwerkt die data en publiceert ze op de 20e. LokaalKabaal pikt ze op, verwerkt alle adressen in uw postcodes en verstuurt op de 25e een gepersonaliseerde flyer naar elke nieuwe bewoner. Gemiddeld binnen 2–3 weken na de verhuizing — precies in het venster waarin 80% van de nieuwe bewoners hun vaste lokale leveranciers kiest.
+            Elke maand verhuizen tienduizenden mensen naar een nieuw huis. LokaalKabaal verwerkt maandelijks alle eigendomsoverdrachten in uw postcodes en verstuurt op de 25e een gepersonaliseerde flyer naar elke nieuwe bewoner. Gemiddeld binnen 2–3 weken na de verhuizing — precies in het venster waarin 80% van de nieuwe bewoners hun vaste lokale leveranciers kiest.
           </p>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <Link href="/login" style={{ padding: '12px 24px', background: 'var(--ink)', color: 'var(--paper)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px' }}>
@@ -94,7 +94,7 @@ export default function FlyersNieuweBewoners() {
         <div style={{ borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)', background: 'var(--white)' }}>
           <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px 40px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0' }}>
             {[
-              { n: '900.000+', label: 'eigendomsoverdrachten per jaar in NL (Kadaster/CBS)' },
+              { n: '900.000+', label: 'woningwisselingen per jaar in Nederland' },
               { n: '25e', label: 'van de maand: uw flyers gaan eruit, zonder dat u iets doet' },
               { n: '4–8%', label: 'conversieratio welkomstflyer nieuwe bewoners' },
             ].map((s, i) => (
@@ -122,7 +122,7 @@ export default function FlyersNieuweBewoners() {
               Wanneer iemand verhuist, komen ze in een omgeving die ze nog niet kennen. Het sociale netwerk bestaat nog niet. De aanbevelingen van buren zijn er nog niet. Gewoontes zijn doorbroken. Alles staat open. In de eerste vier weken na een verhuizing koopt de gemiddelde nieuwe bewoner significant meer lokale diensten dan in enige andere periode van het jaar.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444', marginBottom: '16px' }}>
-              Dit noemen marketeers een <strong>"life event trigger"</strong> — een levensgebeurtenis die gedrag fundamenteel verandert. Verhuizen is verreweg de meest ingrijpende lokale trigger die bestaat. En anders dan andere life events is een verhuizing zichtbaar en traceerbaar via het Kadaster.
+              Dit noemen marketeers een <strong>"life event trigger"</strong> — een levensgebeurtenis die gedrag fundamenteel verandert. Verhuizen is verreweg de meest ingrijpende lokale trigger die bestaat. En anders dan andere life events is een verhuizing openbaar geregistreerd en traceerbaar.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444' }}>
               Dat maakt flyers versturen naar nieuwe bewoners uniek effectief. U richt u op mensen die net zijn gearriveerd, actief op zoek zijn, en nog geen enkel lokaal vooroordeel hebben. Uw flyer landt precies op het moment dat de beslissing nog open is. Voor een bakker in Utrecht: elke nieuwe eigenaar in een straal van 1,5 km is een potentiële dagelijkse klant. Eén gewonnen vaste klant levert gemiddeld €200–€400 per jaar op. De flyer kost een paar euro.
@@ -139,7 +139,7 @@ export default function FlyersNieuweBewoners() {
             {/* Timeline visual */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0', marginBottom: '28px', borderRadius: 'var(--radius)', overflow: 'hidden', border: '1px solid var(--line)' }}>
               {[
-                { dag: '20e', label: 'Altum publiceert', sub: 'verhuisdata vorige periode', color: 'var(--paper)' },
+                { dag: '20e', label: 'Verhuisdata beschikbaar', sub: 'nieuwe eigendomsoverdrachten', color: 'var(--paper)' },
                 { dag: '21–23e', label: 'LokaalKabaal verwerkt', sub: 'adressen per abonnee', color: 'var(--white)' },
                 { dag: '24–25e', label: 'Printorder verstuurd', sub: 'gebundelde bulkrun', color: 'var(--paper)' },
                 { dag: '28–30e', label: 'Bezorging', sub: 'flyer op de mat bij nieuwe bewoner', color: 'var(--green-bg)' },
@@ -154,7 +154,7 @@ export default function FlyersNieuweBewoners() {
 
             {[
               { n: '01', title: 'Eenmalige setup via uw dashboard', text: 'U kiest uw postcodes, uploadt uw flyer-template en stelt uw branche in. Dat is alles. Vanaf dat moment loopt alles automatisch — u hoeft niets meer te doen.' },
-              { n: '02', title: 'Altum-data op de 20e', text: 'Altum verwerkt maandelijks eigendomsoverdrachten uit het Kadaster en publiceert ze rond de 20e. LokaalKabaal koppelt aan deze datastroom en haalt automatisch alle nieuwe adressen op in uw geselecteerde postcodes.' },
+              { n: '02', title: 'Verhuisdata op de 20e', text: 'Maandelijks worden alle nieuwe eigendomsoverdrachten verwerkt en gepubliceerd. LokaalKabaal haalt automatisch alle nieuwe adressen op in uw geselecteerde postcodes.' },
               { n: '03', title: 'Verwerking en bulkprint op de 25e', text: 'LokaalKabaal bundelt alle adressen per abonnee, koppelt het juiste template, en plaatst één gepoold printorder. Alle flyers worden tegelijk gedrukt en individueel geadresseerd verstuurd via PostNL. Bulk printen = lagere kosten per stuk.' },
               { n: '04', title: 'Bezorging en rapportage', text: 'Eind van de maand liggen de flyers bij de nieuwe bewoners. In uw dashboard ziet u hoeveel flyers er zijn verstuurd, naar welke adressen, en wat de overdrachtsactiviteit per postcode was die maand.' },
             ].map(s => (
@@ -204,7 +204,6 @@ export default function FlyersNieuweBewoners() {
                 { href: '/flyers-versturen-bakker', label: 'Bakkers', sub: 'Dagelijks terugkerende klant' },
                 { href: '/flyers-versturen-installateur', label: 'Installateurs', sub: '€8.000 gem. eerste jaar' },
                 { href: '/flyers-versturen-restaurant', label: 'Restaurants', sub: '€840 jaarwaarde per vaste gast' },
-                { href: '/flyers-versturen-makelaar', label: 'Makelaars', sub: 'Begin de relatie op dag één' },
               ].map(b => (
                 <Link key={b.href} href={b.href} style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '14px 16px', textDecoration: 'none', background: 'var(--white)', display: 'block' }}>
                   <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--ink)', marginBottom: '3px' }}>{b.label}</div>
@@ -222,10 +221,10 @@ export default function FlyersNieuweBewoners() {
               Veelgestelde vragen over flyers versturen naar nieuwe bewoners
             </h2>
             {[
-              { q: 'Is het legaal om Kadaster-data te gebruiken voor marketingdoeleinden?', a: 'Ja. Eigendomsoverdrachten zijn openbare informatie die door het Kadaster beschikbaar wordt gesteld. LokaalKabaal gebruikt uitsluitend adresgegevens die publiek beschikbaar zijn voor postbezorging — dezelfde data die ook beschikbaar is via het Kadaster-informatieloket. LokaalKabaal verwerkt persoonsgegevens conform de AVG en levert u de gegevens niet rechtstreeks; de bezorging verloopt via geautoriseerde kanalen.' },
-              { q: 'Hoe snel na een verhuizing ontvangen nieuwe bewoners mijn flyer?', a: 'Altum publiceert maandelijks verhuisdata rond de 20e. LokaalKabaal verwerkt deze data en verstuurt op de 25e een bulkprintorder. Nieuwe bewoners ontvangen uw flyer gemiddeld 2–3 weken na hun verhuizing. Dat is ruimschoots binnen het 30-dagen venster waarin nieuwe bewoners hun vaste lokale leveranciers kiezen.' },
+              { q: 'Is het legaal om verhuisdata te gebruiken voor marketingdoeleinden?', a: 'Ja. Eigendomsoverdrachten zijn openbare informatie. LokaalKabaal gebruikt uitsluitend adresgegevens die publiek beschikbaar zijn voor postbezorging. Persoonsgegevens worden verwerkt conform de AVG; de bezorging verloopt via geautoriseerde kanalen.' },
+              { q: 'Hoe snel na een verhuizing ontvangen nieuwe bewoners mijn flyer?', a: 'Maandelijks verwerkt LokaalKabaal alle nieuwe eigendomsoverdrachten en verstuurt op de 25e een bulkprintorder. Nieuwe bewoners ontvangen uw flyer gemiddeld 2–3 weken na hun verhuizing — ruimschoots binnen het 30-dagen venster waarin nieuwe bewoners hun vaste lokale leveranciers kiezen.' },
               { q: 'Kan ik zelf bepalen welke postcodes ik wil targeten?', a: 'Ja, volledig. U kiest zelf welke postcodes u wilt activeren. U kunt zo nauwkeurig zijn als één specifieke wijk, of zo breed als een heel stadsdeel. Er is geen minimum aantal postcodes. Een bakker in de Utrechtse Rivierenwijk kan kiezen voor uitsluitend de postcodes binnen loopafstand van zijn zaak.' },
-              { q: 'Wat als er een maand geen eigendomsoverdrachten zijn in mijn postcodes?', a: 'In stedelijk Nederland is dat vrijwel nooit het geval — Altum-data tonen gemiddeld 3–8 overdrachten per PC4-postcode per maand. Maar als er een maand geen overdrachten zijn, verstuurt u die maand geen flyers en betaalt u alleen het abonnement. Er zijn geen extra kosten voor lege maanden.' },
+              { q: 'Wat als er een maand geen eigendomsoverdrachten zijn in mijn postcodes?', a: 'In stedelijk Nederland is dat vrijwel nooit het geval — gemiddeld zijn er 3–8 overdrachten per PC4-postcode per maand. Maar als er een maand geen overdrachten zijn, verstuurt u die maand geen flyers en betaalt u alleen het abonnement. Er zijn geen extra kosten voor lege maanden.' },
               { q: 'Kan ik meerdere flyer-templates instellen voor verschillende doelgroepen?', a: 'Ja. U kunt meerdere templates aanmaken voor verschillende typen panden (appartement vs. gezinswoning), verschillende seizoenen, of specifieke aanbiedingen. Het systeem selecteert automatisch de juiste template op basis van regels die u zelf instelt.' },
             ].map((f, i) => (
               <div key={i} style={{ borderBottom: '1px solid var(--line)', padding: '18px 0' }}>

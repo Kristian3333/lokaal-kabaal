@@ -215,10 +215,10 @@ export default function DirectMailMKB() {
           {/* CTA */}
           <section style={{ background: 'var(--ink)', borderRadius: 'var(--radius)', padding: '40px', textAlign: 'center' }}>
             <div style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', color: '#fff', marginBottom: '12px', lineHeight: 1.2 }}>
-              Stop met betalen per klik voor mensen<br />die toch niet komen.
+              Fysieke post die daadwerkelijk<br />wordt gelezen.
             </div>
             <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', marginBottom: '24px', fontFamily: 'var(--font-mono)' }}>
-              Geen contract · Vanaf €49/mnd · Setup in 20 minuten
+              Geen contract · Geen minimumafname · Betalen per verstuurde flyer
             </p>
             <Link href="/login" style={{ display: 'inline-block', padding: '14px 32px', background: 'var(--green)', color: 'var(--ink)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 800, fontSize: '14px' }}>
               Start met direct mail dat werkt →

@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
+import PricingSection from '@/components/PricingSection';
 
 const TICKERS = [
   "🟢 Kapper Bloemendaal — 340 flyers verstuurd",
@@ -74,7 +75,7 @@ export default function Landing() {
           {[
             { n: '01', titel: 'Kies postcodes & branche', tekst: 'Geef aan welke postcodes je wil targeten en wat voor bedrijf je hebt. Wij controleren of de exclusiviteit in jouw postcodes nog beschikbaar is.' },
             { n: '02', titel: 'Upload je flyerontwerp', tekst: 'Upload je eigen ontwerp of laat ons helpen. Het systeem koppelt automatisch het juiste adres aan elke individuele flyer.' },
-            { n: '03', titel: 'Elke 25e automatisch verstuurd', tekst: 'Altum publiceert op de 20e alle nieuwe eigendomsoverdrachten. Wij verwerken ze en sturen op de 25e een bulkorder — jouw flyer ligt bij elke nieuwe bewoner binnen hun eerste maand.' },
+            { n: '03', titel: 'Elke 25e automatisch verstuurd', tekst: 'Wij verwerken maandelijks alle nieuwe eigendomsoverdrachten en sturen op de 25e een bulkorder — jouw flyer ligt bij elke nieuwe bewoner binnen hun eerste maand.' },
           ].map(s => (
             <div key={s.n} style={{ background: '#fff', padding: '36px 32px' }}>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--green)', marginBottom: '20px' }}>{s.n}</div>
@@ -94,7 +95,7 @@ export default function Landing() {
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--green-dim)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '14px' }}>Abonnement · Nieuwe bewoners</div>
             <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '26px', fontWeight: 400, marginBottom: '12px', lineHeight: 1.2 }}>Automatisch flyers naar elke nieuwe huiseigenaar in jouw postcodes</h3>
             <p style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.7, marginBottom: '20px' }}>
-              LokaalKabaal koppelt aan Altum-verhuisdata en verstuurt elke 25e automatisch jouw flyer naar alle nieuwe eigenaren. Eén abonnement, exclusief per branche per postcode, geen handmatig werk.
+              LokaalKabaal verstuurt elke 25e automatisch jouw flyer naar alle nieuwe eigenaren in jouw postcodes. Eén abonnement, exclusief per branche per postcode, geen handmatig werk.
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '24px' }}>
               {['€69 – €299/maand', 'Exclusief per branche/postcode', 'Elke 25e automatisch'].map(tag => (
@@ -122,120 +123,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* PRICING */}
-      <section id="prijzen" style={{ background: 'var(--ink)', padding: '100px 40px' }}>
-        <div style={{ maxWidth: '960px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Abonnementen · Nieuwe bewoners</div>
-            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '38px', fontWeight: 400, color: '#fff', marginBottom: '12px' }}>Welke positie wilt u innemen<br /><em style={{ color: 'rgba(255,255,255,.35)' }}>in uw buurt?</em></h2>
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,.4)', fontFamily: 'var(--font-mono)', maxWidth: '500px', margin: '0 auto 40px' }}>Per postcode neemt LokaalKabaal slechts één klant per branche aan. Controleer beschikbaarheid voordat een concurrent dat doet.</p>
-          </div>
-
-          {/* Exclusivity bar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', border: '1px solid rgba(0,232,122,0.2)', borderRadius: 'var(--radius)', background: 'rgba(0,232,122,0.05)', marginBottom: '32px' }}>
-            <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
-            <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-mono)' }}>
-              <strong style={{ color: '#fff' }}>Exclusiviteitsbeveiliging actief:</strong> zodra u een postcode claimt, verstuurt geen enkele andere ondernemer in uw branche daar nog een flyer via LokaalKabaal.
-            </span>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', alignItems: 'start' }}>
-
-            {/* Buurt */}
-            <div style={{ border: '1px solid rgba(255,255,255,0.1)', borderRadius: 'var(--radius)', padding: '28px 24px', background: 'rgba(255,255,255,0.03)' }}>
-              <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,.3)', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '10px' }}>Tier 1</div>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', fontWeight: 400, color: '#fff', marginBottom: '4px' }}>Buurt</div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,.4)', marginBottom: '20px' }}>Uw eerste vaste klanten werven</div>
-              <div style={{ marginBottom: '4px' }}>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '38px', fontWeight: 400, color: '#fff', letterSpacing: '-0.02em' }}>€69</span>
-                <span style={{ fontSize: '13px', color: 'rgba(255,255,255,.3)', marginLeft: '4px' }}>/maand</span>
-              </div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.25)', fontFamily: 'var(--font-mono)', marginBottom: '24px' }}>+ €2,25 per extra flyer boven bundel</div>
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '20px', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {['1 postcode actief', '20 flyers/maand inbegrepen', 'A6 · print + bezorging', '1 flyer-template', 'Maandelijks rapport', 'Per maand opzegbaar'].map(f => (
-                  <div key={f} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                    <span style={{ color: 'var(--green)', flexShrink: 0, fontSize: '12px' }}>✓</span>
-                    <span style={{ fontSize: '12px', color: 'rgba(255,255,255,.6)', lineHeight: 1.4 }}>{f}</span>
-                  </div>
-                ))}
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                  <span style={{ color: 'rgba(255,255,255,.2)', flexShrink: 0, fontSize: '12px' }}>—</span>
-                  <span style={{ fontSize: '12px', color: 'rgba(255,255,255,.2)', lineHeight: 1.4 }}>Geen exclusiviteitsgarantie</span>
-                </div>
-              </div>
-              <Link href="/login" style={{ display: 'block', textAlign: 'center', padding: '11px 16px', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px' }}>
-                Start met Buurt →
-              </Link>
-            </div>
-
-            {/* Wijk — HERO */}
-            <div style={{ border: '2px solid var(--green)', borderRadius: 'var(--radius)', padding: '28px 24px', background: 'rgba(0,232,122,0.04)', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: '-13px', left: '50%', transform: 'translateX(-50%)', background: 'var(--green)', color: 'var(--ink)', fontSize: '10px', fontWeight: 800, fontFamily: 'var(--font-mono)', padding: '3px 12px', borderRadius: '20px', letterSpacing: '0.08em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-                Meest gekozen
-              </div>
-              <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--green)', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '10px' }}>Tier 2</div>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', fontWeight: 400, color: '#fff', marginBottom: '4px' }}>Wijk</div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,.5)', marginBottom: '20px' }}>De vaste naam in de buurt worden</div>
-              <div style={{ marginBottom: '4px' }}>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '38px', fontWeight: 400, color: '#fff', letterSpacing: '-0.02em' }}>€149</span>
-                <span style={{ fontSize: '13px', color: 'rgba(255,255,255,.3)', marginLeft: '4px' }}>/maand</span>
-              </div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.25)', fontFamily: 'var(--font-mono)', marginBottom: '24px' }}>+ €1,85 per extra flyer boven bundel</div>
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '20px', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {['3 postcodes actief', '50 flyers/maand inbegrepen', 'A5 dubbelzijdig · premium formaat', '3 templates (incl. seizoensvariant)', 'Wekelijks rapport + statistieken', 'A/B test twee templates', 'Telefonische onboarding', 'Per maand opzegbaar'].map(f => (
-                  <div key={f} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                    <span style={{ color: 'var(--green)', flexShrink: 0, fontSize: '12px' }}>✓</span>
-                    <span style={{ fontSize: '12px', color: 'rgba(255,255,255,.8)', lineHeight: 1.4 }}>{f}</span>
-                  </div>
-                ))}
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginTop: '4px' }}>
-                  <span style={{ color: 'var(--green)', flexShrink: 0, fontSize: '12px', marginTop: '1px' }}>★</span>
-                  <span style={{ fontSize: '12px', color: 'var(--green)', fontWeight: 700, lineHeight: 1.4 }}>Exclusiviteit per postcode, per branche</span>
-                </div>
-              </div>
-              <Link href="/login" style={{ display: 'block', textAlign: 'center', padding: '12px 16px', background: 'var(--green)', color: 'var(--ink)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 800, fontSize: '13px' }}>
-                Claim uw wijkpositie →
-              </Link>
-            </div>
-
-            {/* Stad */}
-            <div style={{ border: '1px solid rgba(255,255,255,0.1)', borderRadius: 'var(--radius)', padding: '28px 24px', background: 'rgba(255,255,255,0.03)' }}>
-              <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,.3)', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '10px' }}>Tier 3</div>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', fontWeight: 400, color: '#fff', marginBottom: '4px' }}>Stad</div>
-              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,.4)', marginBottom: '20px' }}>Categorie-eigenaar in uw verzorgingsgebied</div>
-              <div style={{ marginBottom: '4px' }}>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '38px', fontWeight: 400, color: '#fff', letterSpacing: '-0.02em' }}>€299</span>
-                <span style={{ fontSize: '13px', color: 'rgba(255,255,255,.3)', marginLeft: '4px' }}>/maand</span>
-              </div>
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.25)', fontFamily: 'var(--font-mono)', marginBottom: '24px' }}>+ €1,45 per extra flyer boven bundel</div>
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '20px', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {['10 postcodes actief', '150 flyers/maand inbegrepen', 'A5 dubbelzijdig · gepersonaliseerd', 'Onbeperkt templates + auto-selectie', 'Real-time dashboard', 'Kwartaalgesprek accountmanager', 'Professioneel ontwerp (éénmalig inbegrepen)', 'Per maand opzegbaar'].map(f => (
-                  <div key={f} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                    <span style={{ color: 'var(--green)', flexShrink: 0, fontSize: '12px' }}>✓</span>
-                    <span style={{ fontSize: '12px', color: 'rgba(255,255,255,.6)', lineHeight: 1.4 }}>{f}</span>
-                  </div>
-                ))}
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginTop: '4px' }}>
-                  <span style={{ color: 'var(--green)', flexShrink: 0, fontSize: '12px', marginTop: '1px' }}>★</span>
-                  <span style={{ fontSize: '12px', color: 'var(--green)', fontWeight: 700, lineHeight: 1.4 }}>Exclusiviteit voor het volledige verzorgingsgebied</span>
-                </div>
-              </div>
-              <Link href="/login" style={{ display: 'block', textAlign: 'center', padding: '11px 16px', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px' }}>
-                Domineer uw markt →
-              </Link>
-            </div>
-          </div>
-
-          <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-            <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.2)', fontFamily: 'var(--font-mono)' }}>
-              Alle prijzen excl. BTW · Geen minimale looptijd · Maandelijks opzegbaar
-            </div>
-            <Link href="/direct-mail-mkb" style={{ fontSize: '11px', color: 'rgba(255,255,255,.3)', fontFamily: 'var(--font-mono)', textDecoration: 'none' }}>
-              Op zoek naar losse campagnes zonder abonnement? → Direct mail MKB
-            </Link>
-          </div>
-        </div>
-      </section>
+      <PricingSection />
 
       {/* WAAROM LOKAALKABAAL */}
       <section style={{ padding: '100px 40px', maxWidth: '1080px', margin: '0 auto' }}>
@@ -286,7 +174,7 @@ export default function Landing() {
           Bekijk abonnementen →
         </Link>
         <div style={{ marginTop: '16px', fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-          Geen contract · Per maand opzegbaar · Setup in 20 minuten
+          Geen contract · Per maand opzegbaar · Vanaf €69/mnd
         </div>
       </section>
 
