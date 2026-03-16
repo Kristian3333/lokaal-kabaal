@@ -4,7 +4,6 @@ import { usePathname } from 'next/navigation';
 
 const LINKS = [
   { href: '/flyers-versturen-nieuwe-bewoners', label: 'Nieuwe bewoners' },
-  { href: '/direct-mail-mkb', label: 'Direct mail' },
   { href: '/#prijzen', label: 'Prijzen' },
   { href: '/blog', label: 'Blog' },
 ];

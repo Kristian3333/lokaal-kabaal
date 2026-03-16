@@ -88,7 +88,7 @@ export default function Landing() {
 
       {/* PRODUCTEN */}
       <section style={{ padding: '0 40px 100px', maxWidth: '1080px', margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div>
           <Link href="/flyers-versturen-nieuwe-bewoners" style={{ textDecoration: 'none', color: 'inherit', display: 'block', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '32px', background: '#fff', transition: 'border-color 0.15s' }}
             onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--ink)'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--line)'; }}>
@@ -105,21 +105,6 @@ export default function Landing() {
             <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--ink)' }}>Bekijk abonnementen en tarieven →</span>
           </Link>
 
-          <Link href="/direct-mail-mkb" style={{ textDecoration: 'none', color: 'inherit', display: 'block', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '32px', background: '#fff', transition: 'border-color 0.15s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--ink)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--line)'; }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '14px' }}>Per campagne · Direct mail MKB</div>
-            <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '26px', fontWeight: 400, marginBottom: '12px', lineHeight: 1.2 }}>Bulk flyers naar een zelfgekozen doelgebied, zonder abonnement</h3>
-            <p style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.7, marginBottom: '20px' }}>
-              Kies postcodes, upload je ontwerp, wij regelen print en bezorging via PostNL. Geen minimumcontract, geen maandelijks abonnement. Betalen per verstuurde flyer.
-            </p>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '24px' }}>
-              {['Vanaf €0,69/stuk', 'Per campagne', 'Eigen postcodeselectie'].map(tag => (
-                <span key={tag} style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--ink)', background: 'var(--paper)', border: '1px solid var(--line)', padding: '3px 8px', borderRadius: '3px' }}>{tag}</span>
-              ))}
-            </div>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--ink)' }}>Meer over direct mail →</span>
-          </Link>
         </div>
       </section>
 
@@ -183,7 +168,6 @@ export default function Landing() {
         <span>© 2026 LokaalKabaal B.V.</span>
         <div style={{ display: 'flex', gap: '20px' }}>
           <Link href="/flyers-versturen-nieuwe-bewoners" style={{ color: 'var(--muted)', textDecoration: 'none' }}>Nieuwe bewoners</Link>
-          <Link href="/direct-mail-mkb" style={{ color: 'var(--muted)', textDecoration: 'none' }}>Direct mail MKB</Link>
           <Link href="/blog" style={{ color: 'var(--muted)', textDecoration: 'none' }}>Blog</Link>
           <Link href="/privacy" style={{ color: 'var(--muted)', textDecoration: 'none' }}>Privacy</Link>
           <Link href="/voorwaarden" style={{ color: 'var(--muted)', textDecoration: 'none' }}>Voorwaarden</Link>

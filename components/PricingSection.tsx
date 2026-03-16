@@ -234,9 +234,6 @@ export default function PricingSection() {
           <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.2)', fontFamily: 'var(--font-mono)' }}>
             Alle prijzen excl. BTW · {yearly ? 'Jaarcontract: per jaar vooruit gefactureerd, niet tussentijds opzegbaar' : 'Maandelijks contract: per maand opzegbaar'}
           </div>
-          <Link href="/direct-mail-mkb" style={{ fontSize: '11px', color: 'rgba(255,255,255,.3)', fontFamily: 'var(--font-mono)', textDecoration: 'none' }}>
-            Losse campagnes zonder abonnement? → Direct mail MKB
-          </Link>
         </div>
       </div>
     </section>
