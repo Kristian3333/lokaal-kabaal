@@ -58,7 +58,7 @@ function estimeerDekkingsgebied(straalKm: number): {
 }
 
 function berekenPrijs(aantalFlyers: number, formaat: string, dubbelzijdig: boolean): number {
-  const base = formaat === 'a6' ? 0.73 : formaat === 'a4' ? 0.91 : 0.83;
+  const base = formaat === 'a6' ? 0.73 : formaat === 'sq' ? 0.88 : 0.83;
   const dubbelExtra = dubbelzijdig ? 0.06 : 0;
   return aantalFlyers * (base + dubbelExtra);
 }
@@ -121,7 +121,7 @@ interface WizState {
   centrum: string;
   straal: number;
   aantalFlyers: number;
-  formaat: 'a6' | 'a5' | 'a4';
+  formaat: 'a6' | 'a5' | 'sq';
   dubbelzijdig: boolean;
   proefFlyer: boolean;
   proefAdres: string;
@@ -199,7 +199,7 @@ function AdaptiveLogo({ src, baseSize, style }: {
 
 function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
   flyer: FlyerState;
-  formaat?: 'a6' | 'a5' | 'a4';
+  formaat?: 'a6' | 'a5' | 'sq';
   onHeroOffsetChange?: (x: number, y: number) => void;
 }) {
   const usps = flyer.usp ? flyer.usp.split('\n').filter(Boolean).slice(0, 3) : [];
@@ -852,7 +852,7 @@ function QrCode({ size = 40, fg = '#000', bg = 'transparent' }: { size?: number;
 
 // ─── Flyer Back Preview ───────────────────────────────────────────────────────
 
-function FlyerBackPreview({ flyer, formaat = 'a5' }: { flyer: FlyerState; formaat?: 'a6' | 'a5' | 'a4' }) {
+function FlyerBackPreview({ flyer, formaat = 'a5' }: { flyer: FlyerState; formaat?: 'a6' | 'a5' | 'sq' }) {
   const naam = flyer.bedrijfsnaam || 'Jouw Bedrijfsnaam';
   const initials = naam.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase();
   const adres = flyer.adres || '';
@@ -2358,7 +2358,7 @@ export default function LokaalKabaal() {
                   {[
                     { id: 'a6' as const, label: 'A6', afm: '105×148 mm', toeslag: '−€0,10/stuk' },
                     { id: 'a5' as const, label: 'A5', afm: '148×210 mm', toeslag: 'Standaard', std: true },
-                    { id: 'a4' as const, label: 'A4', afm: '210×297 mm', toeslag: '+€0,08/stuk' },
+                    { id: 'sq' as const, label: 'Vierkant', afm: '148×148 mm', toeslag: '+€0,05/stuk' },
                   ].map(f => (
                     <div key={f.id} onClick={() => updateWiz({ formaat: f.id })}
                       style={{
@@ -3217,8 +3217,8 @@ export default function LokaalKabaal() {
             <div style={{ position: 'relative', display: 'inline-block' }}>
               <div ref={flyerPreviewRef}>
                 {(!flyer.dubbelzijdig || previewSide === 'voor')
-                  ? <FlyerPreview flyer={flyer} formaat={(flyer.afmeting as 'a6' | 'a5' | 'a4') || 'a5'} onHeroOffsetChange={(x, y) => updateFlyer({ heroOffsetX: x, heroOffsetY: y })} />
-                  : <FlyerBackPreview flyer={flyer} formaat={(flyer.afmeting as 'a6' | 'a5' | 'a4') || 'a5'} />
+                  ? <FlyerPreview flyer={flyer} formaat={(flyer.afmeting as 'a6' | 'a5' | 'sq') || 'a5'} onHeroOffsetChange={(x, y) => updateFlyer({ heroOffsetX: x, heroOffsetY: y })} />
+                  : <FlyerBackPreview flyer={flyer} formaat={(flyer.afmeting as 'a6' | 'a5' | 'sq') || 'a5'} />
                 }
               </div>
               {/* Safe zone overlay */}
@@ -3236,17 +3236,17 @@ export default function LokaalKabaal() {
             <div style={{ padding: '10px', background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)' }}>
               <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '6px' }}>FORMAAT</div>
               <div style={{ display: 'flex', gap: '6px' }}>
-                {(['a6', 'a5', 'a4'] as const).map(f => (
+                {(['a6', 'a5', 'sq'] as const).map(f => (
                   <button key={f} onClick={() => updateFlyer({ afmeting: f })}
                     style={{ padding: '4px 10px', border: `1px solid ${flyer.afmeting === f ? 'var(--green)' : 'var(--line)'}`, borderRadius: 'var(--radius)', background: flyer.afmeting === f ? 'var(--green-bg)' : 'var(--paper)', cursor: 'pointer', fontSize: '12px', fontFamily: 'var(--font-mono)', fontWeight: flyer.afmeting === f ? 700 : 400, color: flyer.afmeting === f ? 'var(--green-dim)' : 'var(--ink)' }}>
-                    {f.toUpperCase()}
+                    {f === 'sq' ? 'Vierkant' : f.toUpperCase()}
                   </button>
                 ))}
               </div>
             </div>
             <FlyerExport
               flyerRef={flyerPreviewRef}
-              formaat={(flyer.afmeting as 'a6' | 'a5' | 'a4') || 'a5'}
+              formaat={(flyer.afmeting as 'a6' | 'a5' | 'sq') || 'a5'}
               bedrijfsnaam={flyer.bedrijfsnaam || 'flyer'}
             />
             {flyer.pdfUrl && (
@@ -3442,7 +3442,6 @@ export default function LokaalKabaal() {
             {page === 'profiel' && 'Mijn profiel'}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)' }}>3 credits</span>
             <div style={{ width: '28px', height: '28px', background: 'var(--green)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '11px', color: 'var(--ink)' }}>
               {(user?.naam || 'G')[0].toUpperCase()}
             </div>

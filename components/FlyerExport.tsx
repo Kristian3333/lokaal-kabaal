@@ -2,11 +2,11 @@
 import { useRef, useState } from 'react';
 
 // Print dimensions in mm (incl. 3mm bleed rondom) — alle formaten portrait
-// print.one specs: A6 105×148mm, A5 148×210mm, A4 210×297mm + 3mm bleed rondom
+// print.one specs: A6 105×148mm, A5 148×210mm, Vierkant 148×148mm + 3mm bleed rondom
 export const PRINT_DIMS = {
   a6: { w: 111, h: 154, trimW: 105, trimH: 148, label: 'A6 (105×148mm)' },
   a5: { w: 154, h: 216, trimW: 148, trimH: 210, label: 'A5 (148×210mm)' },
-  a4: { w: 216, h: 303, trimW: 210, trimH: 297, label: 'A4 (210×297mm)' },
+  sq: { w: 154, h: 154, trimW: 148, trimH: 148, label: 'Vierkant (148×148mm)' },
 };
 
 // Schermpreview pixels (SCALE = 1.5 px/mm)
@@ -14,12 +14,12 @@ export const SCREEN_SCALE = 1.5;
 export const PREVIEW_PX = {
   a6: { w: Math.round(111 * SCREEN_SCALE), h: Math.round(154 * SCREEN_SCALE) }, // 167×231
   a5: { w: Math.round(154 * SCREEN_SCALE), h: Math.round(216 * SCREEN_SCALE) }, // 231×324
-  a4: { w: Math.round(216 * SCREEN_SCALE), h: Math.round(303 * SCREEN_SCALE) }, // 324×455
+  sq: { w: Math.round(154 * SCREEN_SCALE), h: Math.round(154 * SCREEN_SCALE) }, // 231×231
 };
 
 interface FlyerExportProps {
   flyerRef: React.RefObject<HTMLDivElement>;
-  formaat: 'a6' | 'a5' | 'a4';
+  formaat: 'a6' | 'a5' | 'sq';
   bedrijfsnaam: string;
 }
 
@@ -44,10 +44,9 @@ export default function FlyerExport({ flyerRef, formaat, bedrijfsnaam }: FlyerEx
 
       const imgData = canvas.toDataURL('image/jpeg', 0.95);
 
-      // PDF in mm, portrait or landscape based on formaat
-      const isLandscape = dims.trimW > dims.trimH;
+      // PDF in mm — alle formaten portrait (of vierkant)
       const pdf = new jsPDF({
-        orientation: isLandscape ? 'landscape' : 'portrait',
+        orientation: 'portrait',
         unit: 'mm',
         format: [dims.w, dims.h], // incl. bleed
       });
@@ -60,12 +59,6 @@ export default function FlyerExport({ flyerRef, formaat, bedrijfsnaam }: FlyerEx
       const markLen = 5;
       pdf.setDrawColor(0);
       pdf.setLineWidth(0.25);
-      const corners = [
-        [bleed, bleed],
-        [dims.w - bleed, bleed],
-        [dims.w - bleed, dims.h - bleed],
-        [bleed, dims.h - bleed],
-      ];
       // Top-left
       pdf.line(0, bleed, markLen, bleed);
       pdf.line(bleed, 0, bleed, markLen);
