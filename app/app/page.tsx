@@ -244,7 +244,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
     userSelect: 'none',
   });
 
-  const pxDims = PREVIEW_PX[formaat];
+  const pxDims = PREVIEW_PX[formaat] ?? PREVIEW_PX['a5'];
   const base: React.CSSProperties = {
     width: `${pxDims.w}px`, height: `${pxDims.h}px`, borderRadius: '8px', overflow: 'hidden',
     position: 'relative', flexShrink: 0, fontFamily: 'var(--font-sans)',
@@ -859,7 +859,7 @@ function FlyerBackPreview({ flyer, formaat = 'a5' }: { flyer: FlyerState; formaa
   const urenLines = flyer.openingstijden ? flyer.openingstijden.split('\n').filter(Boolean).slice(0, 4) : [];
   const backTekst = flyer.backTekst || 'Vragen? Wij helpen je graag verder.';
 
-  const pxDims = PREVIEW_PX[formaat];
+  const pxDims = PREVIEW_PX[formaat] ?? PREVIEW_PX['a5'];
   const base: React.CSSProperties = {
     width: `${pxDims.w}px`, height: `${pxDims.h}px`, borderRadius: '8px', overflow: 'hidden',
     position: 'relative', flexShrink: 0, fontFamily: 'var(--font-sans)',
@@ -1832,7 +1832,11 @@ export default function LokaalKabaal() {
     if (typeof window === 'undefined') return [{ ...INIT_FLYER, naam: 'Flyer 1', id: 1 }];
     try {
       const saved = localStorage.getItem('lk_flyers');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed: SavedFlyer[] = JSON.parse(saved);
+        // Migreer verouderd 'a4' formaat naar 'sq'
+        return parsed.map(f => ({ ...f, afmeting: f.afmeting === 'a4' ? 'sq' : f.afmeting }));
+      }
     } catch {}
     return [{ ...INIT_FLYER, naam: 'Flyer 1', id: 1 }];
   });
