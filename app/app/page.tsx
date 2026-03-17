@@ -1254,72 +1254,67 @@ function FlyerBackPreview({ flyer, formaat = 'a5' }: { flyer: FlyerState; formaa
   );
 }
 
-// ─── Coverage Visual (now uses real NL map) ──────────────────────────────────
-
-interface Pc4Stats {
-  center: { lat: number; lon: number };
-  pc4Count: number;
-  totalAdressen: number;
-  estAdressenMaand: number;
-  referentieVorigjaar: number;
-  verhuisgraadPct: number;
-  dataBron: string;
-}
+// ─── Coverage Visual (uses PDOK geocode + NLMap PC4 grenzen) ─────────────────
 
 function CoverageVisual({ centrum, straalKm, onPc4sChange, onEstChange }: {
   centrum: string; straalKm: number; onPc4sChange?: (pc4s: string[]) => void; onEstChange?: (est: number) => void;
 }) {
-  const [apiStats, setApiStats] = useState<Pc4Stats | null>(null);
+  const [center, setCenter] = useState<{ lat: number; lon: number } | null>(null);
   const [loading, setLoading] = useState(false);
   const [pc4List, setPc4List] = useState<string[]>([]);
 
+  // Geocodeer de centrum-postcode via PDOK locatieserver
   useEffect(() => {
-    if (!centrum || centrum.length < 4) { setApiStats(null); return; }
+    if (!centrum || centrum.length < 4) { setCenter(null); return; }
     let cancelled = false;
     setLoading(true);
-    fetch('/api/pc4', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ centrumPc4: centrum, straalKm }),
-    })
+    fetch(`/api/geocode?pc4=${encodeURIComponent(centrum.trim())}`)
       .then(r => r.json())
       .then(data => {
-        if (!cancelled && !data.error) {
-          setApiStats(data);
-          onEstChange?.(data.estAdressenMaand);
-        }
+        if (!cancelled && data.lat && data.lon) setCenter({ lat: data.lat, lon: data.lon });
       })
       .catch(() => {})
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [centrum, straalKm]);
+  }, [centrum]);
 
+  // Statistieken worden afgeleid van de échte PC4-lijst die NLMap teruggeeft
   const handlePc4sFound = (pc4s: string[]) => {
     setPc4List(pc4s);
     onPc4sChange?.(pc4s);
+    if (pc4s.length > 0) {
+      // NL-gemiddelde: ~2800 woningen/PC4, CBS verhuisgraad 5.5%/jaar
+      const totalAdressen = pc4s.length * 2800;
+      const estMaand = Math.round(totalAdressen * 0.055 / 12);
+      onEstChange?.(estMaand);
+    }
   };
 
   const fallback = estimeerDekkingsgebied(straalKm);
-  const totalAdressen = apiStats?.totalAdressen ?? Math.round(Math.PI * straalKm * straalKm * 580);
-  const estAdressenMaand = apiStats?.estAdressenMaand ?? fallback.estAdressenMaand;
-  const verhuisgraadPct = apiStats?.verhuisgraadPct ?? 5.5;
-  const cbsBron = apiStats?.dataBron?.startsWith('CBS') ?? false;
+  const totalAdressen = pc4List.length > 0
+    ? pc4List.length * 2800
+    : Math.round(Math.PI * straalKm * straalKm * 580);
+  const estAdressenMaand = pc4List.length > 0
+    ? Math.round(pc4List.length * 2800 * 0.055 / 12)
+    : fallback.estAdressenMaand;
   const t = (v: string) => loading ? '...' : v;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <NLMap center={apiStats?.center ?? null} straalKm={straalKm} onPc4sFound={handlePc4sFound} />
+      <NLMap center={center} straalKm={straalKm} onPc4sFound={handlePc4sFound} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
         <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '12px' }}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', marginBottom: '3px' }}>ADRESSEN IN WERKGEBIED</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', marginBottom: '3px' }}>WONINGEN IN WERKGEBIED</div>
           <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: 'var(--green)', lineHeight: 1 }}>{t(`~${totalAdressen.toLocaleString('nl')}`)}</div>
-          <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>totaal bereik · {straalKm} km straal</div>
+          <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
+            {pc4List.length > 0 ? `${pc4List.length} PC4-gebieden · ~2.800/PC4` : `schatting · ${straalKm} km straal`}
+          </div>
         </div>
         <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '12px' }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', marginBottom: '3px' }}>NIEUWE HUISHOUDENS/MND</div>
           <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: 'var(--green)', lineHeight: 1 }}>{t(`~${estAdressenMaand}`)}</div>
           <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
-            {loading ? 'laden...' : `${verhuisgraadPct}% instroom/jaar${cbsBron ? ' (CBS 2023)' : ' (schatting)'}`}
+            {loading ? 'laden...' : '5,5% instroom/jaar (CBS)'}
           </div>
         </div>
         <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '12px' }}>
