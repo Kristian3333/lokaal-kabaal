@@ -30,7 +30,9 @@ const TIERS = [
       'Maandelijks rapport',
     ],
     extraFeatures: [] as string[],
-    yearlyFeatures: [] as string[],
+    yearlyFeatures: [
+      'Follow-up flyer: 2e kaart na 30 dagen voor niet-gescande QR\'s · tegen kostprijs print.one',
+    ],
     noFeatures: [
       'Geen exclusiviteitsgarantie',
       'Geen A/B testen',

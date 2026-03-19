@@ -29,7 +29,7 @@ export const TIERS: Record<Tier, TierConfig> = {
     priceMonthly: 249,
     priceYearly: 187,
     minFlyers: 300,
-    followUp: false,
+    followUp: true,        // alleen bij jaarcontract · kostprijs print.one
     abTesting: false,
     abTestMinFlyers: 300,
     exclusivity: false,
@@ -80,6 +80,13 @@ export const TEST_ACCOUNTS: { email: string; naam: string; tier: Tier; isJaarcon
     tier: 'buurt',
     isJaarcontract: false,
     label: 'Buurt (maand)',
+  },
+  {
+    email: 'test-buurt-jaar@lokaalkabaal.nl',
+    naam: 'Test Buurt (Jaar)',
+    tier: 'buurt',
+    isJaarcontract: true,
+    label: 'Buurt + jaarcontract',
   },
   {
     email: 'test-wijk@lokaalkabaal.nl',

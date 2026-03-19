@@ -142,7 +142,7 @@ export const TIER_LIMITS = {
   buurt: {
     maxPc4s:          10,
     minFlyers:        300,
-    followUp:         false,
+    followUp:         true,   // alleen bij jaarcontract · kostprijs print.one
     abTesting:        false,
     exclusivity:      false,
     personalizedQr:   false,  // basis QR-tracking
