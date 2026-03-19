@@ -63,42 +63,66 @@ const BASE_CSS = `
 // met de preview-afmetingen en passen transform:scale() toe zodat hij de volledige
 // print-pagina vult.
 
+function sanitizeContent(html: string): string {
+  // Verwijder <img> tags met lege, data:, of blob: src — dit veroorzaakt
+  // de "resource at data:, could not be loaded" fout in print.one
+  return html
+    .replace(/<img\b([^>]*?)\bsrc=(["'])(?:|data:,|blob:[^"']*)\2([^>]*?)>/gi, '')
+    .replace(/<img\b([^>]*)src=["']\s*["']([^>]*)>/gi, '');
+}
+
 function wrapForPrint(rawHtml: string, formaat: string): string {
-  const cfg = PRINT_CONFIG[formaat] ?? PRINT_CONFIG.a5;
+  const cfg = PRINT_CONFIG[formaat] ?? PRINT_CONFIG.a6;
 
   // Extraheer body-content als rawHtml een volledig document is
   const bodyMatch = rawHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-  const content = bodyMatch ? bodyMatch[1] : rawHtml;
+  let content = bodyMatch ? bodyMatch[1] : rawHtml;
+
+  // Sanitize: verwijder lege afbeeldingsreferenties
+  content = sanitizeContent(content);
 
   const scale = cfg.scale.toFixed(4);
 
+  // Schaalstrategie:
+  // 1. viewport meta width = previewW → Chromium rendert alsof canvas previewW px breed is
+  // 2. html/body op previewW×previewH px zodat content exact past
+  // 3. zoom op .lk-wrap als fallback voor renderers die viewport meta negeren
+  // Print.one schaalt het resultaat dan naar de mm-afmeting van het formaat
   return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=${cfg.previewW}, initial-scale=1.0">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&display=swap">
   <style>
-    ${BASE_CSS}
+    :root {
+      --ink: #0A0A0A; --paper: #F5F3EF; --paper2: #EDEBE6;
+      --line: #D8D4CC; --muted: #8A8479;
+      --green: #00E87A; --green-dim: #00B85F;
+      --red: #FF3B3B; --white: #FFFFFF; --radius: 2px;
+      --font-serif: 'Instrument Serif', Georgia, serif;
+      --font-mono: 'DM Mono', monospace;
+      --font-sans: 'Manrope', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
-      width: ${cfg.mmW}mm;
-      height: ${cfg.mmH}mm;
+      width: ${cfg.previewW}px;
+      height: ${cfg.previewH}px;
       overflow: hidden;
-      background: transparent;
       font-family: var(--font-sans);
       -webkit-font-smoothing: antialiased;
     }
-    .lk-scale-wrap {
+    /* zoom schaalt layout mee (anders dan transform:scale) */
+    .lk-wrap {
       width: ${cfg.previewW}px;
       height: ${cfg.previewH}px;
+      zoom: ${scale};
       transform-origin: top left;
-      transform: scale(${scale});
-      position: absolute;
-      top: 0;
-      left: 0;
     }
   </style>
 </head>
 <body>
-  <div class="lk-scale-wrap">
+  <div class="lk-wrap">
     ${content}
   </div>
 </body>
@@ -107,7 +131,7 @@ function wrapForPrint(rawHtml: string, formaat: string): string {
 
 // ─── Achterkant standaard (adresblok) ────────────────────────────────────────
 function defaultBack(sender: { name: string; address: string; postalCode: string; city: string }, formaat: string): string {
-  const cfg = PRINT_CONFIG[formaat] ?? PRINT_CONFIG.a5;
+  const cfg = PRINT_CONFIG[formaat] ?? PRINT_CONFIG.a6;
   const backContent = `
     <div style="width:${cfg.previewW}px;height:${cfg.previewH}px;background:#fff;font-family:sans-serif;padding:24px;color:#333;display:flex;flex-direction:column;justify-content:flex-end">
       <p style="font-size:11px;color:#999;margin:0 0 8px;font-family:monospace;text-transform:uppercase;letter-spacing:0.08em">Retouradres</p>

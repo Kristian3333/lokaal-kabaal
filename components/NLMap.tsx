@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 interface NLMapProps {
   center: { lat: number; lon: number } | null;
   straalKm: number;
+  centrumPc4?: string;
   onPc4sFound?: (pc4s: string[]) => void;
 }
 
@@ -33,6 +34,20 @@ function ringBboxCenter(ring: [number, number][]): [number, number] {
     if (lo > maxLon) maxLon = lo;
   }
   return [(minLat + maxLat) / 2, (minLon + maxLon) / 2];
+}
+
+// Ray-casting point-in-polygon — ring is [lat, lon][] (Leaflet formaat)
+function pointInRing(lat: number, lon: number, ring: [number, number][]): boolean {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [iLat, iLon] = ring[i];
+    const [jLat, jLon] = ring[j];
+    if (((iLon > lon) !== (jLon > lon)) &&
+        lat < (jLat - iLat) * (lon - iLon) / (jLon - iLon) + iLat) {
+      inside = !inside;
+    }
+  }
+  return inside;
 }
 
 // GeoJSON coordinates zijn [lon, lat]; Leaflet wil [lat, lon]
@@ -70,9 +85,12 @@ async function fetchPC4Grenzen(
   lon: number,
   radiusKm: number,
   signal: AbortSignal,
+  centrumPc4?: string,
 ): Promise<{ pc4: string; rings: [number, number][][] }[]> {
-  // Bbox 10% groter zodat grensgebieden meegenomen worden
-  const { minLon, minLat, maxLon, maxLat } = bboxFromCenter(lat, lon, radiusKm * 1.1);
+  // Gebruik minimaal 5 km bbox zodat het centrum-polygon altijd gevonden wordt,
+  // ook als de geocoder licht afwijkt (bijv. 7761 vs 7766 Schoonebeek).
+  const searchRadius = Math.max(radiusKm, 5);
+  const { minLon, minLat, maxLon, maxLat } = bboxFromCenter(lat, lon, searchRadius * 1.1);
   const bbox = `${minLon},${minLat},${maxLon},${maxLat}`;
 
   // Server-side proxy — geen CORS-problemen, cached door Next.js
@@ -99,18 +117,31 @@ async function fetchPC4Grenzen(
     if (!existing || jaarNieuw >= jaarOud) byPc4.set(pc4, f);
   }
 
+  console.log('[fetchPC4Grenzen] lat:', lat, 'lon:', lon, 'radius:', radiusKm, 'centrumPc4:', centrumPc4, 'features found:', byPc4.size, Array.from(byPc4.keys()));
+
   const results: { pc4: string; rings: [number, number][][] }[] = [];
   for (const [pc4, feature] of Array.from(byPc4)) {
-    if (!feature.geometry) continue;
+    if (!feature.geometry) { console.log('[fetchPC4Grenzen] skip', pc4, '- geen geometry'); continue; }
     const rings = ringsFromGeometry(feature.geometry);
-    if (!rings.length) continue;
+    if (!rings.length) { console.log('[fetchPC4Grenzen] skip', pc4, '- geen rings'); continue; }
 
-    // Gebruik bounding-box middelpunt voor betrouwbare afstandscheck
+    const containsCenter = rings.some(ring => pointInRing(lat, lon, ring));
     const [cLat, cLon] = ringBboxCenter(rings[0]);
-    if (haversineKm(lat, lon, cLat, cLon) > radiusKm * 1.1) continue;
+    const dist = haversineKm(lat, lon, cLat, cLon);
+    console.log(`[fetchPC4Grenzen] ${pc4}: containsCenter=${containsCenter}, bboxDist=${dist.toFixed(2)}km, threshold=${(radiusKm*1.1).toFixed(2)}km`);
+
+    if (!containsCenter && dist > radiusKm * 1.1) continue;
 
     results.push({ pc4, rings });
   }
+
+  // Centrum-PC4 altijd in resultaten — ook als polygon ontbreekt in dataset
+  if (centrumPc4 && !results.find(r => r.pc4 === centrumPc4)) {
+    console.log('[fetchPC4Grenzen] force-add centrumPc4:', centrumPc4);
+    results.push({ pc4: centrumPc4, rings: [] });
+  }
+  console.log('[fetchPC4Grenzen] final results:', results.map(r => r.pc4));
+
   return results;
 }
 
@@ -118,7 +149,7 @@ function isGrensgebied(lat: number, lon: number): boolean {
   return lon > 6.4 || lat < 51.5;
 }
 
-export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
+export default function NLMap({ center, straalKm, centrumPc4, onPc4sFound }: NLMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<unknown>(null);
   const baseLayersRef = useRef<unknown[]>([]);
@@ -126,6 +157,8 @@ export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
 
   const onPc4sFoundRef = useRef(onPc4sFound);
   useEffect(() => { onPc4sFoundRef.current = onPc4sFound; });
+  const centrumPc4Ref = useRef(centrumPc4);
+  useEffect(() => { centrumPc4Ref.current = centrumPc4; });
 
   // Kaart initialiseren (eenmalig)
   useEffect(() => {
@@ -185,7 +218,7 @@ export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
 
     const controller = new AbortController();
 
-    fetchPC4Grenzen(center.lat, center.lon, straalKm, controller.signal)
+    fetchPC4Grenzen(center.lat, center.lon, straalKm, controller.signal, centrumPc4)
       .then(gebieden => {
         if (!leafletMapRef.current || controller.signal.aborted) return;
 
@@ -193,7 +226,12 @@ export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
         pc4LayersRef.current.forEach(l => (l as import('leaflet').Layer).remove());
         pc4LayersRef.current = [];
 
-        if (onPc4sFoundRef.current) onPc4sFoundRef.current(gebieden.map(g => g.pc4).sort());
+        const foundPc4s = gebieden.map(g => g.pc4);
+        console.log('[NLMap] fetchPC4Grenzen result:', foundPc4s, '| centrumPc4:', centrumPc4, '| ref:', centrumPc4Ref.current);
+        // Centrum-PC4 altijd in de lijst — ook als grenzen-dataset hem niet bevat
+        const cp = centrumPc4Ref.current;
+        if (cp && !foundPc4s.includes(cp)) foundPc4s.push(cp);
+        if (onPc4sFoundRef.current) onPc4sFoundRef.current(foundPc4s.sort());
 
         for (const { pc4, rings } of gebieden) {
           for (const ring of rings) {
@@ -221,7 +259,7 @@ export default function NLMap({ center, straalKm, onPc4sFound }: NLMapProps) {
       });
 
     return () => { controller.abort(); };
-  }, [center, straalKm]);
+  }, [center, straalKm, centrumPc4]);
 
   const toonGrensWaarschuwing = center && isGrensgebied(center.lat, center.lon);
 

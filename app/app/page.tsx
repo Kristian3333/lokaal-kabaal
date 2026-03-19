@@ -1855,6 +1855,7 @@ export default function LokaalKabaal() {
   const adresTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [orderLoading, setOrderLoading] = useState(false);
   const [orderError, setOrderError] = useState('');
+  const [largeOrderSent, setLargeOrderSent] = useState(false);
   const wizardFlyerRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLInputElement>(null);
   const heroRef = useRef<HTMLInputElement>(null);
@@ -2316,12 +2317,12 @@ export default function LokaalKabaal() {
                     STRAAL: {straal} KM
                   </label>
                   <input
-                    type="range" min={1} max={50} step={1} value={straal}
+                    type="range" min={1} max={1000} step={5} value={straal}
                     onChange={e => updateWiz({ straal: Number(e.target.value) })}
                     style={{ width: '100%', accentColor: 'var(--green)', marginTop: '8px' }}
                   />
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                    <span>1 km</span><span>50 km</span>
+                    <span>1 km</span><span>250 km</span><span>500 km</span><span>1000 km</span>
                   </div>
                 </div>
               </div>
@@ -2705,6 +2706,22 @@ export default function LokaalKabaal() {
                         setOrderLoading(true);
                         setOrderError('');
                         try {
+                          // Bij >5000 flyers automatisch support notificeren voor maatwerktarief
+                          if (aantalFlyers > 5000) {
+                            fetch('/api/notify-large-order', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                aantalFlyers,
+                                spec,
+                                centrum,
+                                straal,
+                                email: wiz.email || '',
+                                bedrijfsnaam: flyer.bedrijfsnaam || '',
+                              }),
+                            }).then(() => setLargeOrderSent(true)).catch(() => {});
+                          }
+
                           const res = await fetch('/api/stripe/checkout', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -2744,6 +2761,17 @@ export default function LokaalKabaal() {
                     }}>Annuleren</button>
                   </div>
                   {orderError && <div style={{ marginTop: '12px', fontSize: '12px', color: '#c0392b', fontFamily: 'var(--font-mono)' }}>✗ {orderError}</div>}
+                  {largeOrderSent && (
+                    <div style={{ marginTop: '14px', display: 'flex', alignItems: 'flex-start', gap: '10px', background: 'rgba(0,232,122,0.07)', border: '1px solid rgba(0,232,122,0.25)', borderRadius: 'var(--radius)', padding: '12px 14px' }}>
+                      <span style={{ color: 'var(--green)', fontSize: '16px', flexShrink: 0 }}>✓</span>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--ink)', marginBottom: '2px' }}>Maatwerkaanvraag verstuurd</div>
+                        <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.5 }}>
+                          Uw aanvraag voor {aantalFlyers.toLocaleString('nl')} flyers is doorgestuurd naar support@lokaalkabaal.nl. We nemen binnen 24 uur contact op met een maatwerkaanbod.
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </div>
