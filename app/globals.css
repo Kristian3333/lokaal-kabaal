@@ -135,4 +135,90 @@ button { cursor: pointer; font-family: var(--font-sans); }
   /* Flyer editor */
   .flyer-editor { grid-template-columns: 1fr !important; }
   .flyer-preview-sticky { position: static !important; order: -1; }
+
+  /* Pricing section */
+  .pricing-grid { grid-template-columns: 1fr !important; }
+  .pricing-section { padding: 60px 20px !important; }
+  .format-grid { grid-template-columns: 1fr 1fr !important; }
+
+  /* CTA knoppen minimaal 48px hoogte op mobile */
+  a[href="/login"], button[type="submit"] {
+    min-height: 48px !important;
+  }
+
+  /* Landing page sections: smaller horizontal padding */
+  section {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  /* Dashboard stats: 2 kolommen op mobile */
+  .stats-grid { grid-template-columns: 1fr 1fr !important; }
+
+  /* Dashboard rapporten: volledige breedte, geen overflow */
+  .report-table { width: 100%; overflow-x: auto; display: block; }
+
+  /* Hero typography verkleinen */
+  h1 { font-size: 38px !important; }
+  h2 { font-size: 28px !important; }
+
+  /* Stats strip: stacked */
+  .stats-strip { grid-template-columns: 1fr !important; }
+
+  /* Product card footer links: stacked */
+  footer { flex-direction: column !important; gap: 12px !important; }
+  footer > div { flex-wrap: wrap !important; gap: 12px !important; }
+
+  /* Dashboard wizard: full height flow op mobile */
+  .wizard-container { height: auto !important; overflow: visible !important; }
+  .wizard-scroll    { overflow: visible !important; height: auto !important; }
+
+  /* Dashboard campagnekaarten: no horizontal scroll */
+  .campaign-card { width: 100% !important; overflow: hidden !important; }
+  .campaign-card-grid { grid-template-columns: 1fr !important; }
+
+  /* Dashboard samenvatting grid: 1 kolom op mobile */
+  .summary-grid { grid-template-columns: 1fr 1fr !important; }
+
+  /* Wizard stap 5: formaat-grid op mobile */
+  .formaat-grid { grid-template-columns: 1fr !important; }
+
+  /* Wizard datum-picker: 2 kolommen op mobile */
+  .datum-grid { grid-template-columns: 1fr 1fr !important; }
+
+  /* Min touch target voor alle dashboard knoppen */
+  .app-main button, .app-main a {
+    min-height: 44px;
+  }
+
+  /* Abonnementen op mobile: pricing cards niet naast elkaar */
+  .pricing-grid { grid-template-columns: 1fr !important; }
+
+  /* Wizard postcode chips: touch-friendly */
+  .pc4-chip { padding: 6px 12px !important; font-size: 13px !important; }
+}
+
+/* ── HeroMapAnim ──────────────────────────────────────────────────────────── */
+@keyframes mapPulse {
+  0%   { transform: translate(-50%, -50%) scale(0.5); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(3);   opacity: 0; }
+}
+@keyframes notifSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes dotAppear {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+/* ── Gradient border for premium cards ───────────────────────────────────── */
+.gradient-border {
+  background: linear-gradient(var(--paper), var(--paper)) padding-box,
+    linear-gradient(135deg, var(--green) 0%, rgba(0,232,122,0.1) 50%, transparent 100%) border-box;
+  border: 1px solid transparent;
+}
+/* ── Step connector line ──────────────────────────────────────────────────── */
+@keyframes lineGrow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
 }

@@ -1,18 +1,109 @@
 'use client';
+
 import Link from 'next/link';
 import Nav from '@/components/Nav';
 import PricingSection from '@/components/PricingSection';
+import HeroMapAnim from '@/components/HeroMapAnim';
+import { motion, useInView } from 'motion/react';
+import { useRef, useEffect, useState } from 'react';
+
+// ─── Ticker items ─────────────────────────────────────────────────────────────
 
 const TICKERS = [
-  "🟢 Kapper Bloemendaal — 340 flyers verstuurd",
-  "🟢 Pizzeria Oost — campagne gestart",
-  "🟢 Yoga Utrecht — 12 nieuwe klanten",
-  "🟢 Bakkerij Den Haag — 3e maand actief",
-  "🟢 Restaurant Noord — regio exclusief geboekt",
-  "🟢 Nagelstudio Haarlem — 890 bezorgd",
-  "🟢 Slagerij Leiden — 5e maand actief",
-  "🟢 Rijschool Eindhoven — 44 nieuwe leerlingen",
+  "Kapper Bloemendaal — 340 flyers verstuurd",
+  "Pizzeria Rotterdam Oost — campagne gestart",
+  "Yoga Utrecht — 12 nieuwe klanten",
+  "Bakkerij Den Haag — 3e maand actief",
+  "Restaurant Amsterdam Noord — eerste batch",
+  "Nagelstudio Haarlem — 890 bezorgd",
+  "Slagerij Leiden — 5e maand actief",
+  "Rijschool Eindhoven — 44 nieuwe leerlingen",
+  "Fysiotherapeut Breda — 67 flyers bezorgd",
+  "Installateur Arnhem — €12.400 omzet eerste jaar",
 ];
+
+// ─── Scroll-reveal wrapper ────────────────────────────────────────────────────
+
+function FadeUp({
+  children, delay = 0, className, style,
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const ref  = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: '-60px' });
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 28 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.55, delay, ease: [0.21, 0.47, 0.32, 0.98] }}
+      className={className}
+      style={style}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// ─── Animated counter ────────────────────────────────────────────────────────
+
+function CountUp({ target, suffix = '', duration = 1400 }: { target: number; suffix?: string; duration?: number }) {
+  const ref    = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true });
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    let start = 0;
+    const step = target / (duration / 16);
+    const timer = setInterval(() => {
+      start = Math.min(start + step, target);
+      setCount(Math.round(start));
+      if (start >= target) clearInterval(timer);
+    }, 16);
+    return () => clearInterval(timer);
+  }, [inView, target, duration]);
+
+  return (
+    <span ref={ref}>
+      {count.toLocaleString('nl')}{suffix}
+    </span>
+  );
+}
+
+// ─── CLV data ────────────────────────────────────────────────────────────────
+
+const CLV = [
+  { branche: 'Kapsalon', waarde: '€360', sub: 'per vaste klant/jaar · 6–8 knipcycli × €50' },
+  { branche: 'Installatiebedrijf', waarde: '€8.000', sub: 'eerste jaar · gem. verbouwbudget nieuwe eigenaar' },
+  { branche: 'Restaurant', waarde: '€840', sub: 'per vaste gast/jaar · 2× p/mnd × €35' },
+  { branche: 'Bakkerij', waarde: '€520', sub: 'per vaste klant/jaar · dagelijkse terugkeer' },
+];
+
+// ─── Stap data ───────────────────────────────────────────────────────────────
+
+const STAPPEN = [
+  {
+    n: '01',
+    titel: 'Kies jouw postcodes',
+    tekst: 'Geef aan welke postcodegebieden je wil bereiken. Wij koppelen automatisch alle nieuwe eigendomsoverdrachten in die gebieden aan jouw campagne.',
+  },
+  {
+    n: '02',
+    titel: 'Upload je flyerontwerp',
+    tekst: 'Upload je eigen ontwerp of laat ons helpen. Elke flyer krijgt automatisch het juiste adres — gepersonaliseerd voor elke nieuwe bewoner.',
+  },
+  {
+    n: '03',
+    titel: 'Elke 25e automatisch verstuurd',
+    tekst: 'Wij verwerken maandelijks alle overdrachten en sturen op de 25e een bulkorder. Jouw flyer ligt bij elke nieuwe bewoner in hun eerste maand.',
+  },
+];
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Landing() {
   return (
@@ -20,160 +111,555 @@ export default function Landing() {
 
       <Nav />
 
-      {/* HERO */}
-      <section style={{ maxWidth: '860px', margin: '0 auto', padding: '100px 40px 100px' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '4px 12px', background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.2)', borderRadius: '20px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)', marginBottom: '28px' }}>
-          <span style={{ width: '6px', height: '6px', background: 'var(--green)', borderRadius: '50%', display: 'inline-block' }} />
-          Actief in heel Nederland · elke 25e automatisch verstuurd
-        </div>
-        <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '58px', lineHeight: 1.05, fontWeight: 400, marginBottom: '24px', color: 'var(--ink)', letterSpacing: '-0.02em', maxWidth: '720px' }}>
-          Bereik nieuwe bewoners<br />
-          <em style={{ color: 'var(--muted)', fontStyle: 'italic' }}>vóór je concurrent</em>
-        </h1>
-        <p style={{ fontSize: '17px', color: 'var(--muted)', lineHeight: 1.7, maxWidth: '540px', marginBottom: '40px' }}>
-          Elke maand verhuizen <strong style={{ color: 'var(--ink)' }}>tienduizenden huishoudens</strong> in Nederland. De eerste 30 dagen kiezen ze hun vaste kapper, bakker en installateur. LokaalKabaal verstuurt automatisch jouw flyer — elke 25e, naar elk nieuw adres in jouw postcodes.
-        </p>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <Link href="/flyers-versturen-nieuwe-bewoners#prijzen" style={{ padding: '14px 28px', background: 'var(--ink)', color: '#fff', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px', textDecoration: 'none' }}>
-            Bekijk abonnementen →
-          </Link>
-          <Link href="/flyers-versturen-nieuwe-bewoners" style={{ padding: '14px 20px', color: 'var(--muted)', fontSize: '13px', textDecoration: 'none' }}>
-            Hoe het werkt
-          </Link>
-        </div>
-        <div style={{ display: 'flex', gap: '40px', marginTop: '52px', paddingTop: '40px', borderTop: '1px solid var(--line)' }}>
-          {[
-            ['900.000+', 'eigendomsoverdrachten per jaar in NL'],
-            ['30 dagen', 'beslissingsvenster nieuwe bewoners'],
-            ['4–8%', 'conversieratio welkomstflyer'],
-          ].map(([n, l]) => (
-            <div key={l}>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '30px', color: 'var(--ink)', marginBottom: '4px' }}>{n}</div>
-              <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', lineHeight: 1.4 }}>{l}</div>
-            </div>
-          ))}
+      {/* ── HERO ────────────────────────────────────────────────────────────── */}
+      <section style={{
+        background: 'var(--ink)',
+        padding: '80px 40px 100px',
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          maxWidth: '1100px', margin: '0 auto',
+          display: 'grid', gridTemplateColumns: '1fr auto',
+          gap: '60px', alignItems: 'center',
+        }} className="hero-grid">
+
+          {/* Left column */}
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '7px',
+                padding: '4px 12px',
+                background: 'rgba(0,232,122,0.08)',
+                border: '1px solid rgba(0,232,122,0.2)',
+                borderRadius: '20px',
+                fontSize: '11px', fontFamily: 'var(--font-mono)',
+                color: 'var(--green-dim)', marginBottom: '28px',
+              }}
+            >
+              <span style={{ width: '6px', height: '6px', background: 'var(--green)', borderRadius: '50%', display: 'inline-block' }} />
+              Hyperlocal direct mail · elke 25e automatisch verstuurd
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: [0.21, 0.47, 0.32, 0.98] }}
+              style={{
+                fontFamily: 'var(--font-serif)',
+                fontSize: 'clamp(42px, 6vw, 68px)',
+                lineHeight: 1.02,
+                fontWeight: 400,
+                color: '#fff',
+                letterSpacing: '-0.02em',
+                marginBottom: '24px',
+                maxWidth: '640px',
+              }}
+            >
+              Van nieuwe bewoner<br />
+              naar <em style={{ color: 'var(--green)' }}>vaste klant.</em>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              style={{
+                fontSize: '17px', color: 'rgba(255,255,255,0.55)',
+                lineHeight: 1.7, maxWidth: '500px', marginBottom: '40px',
+              }}
+            >
+              Elke maand verhuizen <strong style={{ color: '#fff' }}>tienduizenden huishoudens</strong> in Nederland. De eerste 30 dagen kiezen ze hun vaste kapper, bakker en installateur. LokaalKabaal zorgt dat jouw flyer als eerste op de mat ligt.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}
+            >
+              <Link href="/login" style={{
+                padding: '14px 28px',
+                background: 'var(--green)', color: 'var(--ink)',
+                borderRadius: 'var(--radius)', fontWeight: 800,
+                fontSize: '14px', textDecoration: 'none',
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+              }}>
+                Claim jouw postcodes →
+              </Link>
+              <Link href="/flyers-versturen-nieuwe-bewoners" style={{
+                padding: '14px 20px', color: 'rgba(255,255,255,0.5)',
+                fontSize: '13px', textDecoration: 'none',
+              }}>
+                Hoe het werkt
+              </Link>
+            </motion.div>
+
+            {/* Mini stats */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.45 }}
+              style={{
+                display: 'flex', gap: '36px', marginTop: '52px',
+                paddingTop: '40px', borderTop: '1px solid rgba(255,255,255,0.08)',
+                flexWrap: 'wrap',
+              }}
+            >
+              {([
+                ['900.000+', 'eigendomsoverdrachten/jaar in NL'],
+                ['30 dagen',  'beslissingsvenster nieuwe bewoners'],
+                ['4–8%',      'conversieratio welkomstflyer'],
+              ] as [string, string][]).map(([n, l]) => (
+                <div key={l}>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', color: '#fff', marginBottom: '4px', lineHeight: 1 }}>{n}</div>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', lineHeight: 1.4, maxWidth: '140px' }}>{l}</div>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* Right column — animated map */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, delay: 0.25, ease: [0.21, 0.47, 0.32, 0.98] }}
+            className="hero-map-col"
+          >
+            <HeroMapAnim />
+          </motion.div>
         </div>
       </section>
 
-      {/* TICKER */}
-      <div style={{ overflow: 'hidden', background: 'var(--ink)', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '10px 0' }}>
-        <div className="ticker-inner" style={{ whiteSpace: 'nowrap' }}>
-          {[...TICKERS, ...TICKERS].map((item, i) => (
-            <span key={i} style={{ display: 'inline-block', padding: '0 40px', fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,0.4)' }}>{item}</span>
-          ))}
+      {/* ── TICKER ──────────────────────────────────────────────────────────── */}
+      <div style={{
+        overflow: 'hidden',
+        background: '#111',
+        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        padding: '11px 0',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
+          <div style={{
+            flexShrink: 0, padding: '0 20px',
+            fontSize: '9px', fontFamily: 'var(--font-mono)',
+            color: 'rgba(255,255,255,0.2)', letterSpacing: '0.1em',
+            textTransform: 'uppercase', borderRight: '1px solid rgba(255,255,255,0.07)',
+            marginRight: '20px',
+          }}>
+            Actieve campagnes
+          </div>
+          <div className="ticker-inner">
+            {[...TICKERS, ...TICKERS].map((item, i) => (
+              <span key={i} style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                padding: '0 36px',
+                fontSize: '11px', fontFamily: 'var(--font-mono)',
+                color: 'rgba(255,255,255,0.35)',
+              }}>
+                <span style={{ width: '5px', height: '5px', background: 'var(--green)', borderRadius: '50%', flexShrink: 0 }} />
+                {item}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* HOE HET WERKT */}
+      {/* ── HET MOMENT ──────────────────────────────────────────────────────── */}
       <section style={{ padding: '100px 40px', maxWidth: '1080px', margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-          <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Hoe het werkt</div>
-          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '38px', fontWeight: 400, marginBottom: '12px' }}>Drie stappen. <em style={{ color: 'var(--muted)' }}>Dan loopt het vanzelf.</em></h2>
-          <p style={{ color: 'var(--muted)', fontSize: '14px', maxWidth: '440px', margin: '0 auto' }}>Stel eenmalig in welke postcodes je wil bereiken. De rest doen wij elke maand automatisch.</p>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '2px', background: 'var(--line)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
-          {[
-            { n: '01', titel: 'Kies postcodes & branche', tekst: 'Geef aan welke postcodes je wil targeten en wat voor bedrijf je hebt. Wij controleren of de exclusiviteit in jouw postcodes nog beschikbaar is.' },
-            { n: '02', titel: 'Upload je flyerontwerp', tekst: 'Upload je eigen ontwerp of laat ons helpen. Het systeem koppelt automatisch het juiste adres aan elke individuele flyer.' },
-            { n: '03', titel: 'Elke 25e automatisch verstuurd', tekst: 'Wij verwerken maandelijks alle nieuwe eigendomsoverdrachten en sturen op de 25e een bulkorder — jouw flyer ligt bij elke nieuwe bewoner binnen hun eerste maand.' },
-          ].map(s => (
-            <div key={s.n} style={{ background: '#fff', padding: '36px 32px' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--green)', marginBottom: '20px' }}>{s.n}</div>
-              <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', fontWeight: 400, marginBottom: '12px', lineHeight: 1.25 }}>{s.titel}</h3>
-              <p style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.7 }}>{s.tekst}</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }} className="grid-2">
+          <FadeUp>
+            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '16px' }}>
+              Het moment
             </div>
+            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(30px, 4vw, 44px)', fontWeight: 400, lineHeight: 1.1, marginBottom: '20px' }}>
+              80% kiest binnen<br />
+              <em style={{ color: 'var(--muted)' }}>30 dagen.</em>
+            </h2>
+            <p style={{ fontSize: '15px', color: 'var(--muted)', lineHeight: 1.8, marginBottom: '16px' }}>
+              Wanneer iemand verhuist, zijn alle gewoontes doorbroken. Er is geen vaste kapper, geen stamrestaurant, geen vertrouwde installateur. Alles staat open — en de keuzes worden razendsnel gemaakt.
+            </p>
+            <p style={{ fontSize: '15px', color: 'var(--muted)', lineHeight: 1.8 }}>
+              Dit is het enige venster. LokaalKabaal zorgt dat jouw flyer in dat venster arriveert — vóór je concurrent.
+            </p>
+          </FadeUp>
+
+          {/* Timeline visual */}
+          <FadeUp delay={0.1}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              {[
+                { dag: 'Dag 1',   label: 'Eigendomsoverdracht',    active: false, sub: 'Nieuwe eigenaar betreedt de woning' },
+                { dag: 'Dag 3',   label: 'Jouw flyer arriveert',   active: true,  sub: 'LokaalKabaal bezorgt via PostNL' },
+                { dag: 'Dag 7',   label: 'Eerste aankoop',         active: false, sub: 'Nieuwe bewoner kiest eerste leverancier' },
+                { dag: 'Dag 30',  label: 'Vaste klant gevormd',    active: false, sub: '80% heeft alle leveranciers gekozen' },
+              ].map((item, i) => (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'flex-start', gap: '16px',
+                  padding: '16px 20px',
+                  background: item.active ? 'var(--green-bg)' : '#fff',
+                  border: `1px solid ${item.active ? 'rgba(0,232,122,0.25)' : 'var(--line)'}`,
+                  borderRadius: i === 0 ? 'var(--radius) var(--radius) 0 0' : i === 3 ? '0 0 var(--radius) var(--radius)' : '0',
+                }}>
+                  <div style={{
+                    fontFamily: 'var(--font-mono)', fontSize: '10px',
+                    color: item.active ? 'var(--green)' : 'var(--muted)',
+                    paddingTop: '2px', flexShrink: 0, width: '38px',
+                  }}>
+                    {item.dag}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: item.active ? 700 : 500, color: item.active ? 'var(--green-dim)' : 'var(--ink)', marginBottom: '2px' }}>
+                      {item.label}
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                      {item.sub}
+                    </div>
+                  </div>
+                  {item.active && (
+                    <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
+                      <span style={{ width: '7px', height: '7px', background: 'var(--green)', borderRadius: '50%', display: 'inline-block' }} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </FadeUp>
+        </div>
+      </section>
+
+      {/* ── HOE HET WERKT ───────────────────────────────────────────────────── */}
+      <section style={{ padding: '80px 40px 100px', background: 'var(--paper2)' }}>
+        <div style={{ maxWidth: '1080px', margin: '0 auto' }}>
+          <FadeUp style={{ textAlign: 'center', marginBottom: '56px' }}>
+            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '12px' }}>
+              Hoe het werkt
+            </div>
+            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 400, marginBottom: '12px' }}>
+              Drie stappen. <em style={{ color: 'var(--muted)' }}>Dan loopt het vanzelf.</em>
+            </h2>
+            <p style={{ color: 'var(--muted)', fontSize: '14px', maxWidth: '440px', margin: '0 auto', lineHeight: 1.7 }}>
+              Stel eenmalig in welke postcodes je wil bereiken. De rest doen wij elke maand automatisch.
+            </p>
+          </FadeUp>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '2px', borderRadius: 'var(--radius)', overflow: 'hidden', border: '1px solid var(--line)' }} className="grid-3">
+            {STAPPEN.map((s, i) => (
+              <FadeUp key={s.n} delay={i * 0.1}>
+                <div style={{ background: '#fff', padding: '36px 32px', height: '100%' }}>
+                  <div style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    width: '32px', height: '32px',
+                    background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.2)',
+                    borderRadius: '6px', marginBottom: '20px',
+                    fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--green-dim)',
+                  }}>
+                    {s.n}
+                  </div>
+                  <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', fontWeight: 400, marginBottom: '12px', lineHeight: 1.25 }}>
+                    {s.titel}
+                  </h3>
+                  <p style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.75 }}>
+                    {s.tekst}
+                  </p>
+                </div>
+              </FadeUp>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── SAMEN GROEIEN ───────────────────────────────────────────────────── */}
+      <section style={{ background: 'var(--ink)', padding: '100px 40px' }}>
+        <div style={{ maxWidth: '1080px', margin: '0 auto' }}>
+
+          <FadeUp style={{ textAlign: 'center', marginBottom: '64px' }}>
+            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '14px' }}>
+              Samen groeien
+            </div>
+            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 400, color: '#fff', marginBottom: '16px', lineHeight: 1.08 }}>
+              Jij levert de kwaliteit.<br />
+              <em style={{ color: 'rgba(255,255,255,0.3)' }}>Wij zorgen voor de connectie.</em>
+            </h2>
+            <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.45)', maxWidth: '500px', margin: '0 auto', lineHeight: 1.7 }}>
+              LokaalKabaal is geen advertentieplatform. We zijn jouw stille partner die elke maand voor nieuwe klanten zorgt — terwijl jij gewoon je vak uitoefent.
+            </p>
+          </FadeUp>
+
+          {/* Three-column partnership visual */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr auto 1fr', gap: '0', alignItems: 'center' }} className="samen-grid">
+
+            {/* Ondernemer */}
+            <FadeUp delay={0}>
+              <div style={{
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '12px', padding: '32px 28px',
+                background: 'rgba(255,255,255,0.03)',
+                textAlign: 'center',
+              }}>
+                <div style={{
+                  width: '48px', height: '48px', borderRadius: '12px',
+                  background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  margin: '0 auto 18px', fontSize: '22px',
+                }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                  </svg>
+                </div>
+                <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', color: '#fff', marginBottom: '8px' }}>Jij</div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, fontFamily: 'var(--font-mono)' }}>
+                  Levert kwaliteit.<br />Kent jouw vak.
+                </div>
+              </div>
+            </FadeUp>
+
+            {/* Arrow */}
+            <FadeUp delay={0.1}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                  <svg width="32" height="16" viewBox="0 0 32 16" fill="none">
+                    <path d="M0 8H28M28 8L22 2M28 8L22 14" stroke="rgba(0,232,122,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,0.2)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>vertrouwen</span>
+                </div>
+              </div>
+            </FadeUp>
+
+            {/* LokaalKabaal */}
+            <FadeUp delay={0.2}>
+              <div style={{
+                border: '2px solid rgba(0,232,122,0.35)',
+                borderRadius: '12px', padding: '32px 28px',
+                background: 'rgba(0,232,122,0.04)',
+                textAlign: 'center',
+                position: 'relative',
+              }}>
+                <div style={{
+                  position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)',
+                  background: 'var(--green)', color: 'var(--ink)',
+                  fontSize: '10px', fontWeight: 800, fontFamily: 'var(--font-mono)',
+                  padding: '3px 12px', borderRadius: '20px', letterSpacing: '0.06em',
+                  textTransform: 'uppercase', whiteSpace: 'nowrap',
+                }}>
+                  Wij
+                </div>
+                <div style={{
+                  width: '48px', height: '48px', borderRadius: '12px',
+                  background: 'rgba(0,232,122,0.1)', border: '1px solid rgba(0,232,122,0.25)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  margin: '0 auto 18px',
+                }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                </div>
+                <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', color: '#fff', marginBottom: '8px' }}>LokaalKabaal</div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, fontFamily: 'var(--font-mono)' }}>
+                  Detecteert nieuwe bewoners.<br />Verstuurt jouw flyer.
+                </div>
+              </div>
+            </FadeUp>
+
+            {/* Arrow */}
+            <FadeUp delay={0.3}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                  <svg width="32" height="16" viewBox="0 0 32 16" fill="none">
+                    <path d="M0 8H28M28 8L22 2M28 8L22 14" stroke="rgba(0,232,122,0.4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span style={{ fontSize: '9px', fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,0.2)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>connectie</span>
+                </div>
+              </div>
+            </FadeUp>
+
+            {/* Nieuwe bewoner */}
+            <FadeUp delay={0.4}>
+              <div style={{
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '12px', padding: '32px 28px',
+                background: 'rgba(255,255,255,0.03)',
+                textAlign: 'center',
+              }}>
+                <div style={{
+                  width: '48px', height: '48px', borderRadius: '12px',
+                  background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  margin: '0 auto 18px',
+                }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                </div>
+                <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', color: '#fff', marginBottom: '8px' }}>Nieuwe bewoner</div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, fontFamily: 'var(--font-mono)' }}>
+                  Zoekt een vertrouwde<br />lokale ondernemer.
+                </div>
+              </div>
+            </FadeUp>
+          </div>
+
+          {/* Result row */}
+          <FadeUp delay={0.3} style={{ marginTop: '32px' }}>
+            <div style={{
+              textAlign: 'center', padding: '24px',
+              background: 'rgba(0,232,122,0.05)',
+              border: '1px solid rgba(0,232,122,0.15)',
+              borderRadius: '12px',
+            }}>
+              <span style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: '#fff' }}>
+                Resultaat: <em style={{ color: 'var(--green)' }}>jij wordt hun vaste ondernemer.</em>
+              </span>
+              <span style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', marginTop: '6px' }}>
+                Elke maand automatisch · zonder extra werk
+              </span>
+            </div>
+          </FadeUp>
+        </div>
+      </section>
+
+      {/* ── BRANCH CLV ──────────────────────────────────────────────────────── */}
+      <section style={{ padding: '100px 40px', maxWidth: '1080px', margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'start' }} className="grid-2">
+
+          <FadeUp>
+            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '16px' }}>
+              Waarom het werkt
+            </div>
+            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(28px, 3.5vw, 40px)', fontWeight: 400, marginBottom: '20px', lineHeight: 1.15 }}>
+              Nieuwe bewoners zijn de meest <em style={{ color: 'var(--muted)' }}>waardevolle doelgroep die bestaat.</em>
+            </h2>
+            <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.8, marginBottom: '24px' }}>
+              Eén nieuwe vaste klant levert gemiddeld honderden euro's per jaar op — vaak meer dan het volledige maandbedrag van je abonnement. De ROI is uitzonderlijk, omdat je in het juiste moment aanwezig bent.
+            </p>
+            <div style={{
+              padding: '16px 20px',
+              background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.2)',
+              borderRadius: 'var(--radius)',
+            }}>
+              <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)', marginBottom: '4px' }}>
+                Break-even Wijk-abonnement
+              </div>
+              <div style={{ fontSize: '14px', color: 'var(--ink)', fontWeight: 600 }}>
+                1 nieuwe vaste klant per 2 maanden
+              </div>
+            </div>
+          </FadeUp>
+
+          <FadeUp delay={0.1}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              {CLV.map((b, i) => (
+                <div key={i} style={{
+                  background: i % 2 === 0 ? '#fff' : 'var(--paper)',
+                  border: '1px solid var(--line)',
+                  borderRadius: i === 0 ? 'var(--radius) var(--radius) 0 0' : i === CLV.length - 1 ? '0 0 var(--radius) var(--radius)' : '0',
+                  padding: '18px 22px',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '3px' }}>{b.branche}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{b.sub}</div>
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', color: 'var(--green-dim)', flexShrink: 0, marginLeft: '20px' }}>
+                    {b.waarde}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </FadeUp>
+        </div>
+      </section>
+
+      {/* ── STATS STRIP ─────────────────────────────────────────────────────── */}
+      <section style={{ background: 'var(--paper2)', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)', padding: '60px 40px' }}>
+        <div style={{ maxWidth: '1080px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '40px', textAlign: 'center' }} className="grid-3">
+          {([
+            { value: 900000, suffix: '+', label: 'eigendomsoverdrachten per jaar in Nederland' },
+            { value: 30,     suffix: ' dagen', label: 'beslissingsvenster nieuwe bewoners' },
+            { value: 8,      suffix: '%', label: 'gemiddelde conversieratio welkomstflyer' },
+          ]).map((s, i) => (
+            <FadeUp key={i} delay={i * 0.1}>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(36px, 5vw, 56px)', color: 'var(--ink)', lineHeight: 1, marginBottom: '10px' }}>
+                <CountUp target={s.value} suffix={s.suffix} />
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', lineHeight: 1.5, maxWidth: '160px', margin: '0 auto' }}>
+                {s.label}
+              </div>
+            </FadeUp>
           ))}
         </div>
       </section>
 
-      {/* PRODUCTEN */}
-      <section style={{ padding: '0 40px 100px', maxWidth: '1080px', margin: '0 auto' }}>
-        <div>
-          <Link href="/flyers-versturen-nieuwe-bewoners" style={{ textDecoration: 'none', color: 'inherit', display: 'block', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '32px', background: '#fff', transition: 'border-color 0.15s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--ink)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'var(--line)'; }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--green-dim)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '14px' }}>Abonnement · Nieuwe bewoners</div>
-            <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '26px', fontWeight: 400, marginBottom: '12px', lineHeight: 1.2 }}>Automatisch flyers naar elke nieuwe huiseigenaar in jouw postcodes</h3>
-            <p style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.7, marginBottom: '20px' }}>
-              LokaalKabaal verstuurt elke 25e automatisch jouw flyer naar alle nieuwe eigenaren in jouw postcodes. Eén abonnement, exclusief per branche per postcode, geen handmatig werk.
-            </p>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '24px' }}>
-              {['€249 – €999/maand', 'Exclusief per branche/postcode', 'Elke 25e automatisch'].map(tag => (
-                <span key={tag} style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--ink)', background: 'var(--paper)', border: '1px solid var(--line)', padding: '3px 8px', borderRadius: '3px' }}>{tag}</span>
-              ))}
-            </div>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--ink)' }}>Bekijk abonnementen en tarieven →</span>
-          </Link>
-
-        </div>
-      </section>
-
+      {/* ── PRICING ─────────────────────────────────────────────────────────── */}
       <PricingSection />
 
-      {/* WAAROM LOKAALKABAAL */}
-      <section style={{ padding: '100px 40px', maxWidth: '1080px', margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'start' }}>
-          <div>
-            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '16px' }}>Waarom het werkt</div>
-            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '34px', fontWeight: 400, marginBottom: '20px', lineHeight: 1.15 }}>
-              Nieuwe bewoners zijn de meest<br /><em style={{ color: 'var(--muted)' }}>waardevolle doelgroep</em> die bestaat
-            </h2>
-            <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.8, marginBottom: '16px' }}>
-              Wanneer iemand verhuist, zijn alle gewoontes doorbroken. Er is geen vaste kapper, geen stamrestaurant, geen vertrouwde installateur. Alles staat open — en de keuzes worden razendsnel gemaakt.
-            </p>
-            <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.8 }}>
-              80% van de nieuwe bewoners heeft binnen 30 dagen hun vaste lokale leveranciers gekozen. Dit is het enige venster. LokaalKabaal zorgt dat uw flyer in dat venster arriveert.
-            </p>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            {[
-              { branche: 'Kapsalon', waarde: '€360/jaar', sub: 'per vaste klant · 6–8 knipcycli × €50' },
-              { branche: 'Installatiebedrijf', waarde: '€8.000/jaar', sub: 'eerste jaar · gem. verbouwbudget nieuwe eigenaar' },
-              { branche: 'Restaurant', waarde: '€840/jaar', sub: 'per vaste gast · 2× p/mnd × €35' },
-              { branche: 'Bakkerij', waarde: '€520/jaar', sub: 'per vaste klant · dagelijkse terugkeer' },
-            ].map((b, i) => (
-              <div key={i} style={{ background: i % 2 === 0 ? '#fff' : 'var(--paper)', border: '1px solid var(--line)', borderRadius: i === 0 ? 'var(--radius) var(--radius) 0 0' : i === 3 ? '0 0 var(--radius) var(--radius)' : '0', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '2px' }}>{b.branche}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{b.sub}</div>
-                </div>
-                <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', color: 'var(--green-dim)', flexShrink: 0 }}>{b.waarde}</div>
-              </div>
-            ))}
-            <div style={{ marginTop: '12px', fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-              Break-even Wijk-abonnement: 1 nieuwe vaste klant per 2 maanden.
+      {/* ── FINAL CTA ───────────────────────────────────────────────────────── */}
+      <section style={{ padding: '100px 40px', textAlign: 'center', maxWidth: '640px', margin: '0 auto' }}>
+        <FadeUp>
+          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(32px, 5vw, 50px)', fontWeight: 400, marginBottom: '16px', lineHeight: 1.08 }}>
+            Elke maand nieuwe klanten.<br />
+            <em style={{ color: 'var(--muted)' }}>Zonder extra werk.</em>
+          </h2>
+          <p style={{ color: 'var(--muted)', fontSize: '15px', marginBottom: '36px', lineHeight: 1.65 }}>
+            Stel eenmalig in. Elke 25e verstuurt LokaalKabaal automatisch jouw flyer naar alle nieuwe bewoners in jouw postcodes.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
+            <Link href="/login" style={{
+              padding: '16px 40px',
+              background: 'var(--ink)', color: '#fff',
+              borderRadius: 'var(--radius)', fontWeight: 800,
+              fontSize: '15px', textDecoration: 'none',
+              display: 'inline-block',
+            }}>
+              Eerste batch voor €49 →
+            </Link>
+            <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+              Eenmalig instappen · of direct abonnement · vanaf €199/mnd
             </div>
           </div>
-        </div>
+        </FadeUp>
       </section>
 
-      {/* CTA */}
-      <section style={{ padding: '80px 40px', textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
-        <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '38px', fontWeight: 400, marginBottom: '16px', lineHeight: 1.1 }}>
-          Elke maand nieuwe klanten.<br /><em style={{ color: 'var(--muted)' }}>Zonder extra werk.</em>
-        </h2>
-        <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '32px', lineHeight: 1.65 }}>
-          Stel eenmalig in. Elke 25e verstuurt LokaalKabaal automatisch jouw flyer naar alle nieuwe bewoners in jouw postcodes.
-        </p>
-        <Link href="/flyers-versturen-nieuwe-bewoners#prijzen" style={{ padding: '15px 36px', background: 'var(--ink)', color: '#fff', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px', textDecoration: 'none', display: 'inline-block' }}>
-          Bekijk abonnementen →
-        </Link>
-        <div style={{ marginTop: '16px', fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-          Geen contract · Per maand opzegbaar · Vanaf €249/mnd
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer style={{ borderTop: '1px solid var(--line)', padding: '24px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+      {/* ── FOOTER ──────────────────────────────────────────────────────────── */}
+      <footer style={{
+        borderTop: '1px solid var(--line)', padding: '28px 40px',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)',
+      }}>
         <span>© 2026 LokaalKabaal B.V.</span>
-        <div style={{ display: 'flex', gap: '20px' }}>
-          <Link href="/flyers-versturen-nieuwe-bewoners" style={{ color: 'var(--muted)', textDecoration: 'none' }}>Nieuwe bewoners</Link>
-          <Link href="/blog" style={{ color: 'var(--muted)', textDecoration: 'none' }}>Blog</Link>
-          <Link href="/privacy" style={{ color: 'var(--muted)', textDecoration: 'none' }}>Privacy</Link>
-          <Link href="/voorwaarden" style={{ color: 'var(--muted)', textDecoration: 'none' }}>Voorwaarden</Link>
-          <Link href="/contact" style={{ color: 'var(--muted)', textDecoration: 'none' }}>Contact</Link>
+        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+          {[
+            ['/flyers-versturen-nieuwe-bewoners', 'Nieuwe bewoners'],
+            ['/blog', 'Blog'],
+            ['/over-ons', 'Over ons'],
+            ['/privacy', 'Privacy'],
+            ['/voorwaarden', 'Voorwaarden'],
+            ['/contact', 'Contact'],
+          ].map(([href, label]) => (
+            <Link key={href} href={href} style={{ color: 'var(--muted)', textDecoration: 'none' }}>{label}</Link>
+          ))}
         </div>
       </footer>
+
+      {/* ── Responsive styles ───────────────────────────────────────────────── */}
+      <style>{`
+        .hero-grid   { grid-template-columns: 1fr auto !important; }
+        .samen-grid  { grid-template-columns: 1fr auto 1fr auto 1fr !important; }
+        @media (max-width: 900px) {
+          .hero-grid       { grid-template-columns: 1fr !important; }
+          .hero-map-col    { display: none !important; }
+          .samen-grid      { grid-template-columns: 1fr !important; gap: 12px !important; }
+          .samen-grid > *:nth-child(even) { display: none !important; }
+        }
+        @media (max-width: 768px) {
+          section { padding-left: 20px !important; padding-right: 20px !important; }
+        }
+      `}</style>
     </div>
   );
 }

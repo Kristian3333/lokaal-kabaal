@@ -67,11 +67,11 @@ function berekenPrijs(aantalFlyers: number, formaat: string, dubbelzijdig: boole
 }
 
 // Abonnementsmodel — prijzen per pakket (incl. print + bezorging A6)
-// Buurt:  10 pc4  · €249/m  · Wijk: 50 pc4 · €499/m  · Stad: onbeperkt · €999/m
+// Buurt:  10 pc4  · €199/m  · Wijk: 50 pc4 · €399/m  · Stad: onbeperkt · €799/m
 const ABONNEMENT_TIERS = [
-  { name: 'Buurt', pc4s: 10,       monthly: 249 },
-  { name: 'Wijk',  pc4s: 50,       monthly: 499 },
-  { name: 'Stad',  pc4s: Infinity, monthly: 999 },
+  { name: 'Buurt', pc4s: 10,       monthly: 199 },
+  { name: 'Wijk',  pc4s: 50,       monthly: 399 },
+  { name: 'Stad',  pc4s: Infinity, monthly: 799 },
 ];
 
 function berekenAbonnement(pc4Count: number): {
@@ -85,7 +85,7 @@ function berekenAbonnement(pc4Count: number): {
     }
   }
   // Meer dan 50 pc4s → Stad (onbeperkt, vast tarief)
-  return { tier: 'Stad', includedPc4s: '∞', base: 999, extraPc4s: 0, extraKosten: 0, total: 999 };
+  return { tier: 'Stad', includedPc4s: '∞', base: 799, extraPc4s: 0, extraKosten: 0, total: 799 };
 }
 
 function formatPrijs(x: number): string {
@@ -2015,12 +2015,6 @@ export default function LokaalKabaal() {
             </div>
           </div>
         )}
-        <FeatureLockBanner
-          feature="Exclusiviteit per postcode"
-          minTier="stad"
-          description="Claim postcodegebieden zodat geen enkele concurrent in jouw branche daar ook flyers verstuurt via LokaalKabaal. Zichtbaar voor andere ondernemers als bezet."
-        />
-
         {/* Dashboard header met nieuwe campagne knop */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', letterSpacing: '0.08em' }}>MIJN CAMPAGNES</div>
@@ -2192,7 +2186,7 @@ export default function LokaalKabaal() {
     const specFiltered = SPECS.filter(s => s.toLowerCase().includes(specQ.toLowerCase()));
 
     return (
-      <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - var(--topbar))', overflow: 'hidden' }}>
+      <div className="fade-in wizard-container" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - var(--topbar))', overflow: 'hidden' }}>
         {/* Progress bar — fixed top */}
         <div style={{ flexShrink: 0, background: 'var(--paper)', padding: '12px 24px 10px', borderBottom: '1px solid var(--line)' }}>
           <div style={{ display: 'flex', gap: '4px', marginBottom: '6px', maxWidth: '680px' }}>
@@ -2206,7 +2200,7 @@ export default function LokaalKabaal() {
         </div>
 
         {/* Scrollable content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+        <div className="wizard-scroll" style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
         <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '28px', marginBottom: '0', maxWidth: '680px', margin: '0 auto' }}>
 
           {/* STAP 1: Akkoord */}
@@ -2269,7 +2263,7 @@ export default function LokaalKabaal() {
               <p style={{ color: 'var(--muted)', marginBottom: '20px' }}>
                 Flyers worden elke maand op de <strong>25e</strong> verstuurd naar nieuwe bewoners van die maand. Kies je startmaand — tot 12 maanden vooruit.
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+              <div className="datum-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                 {availableMonths.map(m => (
                   <button key={m.value} onClick={() => updateWiz({ datum: m.value })}
                     style={{
@@ -2389,9 +2383,24 @@ export default function LokaalKabaal() {
           {step === 5 && (
             <div>
               <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '8px' }}>Formaat & aantallen</h2>
-              <p style={{ color: 'var(--muted)', marginBottom: '20px' }}>
-                Minimum 250 flyers. A5 is ons standaardformaat — andere formaten hebben een toeslag.
+              <p style={{ color: 'var(--muted)', marginBottom: '16px' }}>
+                Minimum 300 flyers per batch voor een rendabele printrun. A6 is ons standaardformaat — grotere formaten hebben een toeslag.
               </p>
+
+              {/* Min-300 waarschuwing */}
+              {stats.estAdressenMaand < 300 && (
+                <div style={{ background: 'rgba(255,200,0,0.08)', border: '1px solid rgba(255,200,0,0.3)', borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: '20px' }}>
+                  <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: '#b8860b', fontWeight: 700, marginBottom: '6px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                    Werkgebied onder minimumdrempel
+                  </div>
+                  <div style={{ fontSize: '13px', color: 'var(--ink)', lineHeight: 1.6, marginBottom: '8px' }}>
+                    Dit gebied heeft gemiddeld ~{stats.estAdressenMaand} overdrachten/maand. Voeg aangrenzende postcodes toe om de minimumdrempel van 300 te halen.
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                    Of kies bewust voor minder — dan geldt een toeslag van 3× het standaard tarief. Dit wordt bevestigd bij het afrekenen.
+                  </div>
+                </div>
+              )}
 
               {/* Formaat */}
               <div style={{ marginBottom: '20px' }}>
