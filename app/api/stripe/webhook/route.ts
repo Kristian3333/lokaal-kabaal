@@ -1,37 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { requireDb } from '../../../../lib/db';
+import { retailers } from '../../../../lib/schema';
+import { eq } from 'drizzle-orm';
 
-function getStripe() { return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-02-25.clover' }); }
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
-
-// In productie: vervang door echte database (Supabase / PlanetScale / etc.)
-// Voor nu: in-memory store als placeholder. In Vercel zijn dit stateless functions,
-// dus dit is puur als demonstratie. Vervang dit door een echte DB call.
-const campaignStore: Record<string, CampaignRecord> = {};
-
-interface CampaignRecord {
-  subscriptionId: string;
-  customerId: string;
-  email: string;
-  bedrijfsnaam: string;
-  maxFlyers: number;
-  formaat: string;
-  dubbelzijdig: boolean;
-  spec: string;
-  datum: string;
-  centrum: string;
-  pricePerFlyerCents: number;
-  status: 'pending' | 'active' | 'paused' | 'cancelled';
-  createdAt: string;
-  currentPeriod?: {
-    start: string;
-    end: string;
-    actualFlyers?: number;
-    creditCents?: number;
-    rolloverFlyers?: number;
-    resolved: boolean;
-  };
+function getStripe() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-02-25.clover' });
 }
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -49,77 +25,104 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Ongeldige signature' }, { status: 400 });
   }
 
-  switch (event.type) {
-    case 'checkout.session.completed': {
-      const session = event.data.object as Stripe.Checkout.Session;
-      if (session.mode === 'subscription' && session.subscription) {
+  try {
+    const db = requireDb();
+
+    switch (event.type) {
+
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (session.mode !== 'subscription' || !session.subscription) break;
+
         const sub = await getStripe().subscriptions.retrieve(session.subscription as string);
         const meta = sub.metadata;
-        campaignStore[sub.id] = {
-          subscriptionId: sub.id,
-          customerId: session.customer as string,
-          email: session.customer_details?.email ?? '',
-          bedrijfsnaam: session.customer_details?.name ?? '',
-          maxFlyers: Number(meta.maxFlyers),
-          formaat: meta.formaat,
-          dubbelzijdig: meta.dubbelzijdig === 'true',
-          spec: meta.spec,
-          datum: meta.datum,
-          centrum: meta.centrum,
-          pricePerFlyerCents: Number(meta.pricePerFlyerCents),
-          status: 'active',
-          createdAt: new Date().toISOString(),
-        };
-        console.log('[webhook] campagne geactiveerd:', sub.id);
-      }
-      break;
-    }
+        const email = session.customer_details?.email ?? '';
+        const customerId = session.customer as string;
 
-    case 'invoice.paid': {
-      const invoice = event.data.object as Stripe.Invoice;
-      const subRef = invoice.parent?.subscription_details?.subscription;
-      const subId = typeof subRef === 'string' ? subRef : (subRef as Stripe.Subscription | undefined)?.id;
-      if (subId && campaignStore[subId]) {
-        const periodEnd = new Date((invoice.period_end ?? 0) * 1000).toISOString();
-        const periodStart = new Date((invoice.period_start ?? 0) * 1000).toISOString();
-        campaignStore[subId].currentPeriod = {
-          start: periodStart,
-          end: periodEnd,
-          resolved: false,
-        };
-        console.log('[webhook] factuur betaald:', subId, 'periode:', periodStart, '–', periodEnd);
-      }
-      break;
-    }
+        if (!email) break;
 
-    case 'invoice.payment_failed': {
-      const invoice = event.data.object as Stripe.Invoice;
-      const subRef = invoice.parent?.subscription_details?.subscription;
-      const subId = typeof subRef === 'string' ? subRef : (subRef as Stripe.Subscription | undefined)?.id;
-      if (subId && campaignStore[subId]) {
-        campaignStore[subId].status = 'paused';
-        console.warn('[webhook] betaling mislukt, campagne gepauzeerd:', subId);
-      }
-      break;
-    }
+        const tier = (meta.tier ?? 'buurt') as 'buurt' | 'wijk' | 'stad';
+        const isJaarcontract = meta.isJaarcontract === 'true';
 
-    case 'customer.subscription.deleted': {
-      const sub = event.data.object as Stripe.Subscription;
-      if (campaignStore[sub.id]) {
-        campaignStore[sub.id].status = 'cancelled';
+        // Upsert retailer op basis van e-mail
+        const existing = await db
+          .select({ id: retailers.id })
+          .from(retailers)
+          .where(eq(retailers.email, email))
+          .limit(1);
+
+        if (existing.length > 0) {
+          await db
+            .update(retailers)
+            .set({
+              stripeCustomerId:     customerId,
+              stripeSubscriptionId: sub.id,
+              tier,
+              subscriptionStatus:   'actief',
+              isJaarcontract,
+              updatedAt: new Date(),
+            })
+            .where(eq(retailers.email, email));
+        } else {
+          await db.insert(retailers).values({
+            email,
+            bedrijfsnaam:         meta.bedrijfsnaam ?? session.customer_details?.name ?? '',
+            branche:              meta.branche ?? '',
+            stripeCustomerId:     customerId,
+            stripeSubscriptionId: sub.id,
+            tier,
+            subscriptionStatus:   'actief',
+            isJaarcontract,
+          });
+        }
+
+        console.log('[webhook] retailer geactiveerd:', email, tier);
+        break;
       }
-      break;
+
+      case 'customer.subscription.updated': {
+        const sub = event.data.object as Stripe.Subscription;
+        const tier = (sub.metadata.tier ?? 'buurt') as 'buurt' | 'wijk' | 'stad';
+        const isJaarcontract = sub.metadata.isJaarcontract === 'true';
+        const status = sub.status === 'active' ? 'actief'
+          : sub.status === 'past_due' ? 'gepauzeerd'
+          : sub.status === 'canceled' ? 'geannuleerd'
+          : 'gepauzeerd';
+
+        await db
+          .update(retailers)
+          .set({ tier, subscriptionStatus: status as 'actief' | 'gepauzeerd' | 'geannuleerd', isJaarcontract, updatedAt: new Date() })
+          .where(eq(retailers.stripeSubscriptionId, sub.id));
+        break;
+      }
+
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subRef = invoice.parent?.subscription_details?.subscription;
+        const subId = typeof subRef === 'string' ? subRef : (subRef as Stripe.Subscription | undefined)?.id;
+        if (subId) {
+          await db
+            .update(retailers)
+            .set({ subscriptionStatus: 'gepauzeerd', updatedAt: new Date() })
+            .where(eq(retailers.stripeSubscriptionId, subId));
+          console.warn('[webhook] betaling mislukt, abonnement gepauzeerd:', subId);
+        }
+        break;
+      }
+
+      case 'customer.subscription.deleted': {
+        const sub = event.data.object as Stripe.Subscription;
+        await db
+          .update(retailers)
+          .set({ subscriptionStatus: 'geannuleerd', updatedAt: new Date() })
+          .where(eq(retailers.stripeSubscriptionId, sub.id));
+        break;
+      }
     }
+  } catch (dbErr) {
+    // Log maar geef geen 500 terug aan Stripe (voorkomt retry-loops)
+    console.error('[webhook] DB fout:', dbErr);
   }
 
   return NextResponse.json({ received: true });
-}
-
-// GET /api/stripe/webhook?subscriptionId=xxx — voor intern gebruik (dashboard polling)
-export async function GET(req: NextRequest) {
-  const subId = req.nextUrl.searchParams.get('subscriptionId');
-  if (!subId) return NextResponse.json({ error: 'subscriptionId verplicht' }, { status: 400 });
-  const record = campaignStore[subId];
-  if (!record) return NextResponse.json({ error: 'Niet gevonden' }, { status: 404 });
-  return NextResponse.json(record);
 }

@@ -2,26 +2,39 @@
 import Link from 'next/link';
 import { useState } from 'react';
 
+// ─── Pakket-definities ────────────────────────────────────────────────────────
+//
+// Print.one A6 bulktarief (300+ stuks): €0,69/stuk incl. bezorging
+// Ons tarief: +30% premium boven reguliere flyerbezorging
+// Minimum 300 flyers per batch (bulk-drempel voor kortingstarief)
+//
+// Buurt:  10 pc4  · min. 300 flyers/batch
+// Wijk:   50 pc4  · min. 300 flyers/batch
+// Stad:   onbeperkt · min. 300 flyers/batch · A/B test min. 600 (300+300)
+
 const TIERS = [
   {
     tier: 'Tier 1',
     name: 'Buurt',
     sub: 'Uw eerste vaste klanten werven',
-    monthly: 69,
-    yearly: 52,
-    yearlyTotal: 624,
-    pc4s: 1,
-    extraPc4Monthly: 29,
-    extraPc4Yearly: 22,
+    monthly: 249,
+    yearly: 187,
+    yearlyTotal: 2244,
+    pc4s: '10',
     features: [
-      '1 postcode actief',
-      'Alle nieuwe bewoners in uw postcode inbegrepen',
-      'A6 · print + bezorging',
-      '1 flyer-template',
+      '10 postcodegebieden actief',
+      'Min. 300 flyers per batch · maandelijks bezorgd',
+      'Standaard A6 · print + bezorging inbegrepen',
+      'Onbeperkt flyer-templates',
+      'QR-code scanning · conversieregistratie per adres',
       'Maandelijks rapport',
     ],
+    extraFeatures: [] as string[],
     yearlyFeatures: [] as string[],
-    noFeature: 'Geen exclusiviteitsgarantie',
+    noFeatures: [
+      'Geen exclusiviteitsgarantie',
+      'Geen A/B testen',
+    ],
     exclusive: null,
     hero: false,
     breakEven: 'Break-even: 1 nieuwe vaste klant per kwartaal dekt de jaarkost.',
@@ -31,23 +44,28 @@ const TIERS = [
     tier: 'Tier 2',
     name: 'Wijk',
     sub: 'De vaste naam in de buurt worden',
-    monthly: 149,
-    yearly: 112,
-    yearlyTotal: 1344,
-    pc4s: 3,
-    extraPc4Monthly: 23,
-    extraPc4Yearly: 17,
+    monthly: 499,
+    yearly: 374,
+    yearlyTotal: 4488,
+    pc4s: '50',
     features: [
-      '3 postcodes actief',
-      'Alle nieuwe bewoners in uw postcodes inbegrepen',
-      'A5 dubbelzijdig · premium formaat',
-      '3 templates (incl. seizoensvariant)',
+      '50 postcodegebieden actief',
+      'Min. 300 flyers per batch · maandelijks bezorgd',
+      'Standaard A6 · print + bezorging inbegrepen',
+      'Onbeperkt flyer-templates',
+      'QR-code scanning + gepersonaliseerde welkomstpagina',
       'Wekelijks rapport + statistieken',
-      'A/B test twee templates',
+    ],
+    extraFeatures: [
+      'Follow-up flyer: automatische 2e kaart na 30 dagen voor niet-gescande QR\'s',
+      'Prioriteit bezorging',
     ],
     yearlyFeatures: [] as string[],
-    noFeature: null,
-    exclusive: 'Exclusiviteit per postcode, per branche',
+    noFeatures: [
+      'Geen exclusiviteitsgarantie',
+      'Geen A/B testen',
+    ],
+    exclusive: null,
     hero: true,
     breakEven: 'Break-even: 1 nieuwe vaste klant per 2 maanden. Typische return: 8–12×.',
     cta: 'Claim uw wijkpositie →',
@@ -56,27 +74,39 @@ const TIERS = [
     tier: 'Tier 3',
     name: 'Stad',
     sub: 'Categorie-eigenaar in uw verzorgingsgebied',
-    monthly: 299,
-    yearly: 224,
-    yearlyTotal: 2688,
-    pc4s: 10,
-    extraPc4Monthly: 18,
-    extraPc4Yearly: 14,
+    monthly: 999,
+    yearly: 749,
+    yearlyTotal: 8988,
+    pc4s: '∞',
     features: [
-      '10 postcodes actief',
-      'Alle nieuwe bewoners in uw postcodes inbegrepen',
-      'A5 dubbelzijdig · gepersonaliseerd',
-      'Onbeperkt templates + auto-selectie',
+      'Onbeperkt postcodegebieden actief',
+      'Min. 300 flyers per batch · onbeperkt batches',
+      'Standaard A6 · print + bezorging inbegrepen',
+      'Onbeperkt flyer-templates + AI auto-selectie',
+      'QR-code scanning + gepersonaliseerde welkomstpagina',
       'Real-time dashboard',
-      'Kwartaalgesprek accountmanager',
+      'Follow-up flyer na 30 dagen',
     ],
-    yearlyFeatures: ['Persoonlijke flyerhulp inbegrepen (éénmalig)'],
-    noFeature: null,
-    exclusive: 'Exclusiviteit voor het volledige verzorgingsgebied',
+    extraFeatures: [
+      'A/B testen (min. 600 flyers: 300 per variant)',
+    ],
+    yearlyFeatures: [
+      'Persoonlijke flyerhulp inbegrepen (bij jaarcontract)',
+    ],
+    noFeatures: [] as string[],
+    exclusive: 'Exclusiviteit per postcode, per branche',
     hero: false,
     breakEven: 'Voor installateurs en multi-locatie ondernemers met groter bereik.',
     cta: 'Domineer uw markt →',
   },
+];
+
+// Premium formaten: bovenop het maandabonnement
+const FORMAT_UPGRADES = [
+  { label: 'A6 enkel­zijdig (standaard)', extra: '€0,00 extra' },
+  { label: 'A6 dubbelzijdig', extra: '+€0,10/stuk' },
+  { label: 'A5 enkel­zijdig', extra: '+€0,18/stuk' },
+  { label: 'A5 dubbelzijdig', extra: '+€0,28/stuk' },
 ];
 
 function fmt(n: number) {
@@ -85,10 +115,11 @@ function fmt(n: number) {
 
 export default function PricingSection() {
   const [yearly, setYearly] = useState(false);
+  const [showFormats, setShowFormats] = useState(false);
 
   return (
     <section id="prijzen" style={{ background: 'var(--ink)', padding: '100px 40px' }}>
-      <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '980px', margin: '0 auto' }}>
 
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '16px' }}>
@@ -99,8 +130,8 @@ export default function PricingSection() {
             Welke positie wilt u innemen<br />
             <em style={{ color: 'rgba(255,255,255,.35)' }}>in uw buurt?</em>
           </h2>
-          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,.4)', fontFamily: 'var(--font-mono)', maxWidth: '520px', margin: '0 auto 32px' }}>
-            U betaalt per postcode — alle nieuwe bewoners daarin zijn inbegrepen. Geen verassingen.
+          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,.4)', fontFamily: 'var(--font-mono)', maxWidth: '560px', margin: '0 auto 32px' }}>
+            U betaalt een vast maandbedrag — alle nieuwe bewoners in uw postcodes zijn inbegrepen. Geen verassingen. Minimum 300 flyers per batch voor gegarandeerd rendement.
           </p>
 
           {/* Billing toggle */}
@@ -132,16 +163,16 @@ export default function PricingSection() {
           </div>
           {yearly && (
             <div style={{ marginTop: '10px', fontSize: '11px', color: 'rgba(255,255,255,.35)', fontFamily: 'var(--font-mono)' }}>
-              25% korting op abonnement én extra postcodes · per jaar vooruit gefactureerd
+              25% korting · per jaar vooruit gefactureerd
             </div>
           )}
         </div>
 
-        {/* Exclusivity bar */}
+        {/* Exclusivity bar — Stad only */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 16px', border: '1px solid rgba(0,232,122,0.2)', borderRadius: 'var(--radius)', background: 'rgba(0,232,122,0.05)', margin: '28px 0 32px' }}>
           <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
           <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-mono)' }}>
-            <strong style={{ color: '#fff' }}>Exclusiviteitsbeveiliging actief:</strong> zodra u een postcode claimt, verstuurt geen enkele andere ondernemer in uw branche daar nog een flyer via LokaalKabaal.
+            <strong style={{ color: '#fff' }}>Exclusiviteitsbeveiliging (Stad-pakket):</strong> zodra u een postcode claimt, verstuurt geen enkele andere ondernemer in uw branche daar nog een flyer via LokaalKabaal. Als een postcodegebied bezet is, ontvangt u een melding met de bezettingsperiode.
           </span>
         </div>
 
@@ -167,6 +198,12 @@ export default function PricingSection() {
               <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', fontWeight: 400, color: '#fff', marginBottom: '4px' }}>{t.name}</div>
               <div style={{ fontSize: '12px', color: 'rgba(255,255,255,.4)', marginBottom: '20px' }}>{t.sub}</div>
 
+              {/* Postcode badge */}
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '4px 10px', marginBottom: '16px' }}>
+                <span style={{ fontSize: '16px', fontWeight: 700, color: t.hero ? 'var(--green)' : '#fff', fontFamily: 'var(--font-mono)' }}>{t.pc4s}</span>
+                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,.4)', fontFamily: 'var(--font-mono)' }}>postcodegebieden</span>
+              </div>
+
               {/* Price */}
               <div style={{ marginBottom: '4px', display: 'flex', alignItems: 'flex-end', gap: '6px' }}>
                 <span style={{ fontFamily: 'var(--font-serif)', fontSize: '38px', fontWeight: 400, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1 }}>
@@ -188,9 +225,9 @@ export default function PricingSection() {
                 </div>
               )}
 
-              {/* Extra PC4 pricing */}
-              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.25)', fontFamily: 'var(--font-mono)', marginBottom: '24px' }}>
-                + €{yearly ? t.extraPc4Yearly : t.extraPc4Monthly} per extra postcode/maand
+              {/* Min flyers note */}
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.2)', fontFamily: 'var(--font-mono)', marginBottom: '24px' }}>
+                Min. 300 flyers/batch · A6 standaard inbegrepen
               </div>
 
               {/* Features */}
@@ -201,18 +238,24 @@ export default function PricingSection() {
                     <span style={{ fontSize: '12px', color: t.hero ? 'rgba(255,255,255,.8)' : 'rgba(255,255,255,.6)', lineHeight: 1.4 }}>{f}</span>
                   </div>
                 ))}
-                {t.noFeature && (
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-                    <span style={{ color: 'rgba(255,255,255,.2)', flexShrink: 0, fontSize: '12px' }}>—</span>
-                    <span style={{ fontSize: '12px', color: 'rgba(255,255,255,.2)', lineHeight: 1.4 }}>{t.noFeature}</span>
+
+                {/* Extra unieke features (groen gemarkeerd) */}
+                {t.extraFeatures.map(f => (
+                  <div key={f} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginTop: '2px' }}>
+                    <span style={{ color: 'var(--green)', flexShrink: 0, fontSize: '12px', marginTop: '1px' }}>★</span>
+                    <span style={{ fontSize: '12px', color: 'var(--green)', fontWeight: 600, lineHeight: 1.4 }}>{f}</span>
                   </div>
-                )}
+                ))}
+
+                {/* Exclusiviteit */}
                 {t.exclusive && (
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginTop: '4px' }}>
                     <span style={{ color: 'var(--green)', flexShrink: 0, fontSize: '12px', marginTop: '1px' }}>★</span>
                     <span style={{ fontSize: '12px', color: 'var(--green)', fontWeight: 700, lineHeight: 1.4 }}>{t.exclusive}</span>
                   </div>
                 )}
+
+                {/* Jaarlijkse bonus features */}
                 {t.yearlyFeatures.length > 0 && (
                   yearly ? (
                     t.yearlyFeatures.map(f => (
@@ -230,6 +273,14 @@ export default function PricingSection() {
                     ))
                   )
                 )}
+
+                {/* Niet-inbegrepen features */}
+                {t.noFeatures.map(f => (
+                  <div key={f} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+                    <span style={{ color: 'rgba(255,255,255,.2)', flexShrink: 0, fontSize: '12px' }}>—</span>
+                    <span style={{ fontSize: '12px', color: 'rgba(255,255,255,.2)', lineHeight: 1.4 }}>{f}</span>
+                  </div>
+                ))}
               </div>
 
               {/* Break-even note */}
@@ -251,9 +302,32 @@ export default function PricingSection() {
           ))}
         </div>
 
+        {/* Formaat toeslag uitklapper */}
+        <div style={{ marginTop: '24px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+          <button
+            onClick={() => setShowFormats(v => !v)}
+            style={{ width: '100%', background: 'rgba(255,255,255,0.03)', border: 'none', cursor: 'pointer', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+          >
+            <span style={{ fontSize: '12px', color: 'rgba(255,255,255,.5)', fontFamily: 'var(--font-mono)' }}>
+              Wilt u een groter formaat? Premium formaten zijn beschikbaar als toeslag op elk pakket.
+            </span>
+            <span style={{ fontSize: '12px', color: 'rgba(255,255,255,.3)', fontFamily: 'var(--font-mono)' }}>{showFormats ? '▲' : '▼'}</span>
+          </button>
+          {showFormats && (
+            <div style={{ padding: '16px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+              {FORMAT_UPGRADES.map(f => (
+                <div key={f.label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 'var(--radius)', padding: '10px 12px' }}>
+                  <div style={{ fontSize: '12px', color: '#fff', marginBottom: '4px' }}>{f.label}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--green)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{f.extra}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Footer note */}
-        <div style={{ marginTop: '20px', fontSize: '11px', color: 'rgba(255,255,255,.2)', fontFamily: 'var(--font-mono)' }}>
-          Alle prijzen excl. BTW · {yearly ? 'Jaarcontract: per jaar vooruit gefactureerd, niet tussentijds opzegbaar' : 'Maandelijks contract: per maand opzegbaar'} · Geen limiet op het aantal flyers per postcode
+        <div style={{ marginTop: '16px', fontSize: '11px', color: 'rgba(255,255,255,.2)', fontFamily: 'var(--font-mono)' }}>
+          Alle prijzen excl. BTW · {yearly ? 'Jaarcontract: per jaar vooruit gefactureerd, niet tussentijds opzegbaar' : 'Maandelijks contract: per maand opzegbaar'} · A6 enkel­zijdig standaard in elk pakket · Premium formaten = toeslag per verstuurd stuk
         </div>
       </div>
     </section>

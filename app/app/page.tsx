@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import { TIERS, TEST_ACCOUNTS, isTestAccount, type Tier } from '../../lib/tiers';
 import FlyerExport, { PREVIEW_PX, PRINT_DIMS } from '../../components/FlyerExport';
 
 const NLMap = dynamic(() => import('../../components/NLMap'), { ssr: false, loading: () => (
@@ -57,33 +58,34 @@ function estimeerDekkingsgebied(straalKm: number): {
   return { pc4Count, estAdressenMaand, referentieVorigjaar, suggestieFlyers };
 }
 
+// A6 enkel­zijdig = standaard (inbegrepen in abonnement, toeslag = 0)
+// Premium formaten rekenen toeslag per verstuurd stuk bovenop het abonnement
 function berekenPrijs(aantalFlyers: number, formaat: string, dubbelzijdig: boolean): number {
-  const base = formaat === 'a6' ? 0.73 : formaat === 'sq' ? 0.88 : 0.83;
-  const dubbelExtra = dubbelzijdig ? 0.06 : 0;
-  return aantalFlyers * (base + dubbelExtra);
+  const formaatToeslag = formaat === 'a5' ? 0.18 : formaat === 'sq' ? 0.19 : 0;
+  const dubbelToeslag  = dubbelzijdig ? 0.10 : 0;
+  return aantalFlyers * (formaatToeslag + dubbelToeslag);
 }
 
-// Abonnementsmodel: prijs per PC4-postcode, alle overdrachten inbegrepen
+// Abonnementsmodel — prijzen per pakket (incl. print + bezorging A6)
+// Buurt:  10 pc4  · €249/m  · Wijk: 50 pc4 · €499/m  · Stad: onbeperkt · €999/m
 const ABONNEMENT_TIERS = [
-  { name: 'Buurt', pc4s: 1,  monthly: 69,  extraPc4: 29 },
-  { name: 'Wijk',  pc4s: 3,  monthly: 149, extraPc4: 23 },
-  { name: 'Stad',  pc4s: 10, monthly: 299, extraPc4: 18 },
+  { name: 'Buurt', pc4s: 10,       monthly: 249 },
+  { name: 'Wijk',  pc4s: 50,       monthly: 499 },
+  { name: 'Stad',  pc4s: Infinity, monthly: 999 },
 ];
 
 function berekenAbonnement(pc4Count: number): {
-  tier: string; includedPc4s: number; base: number;
+  tier: string; includedPc4s: number | string; base: number;
   extraPc4s: number; extraKosten: number; total: number;
 } {
   const n = Math.max(1, pc4Count);
   for (const t of ABONNEMENT_TIERS) {
     if (n <= t.pc4s) {
-      return { tier: t.name, includedPc4s: t.pc4s, base: t.monthly, extraPc4s: 0, extraKosten: 0, total: t.monthly };
+      return { tier: t.name, includedPc4s: t.pc4s === Infinity ? '∞' : t.pc4s, base: t.monthly, extraPc4s: 0, extraKosten: 0, total: t.monthly };
     }
   }
-  const stad = ABONNEMENT_TIERS[2];
-  const extra = n - stad.pc4s;
-  const extraKosten = extra * stad.extraPc4;
-  return { tier: 'Stad', includedPc4s: stad.pc4s, base: stad.monthly, extraPc4s: extra, extraKosten, total: stad.monthly + extraKosten };
+  // Meer dan 50 pc4s → Stad (onbeperkt, vast tarief)
+  return { tier: 'Stad', includedPc4s: '∞', base: 999, extraPc4s: 0, extraKosten: 0, total: 999 };
 }
 
 function formatPrijs(x: number): string {
@@ -1301,7 +1303,7 @@ function CoverageVisual({ centrum, straalKm, onPc4sChange, onEstChange }: {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <NLMap center={center} straalKm={straalKm} onPc4sFound={handlePc4sFound} />
+      <NLMap center={center} straalKm={straalKm} centrumPc4={centrum.trim().padStart(4, '0')} onPc4sFound={handlePc4sFound} />
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
         <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '12px' }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', marginBottom: '3px' }}>WONINGEN IN WERKGEBIED</div>
@@ -1710,7 +1712,7 @@ export default function LokaalKabaal() {
   useEffect(() => {
     if (typeof window !== 'undefined') localStorage.setItem('lk_campaigns', JSON.stringify(campaigns));
   }, [campaigns]);
-  const [user, setUser] = useState<{ email: string; naam: string } | null>(null);
+  const [user, setUser] = useState<{ email: string; naam: string; tier?: Tier; isJaarcontract?: boolean } | null>(null);
   const [showDemo, setShowDemo] = useState(false);
   const [demoStep, setDemoStep] = useState(0);
   const [spotlightEl, setSpotlightEl] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
@@ -1963,7 +1965,7 @@ export default function LokaalKabaal() {
 
   // ── Sidebar ──
 
-  const navItems: { id: Page; label: string; icon: string }[] = [
+  const navItems: { id: Page; label: string; icon: string; minTier?: Tier }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: '◈' },
     { id: 'wizard', label: 'Nieuwe campagne', icon: '＋' },
     { id: 'flyer', label: 'Mijn flyer', icon: '◧' },
@@ -1972,11 +1974,31 @@ export default function LokaalKabaal() {
     { id: 'profiel', label: 'Mijn profiel', icon: '◉' },
   ];
 
+  // Helper: controleert of de huidige gebruiker toegang heeft tot een feature op basis van tier
+  const tierOrder: Tier[] = ['buurt', 'wijk', 'stad'];
+  const userTier: Tier = user?.tier ?? 'buurt';
+  function hasAccess(minTier: Tier): boolean {
+    return tierOrder.indexOf(userTier) >= tierOrder.indexOf(minTier);
+  }
+  function tierName(t: Tier): string { return TIERS[t].label; }
+
   // ── Pages ──
 
   function renderDashboard() {
     return (
       <div className="fade-in">
+
+        {/* Feature-lock banners voor niet-beschikbare features */}
+        <FeatureLockBanner
+          feature="Follow-up flyer"
+          minTier="wijk"
+          description="Stuur automatisch een 2e kaart naar adressen die jouw QR-code nog niet hebben gescand na 30 dagen. Verdubbelt de kans op conversie zonder extra moeite."
+        />
+        <FeatureLockBanner
+          feature="Exclusiviteit per postcode"
+          minTier="stad"
+          description="Claim postcodegebieden zodat geen enkele concurrent in jouw branche daar ook flyers verstuurt via LokaalKabaal. Zichtbaar voor andere ondernemers als bezet."
+        />
 
         {/* Dashboard header met nieuwe campagne knop */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -2411,15 +2433,10 @@ export default function LokaalKabaal() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                    <span>{abonnement.tier} ({abonnement.includedPc4s} PC4{abonnement.includedPc4s !== 1 ? 's' : ''} inbegrepen)</span>
+                    <span>{abonnement.tier} ({actualPc4Count} PC4{actualPc4Count !== 1 ? 's' : ''} — t/m {abonnement.includedPc4s} inbegrepen)</span>
                     <span style={{ fontFamily: 'var(--font-mono)' }}>{formatPrijs(abonnement.base)}/mnd</span>
                   </div>
-                  {abonnement.extraPc4s > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--muted)' }}>
-                      <span>+ {abonnement.extraPc4s} extra postcode{abonnement.extraPc4s !== 1 ? 's' : ''} × €{ABONNEMENT_TIERS[2].extraPc4}/mnd</span>
-                      <span style={{ fontFamily: 'var(--font-mono)' }}>{formatPrijs(abonnement.extraKosten)}/mnd</span>
-                    </div>
-                  )}
+                  {/* Extra PC4 kosten worden niet meer apart berekend — Stad-pakket is onbeperkt */}
                   <div style={{ height: '1px', background: 'var(--line)', margin: '2px 0' }} />
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <span style={{ fontWeight: 700 }}>Totaal per maand</span>
@@ -3271,8 +3288,50 @@ export default function LokaalKabaal() {
     );
   }
 
+  // ── Feature Lock Banner ───────────────────────────────────────────────────
+  function FeatureLockBanner({ feature, minTier, description }: { feature: string; minTier: Tier; description: string }) {
+    if (hasAccess(minTier)) return null;
+    const cfg = TIERS[minTier];
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'flex-start', gap: '14px',
+        background: `${cfg.color}08`, border: `1px solid ${cfg.color}30`,
+        borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: '20px',
+      }}>
+        <div style={{ fontSize: '18px', flexShrink: 0, marginTop: '1px' }}>🔒</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '4px', color: 'var(--ink)' }}>
+            {feature} — alleen beschikbaar in {cfg.label}
+          </div>
+          <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '10px' }}>
+            {description}
+          </div>
+          <button
+            onClick={() => setPage('credits')}
+            style={{
+              padding: '6px 14px', background: cfg.color, color: '#0A0A0A',
+              border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer',
+              fontWeight: 700, fontSize: '11px', fontFamily: 'var(--font-mono)',
+            }}
+          >
+            Upgraden naar {cfg.label} →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   function renderConversies() {
-    return <ConversiesDashboard campaigns={campaigns} onStartCampagne={() => setPage('wizard')} />;
+    return (
+      <>
+        <FeatureLockBanner
+          feature="A/B testen"
+          minTier="stad"
+          description="Test twee flyer-varianten tegelijk. Je hebt minimaal 600 flyers nodig (300 per variant). Zie welke variant de hoogste conversie oplevert en schakel automatisch over."
+        />
+        <ConversiesDashboard campaigns={campaigns} onStartCampagne={() => setPage('wizard')} />
+      </>
+    );
   }
 
   function renderCredits() {
@@ -3317,6 +3376,33 @@ export default function LokaalKabaal() {
             ▶ Product demo
           </button>
         </div>
+        {/* Huidig pakket */}
+        {(() => {
+          const cfg = TIERS[userTier];
+          return (
+            <div style={{ background: 'var(--white)', border: `1px solid ${cfg.color}40`, borderRadius: 'var(--radius)', padding: '16px 20px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: cfg.color, flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--ink)' }}>Pakket: {cfg.label}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                    {cfg.maxPc4s ? `${cfg.maxPc4s} postcodes` : 'Onbeperkt postcodes'} · €{cfg.priceMonthly}/maand · min. {cfg.minFlyers} flyers/batch
+                    {user?.isJaarcontract ? ' · Jaarcontract' : ''}
+                  </div>
+                </div>
+              </div>
+              {userTier !== 'stad' && (
+                <button
+                  onClick={() => window.open('/#prijzen', '_blank')}
+                  style={{ padding: '7px 16px', background: cfg.color, color: '#0A0A0A', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: 700, fontSize: '12px', fontFamily: 'var(--font-mono)' }}
+                >
+                  Upgraden →
+                </button>
+              )}
+            </div>
+          );
+        })()}
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           {/* Bedrijfsgegevens */}
           <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
@@ -3397,35 +3483,98 @@ export default function LokaalKabaal() {
           </div>
         </div>
         <div style={{ flex: 1, padding: '8px 0' }}>
-          {navItems.map(({ id, label, icon }) => (
-            <button key={id} data-tour={`tour-nav-${id}`} onClick={() => setPage(id)}
-              style={{
-                width: '100%', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px',
-                background: page === id ? 'rgba(255,255,255,0.06)' : 'none',
-                borderLeft: page === id ? '2px solid var(--green)' : '2px solid transparent',
-                border: 'none', borderRight: 'none',
-                color: page === id ? 'var(--paper)' : 'rgba(255,255,255,0.45)',
-                cursor: 'pointer', textAlign: 'left', fontSize: '13px', fontFamily: 'var(--font-sans)',
-                fontWeight: page === id ? 600 : 400, transition: 'all 0.15s'
-              }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', color: page === id ? 'var(--green)' : 'rgba(255,255,255,0.3)' }}>{icon}</span>
-              {label}
-            </button>
-          ))}
+          {navItems.map(({ id, label, icon, minTier }) => {
+            const locked = minTier ? !hasAccess(minTier) : false;
+            return (
+              <button key={id} data-tour={`tour-nav-${id}`} onClick={() => setPage(id)}
+                style={{
+                  width: '100%', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px',
+                  background: page === id ? 'rgba(255,255,255,0.06)' : 'none',
+                  borderLeft: page === id ? '2px solid var(--green)' : '2px solid transparent',
+                  border: 'none', borderRight: 'none',
+                  color: locked ? 'rgba(255,255,255,0.2)' : page === id ? 'var(--paper)' : 'rgba(255,255,255,0.45)',
+                  cursor: 'pointer', textAlign: 'left', fontSize: '13px', fontFamily: 'var(--font-sans)',
+                  fontWeight: page === id ? 600 : 400, transition: 'all 0.15s'
+                }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', color: locked ? 'rgba(255,255,255,0.15)' : page === id ? 'var(--green)' : 'rgba(255,255,255,0.3)' }}>{icon}</span>
+                {label}
+                {locked && minTier && (
+                  <span style={{ marginLeft: 'auto', fontSize: '9px', color: TIERS[minTier].color, fontFamily: 'var(--font-mono)', opacity: 0.7 }}>
+                    {tierName(minTier)} ↑
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
         <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
             <div style={{ width: '28px', height: '28px', background: 'var(--green)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '11px', color: 'var(--ink)', flexShrink: 0 }}>
               {(user?.naam || 'G')[0].toUpperCase()}
             </div>
-            <div style={{ minWidth: 0 }}>
+            <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ fontSize: '12px', color: 'var(--paper)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.naam || 'Gebruiker'}</div>
               <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email || ''}</div>
             </div>
           </div>
+          {/* Tier badge */}
+          {user?.tier && (() => {
+            const tierCfg = TIERS[user.tier];
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', padding: '4px 8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px' }}>
+                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: tierCfg.color, flexShrink: 0 }} />
+                <span style={{ fontSize: '10px', color: tierCfg.color, fontFamily: 'var(--font-mono)', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                  {tierCfg.label}
+                </span>
+                {user.isJaarcontract && (
+                  <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)', marginLeft: 'auto' }}>
+                    JAAR
+                  </span>
+                )}
+              </div>
+            );
+          })()}
           <button onClick={uitloggen} style={{ width: '100%', padding: '7px 10px', background: 'rgba(255,59,59,0.08)', border: '1px solid rgba(255,59,59,0.2)', borderRadius: 'var(--radius)', color: 'rgba(255,100,100,0.8)', fontSize: '11px', cursor: 'pointer', fontFamily: 'var(--font-mono)', textAlign: 'left' }}>
             ← Uitloggen
           </button>
+
+          {/* Testaccount switcher — alleen zichtbaar voor testaccounts */}
+          {user?.email && isTestAccount(user.email) && (
+            <div style={{ marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '8px' }}>
+              <div style={{ fontSize: '9px', color: 'rgba(255,200,0,0.5)', fontFamily: 'var(--font-mono)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#f59e0b' }} />
+                Test switcher
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                {TEST_ACCOUNTS.map(acc => {
+                  const isActive = user.email === acc.email;
+                  const c = TIERS[acc.tier].color;
+                  return (
+                    <button
+                      key={acc.email}
+                      onClick={() => {
+                        localStorage.setItem('lk_user', JSON.stringify({ email: acc.email, naam: acc.naam, tier: acc.tier, isJaarcontract: acc.isJaarcontract }));
+                        setUser({ email: acc.email, naam: acc.naam, tier: acc.tier, isJaarcontract: acc.isJaarcontract });
+                      }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '6px',
+                        width: '100%', padding: '5px 8px', cursor: 'pointer', textAlign: 'left',
+                        background: isActive ? 'rgba(255,255,255,0.07)' : 'transparent',
+                        border: isActive ? `1px solid ${c}44` : '1px solid transparent',
+                        borderRadius: '3px',
+                      }}
+                    >
+                      <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: c, flexShrink: 0 }} />
+                      <span style={{ fontSize: '10px', color: isActive ? '#fff' : 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>
+                        {acc.label}
+                      </span>
+                      {isActive && <span style={{ marginLeft: 'auto', fontSize: '9px', color: c }}>●</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 

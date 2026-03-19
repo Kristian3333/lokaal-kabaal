@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { TEST_ACCOUNTS, getTestAccount } from '../../lib/tiers';
 
 export default function Login() {
   const router = useRouter();
@@ -10,18 +11,34 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  function loginAs(accountEmail: string, naam: string, tier: string, isJaarcontract: boolean) {
+    localStorage.setItem('lk_user', JSON.stringify({ email: accountEmail, naam, tier, isJaarcontract }));
+    router.push('/app');
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !ww) { setError('Vul je e-mail en wachtwoord in.'); return; }
     setLoading(true);
     setError('');
-    // Simuleer een korte laadtijd — elk email/wachtwoord werkt
-    await new Promise(r => setTimeout(r, 600));
-    // Sla naam op in localStorage zodat de app hem kan tonen
+    await new Promise(r => setTimeout(r, 400));
     const naam = email.split('@')[0].replace(/[^a-zA-Z]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).trim() || 'Gebruiker';
-    localStorage.setItem('lk_user', JSON.stringify({ email, naam }));
+    // Detecteer testaccount voor automatische tier-instelling
+    const testAccount = getTestAccount(email);
+    localStorage.setItem('lk_user', JSON.stringify({
+      email,
+      naam: testAccount?.naam ?? naam,
+      tier: testAccount?.tier ?? 'buurt',
+      isJaarcontract: testAccount?.isJaarcontract ?? false,
+    }));
     setLoading(false);
     router.push('/app');
+  };
+
+  const tierColors: Record<string, string> = {
+    buurt: '#94a3b8',
+    wijk:  '#60a5fa',
+    stad:  '#00E87A',
   };
 
   return (
@@ -45,7 +62,7 @@ export default function Login() {
         </span>
       </Link>
 
-      {/* Card */}
+      {/* Login card */}
       <div style={{
         background: 'var(--paper)', border: '1px solid var(--line)',
         borderRadius: '4px', padding: '40px', width: '100%', maxWidth: '380px',
@@ -130,7 +147,52 @@ export default function Login() {
         </div>
       </div>
 
-      <p style={{ marginTop: '24px', fontSize: '11px', color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-mono)', textAlign: 'center' }}>
+      {/* Testaccounts — alleen zichtbaar in dev/test omgeving */}
+      <div style={{
+        marginTop: '24px', width: '100%', maxWidth: '380px',
+        border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px',
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          background: 'rgba(255,255,255,0.03)', padding: '10px 16px',
+          display: 'flex', alignItems: 'center', gap: '8px',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}>
+          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f59e0b', flexShrink: 0 }} />
+          <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            Testaccounts
+          </span>
+        </div>
+        <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {TEST_ACCOUNTS.map(account => (
+            <button
+              key={account.email}
+              onClick={() => loginAs(account.email, account.naam, account.tier, account.isJaarcontract)}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                width: '100%', padding: '8px 12px',
+                background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '4px', cursor: 'pointer', textAlign: 'left',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{
+                  width: '8px', height: '8px', borderRadius: '50%', flexShrink: 0,
+                  background: tierColors[account.tier],
+                }} />
+                <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-mono)' }}>
+                  {account.label}
+                </span>
+              </div>
+              <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-mono)' }}>
+                direct inloggen →
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <p style={{ marginTop: '16px', fontSize: '11px', color: 'rgba(255,255,255,0.15)', fontFamily: 'var(--font-mono)', textAlign: 'center' }}>
         © 2026 LokaalKabaal · Demo omgeving
       </p>
     </div>

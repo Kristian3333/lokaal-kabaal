@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // ─── Print.one API v2 integration ────────────────────────────────────────────
 const PRINTONE_BASE = 'https://api.print.one/v2';
-const PRINTONE_KEY = 'test_ZNi3JfKJPmTr4zfuXLXnmXOIHknXtRma6bu4KLFcve5qooja';
+// Stel PRINTONE_API_KEY in als omgevingsvariabele in Vercel (Settings → Environment Variables)
+const PRINTONE_KEY = process.env.PRINTONE_API_KEY ?? '';
 
 const FORMAAT_MAP: Record<string, string> = {
   a6: 'POSTCARD_A6',
