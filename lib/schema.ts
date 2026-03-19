@@ -152,7 +152,7 @@ export const TIER_LIMITS = {
   wijk: {
     maxPc4s:          50,
     minFlyers:        300,
-    followUp:         true,   // automatische follow-up flyer na 30 dagen
+    followUp:         true,   // alleen bij jaarcontract · kostprijs print.one (€0,69/stuk 300+ of €1,52 klein)
     abTesting:        false,
     exclusivity:      false,
     personalizedQr:   true,   // gepersonaliseerde welkomstpagina bij QR-scan
@@ -162,7 +162,7 @@ export const TIER_LIMITS = {
   stad: {
     maxPc4s:          Infinity,
     minFlyers:        300,    // minimum per batch; A/B test vereist 600 (300+300)
-    followUp:         true,
+    followUp:         true,   // alleen bij jaarcontract · kostprijs print.one
     abTesting:        true,
     exclusivity:      true,
     personalizedQr:   true,

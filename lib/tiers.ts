@@ -45,7 +45,7 @@ export const TIERS: Record<Tier, TierConfig> = {
     priceMonthly: 499,
     priceYearly: 374,
     minFlyers: 300,
-    followUp: true,
+    followUp: true,        // alleen bij jaarcontract (isJaarcontract === true)
     abTesting: false,
     abTestMinFlyers: 300,
     exclusivity: false,
@@ -61,12 +61,12 @@ export const TIERS: Record<Tier, TierConfig> = {
     priceMonthly: 999,
     priceYearly: 749,
     minFlyers: 300,
-    followUp: true,
+    followUp: true,        // alleen bij jaarcontract (isJaarcontract === true)
     abTesting: true,
     abTestMinFlyers: 300,
     exclusivity: true,
     personalizedQr: true,
-    flyerHelp: true,       // vereist ook isJaarcontract === true
+    flyerHelp: true,       // alleen bij jaarcontract
     unlimitedTemplates: true,
     conversionDashboard: true,
   },

@@ -57,10 +57,11 @@ const TIERS = [
       'Wekelijks rapport + statistieken',
     ],
     extraFeatures: [
-      'Follow-up flyer: automatische 2e kaart na 30 dagen voor niet-gescande QR\'s',
       'Prioriteit bezorging',
     ],
-    yearlyFeatures: [] as string[],
+    yearlyFeatures: [
+      'Follow-up flyer: 2e kaart na 30 dagen voor niet-gescande QR\'s · tegen kostprijs print.one',
+    ],
     noFeatures: [
       'Geen exclusiviteitsgarantie',
       'Geen A/B testen',
@@ -85,13 +86,13 @@ const TIERS = [
       'Onbeperkt flyer-templates + AI auto-selectie',
       'QR-code scanning + gepersonaliseerde welkomstpagina',
       'Real-time dashboard',
-      'Follow-up flyer na 30 dagen',
     ],
     extraFeatures: [
       'A/B testen (min. 600 flyers: 300 per variant)',
     ],
     yearlyFeatures: [
-      'Persoonlijke flyerhulp inbegrepen (bij jaarcontract)',
+      'Follow-up flyer: 2e kaart na 30 dagen voor niet-gescande QR\'s · tegen kostprijs print.one',
+      'Persoonlijke flyerhulp inbegrepen',
     ],
     noFeatures: [] as string[],
     exclusive: 'Exclusiviteit per postcode, per branche',

@@ -1989,11 +1989,31 @@ export default function LokaalKabaal() {
       <div className="fade-in">
 
         {/* Feature-lock banners voor niet-beschikbare features */}
-        <FeatureLockBanner
-          feature="Follow-up flyer"
-          minTier="wijk"
-          description="Stuur automatisch een 2e kaart naar adressen die jouw QR-code nog niet hebben gescand na 30 dagen. Verdubbelt de kans op conversie zonder extra moeite."
-        />
+        {/* Follow-up: wijk+ tier én jaarcontract vereist */}
+        {(!hasAccess('wijk') || !user?.isJaarcontract) && (
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: '14px',
+            background: '#60a5fa08', border: '1px solid #60a5fa30',
+            borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: '20px',
+          }}>
+            <div style={{ fontSize: '18px', flexShrink: 0, marginTop: '1px' }}>🔒</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '4px', color: 'var(--ink)' }}>
+                Follow-up flyer — alleen bij jaarcontract (Wijk of Stad)
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '10px' }}>
+                Automatisch een 2e kaart versturen naar adressen die de QR nog niet hebben gescand na 30 dagen.
+                Gefactureerd tegen kostprijs print.one: €0,69/stuk (300+) of €1,52/stuk (kleine batch).
+              </div>
+              <button
+                onClick={() => window.open('/#prijzen', '_blank')}
+                style={{ padding: '6px 14px', background: '#60a5fa', color: '#0A0A0A', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: 700, fontSize: '11px', fontFamily: 'var(--font-mono)' }}
+              >
+                Bekijk jaarcontracten →
+              </button>
+            </div>
+          </div>
+        )}
         <FeatureLockBanner
           feature="Exclusiviteit per postcode"
           minTier="stad"
