@@ -2004,7 +2004,7 @@ export default function LokaalKabaal() {
               </div>
               <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '10px' }}>
                 Automatisch een 2e kaart versturen naar adressen die de QR nog niet hebben gescand na 30 dagen.
-                Gefactureerd tegen kostprijs print.one: €0,69/stuk (300+) of €1,52/stuk (kleine batch).
+                De 2e kaart wordt gefactureerd tegen gereduceerd tarief.
               </div>
               <button
                 onClick={() => window.open('/#prijzen', '_blank')}

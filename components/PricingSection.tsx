@@ -31,7 +31,7 @@ const TIERS = [
     ],
     extraFeatures: [] as string[],
     yearlyFeatures: [
-      'Follow-up flyer: 2e kaart na 30 dagen voor niet-gescande QR\'s · tegen kostprijs print.one',
+      'Follow-up flyer: 2e kaart na 30 dagen voor niet-gescande QR\'s · tegen gereduceerd tarief',
     ],
     noFeatures: [
       'Geen exclusiviteitsgarantie',
@@ -62,7 +62,7 @@ const TIERS = [
       'Prioriteit bezorging',
     ],
     yearlyFeatures: [
-      'Follow-up flyer: 2e kaart na 30 dagen voor niet-gescande QR\'s · tegen kostprijs print.one',
+      'Follow-up flyer: 2e kaart na 30 dagen voor niet-gescande QR\'s · tegen gereduceerd tarief',
     ],
     noFeatures: [
       'Geen exclusiviteitsgarantie',
@@ -93,7 +93,7 @@ const TIERS = [
       'A/B testen (min. 600 flyers: 300 per variant)',
     ],
     yearlyFeatures: [
-      'Follow-up flyer: 2e kaart na 30 dagen voor niet-gescande QR\'s · tegen kostprijs print.one',
+      'Follow-up flyer: 2e kaart na 30 dagen voor niet-gescande QR\'s · tegen gereduceerd tarief',
       'Persoonlijke flyerhulp inbegrepen',
     ],
     noFeatures: [] as string[],

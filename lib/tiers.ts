@@ -29,7 +29,7 @@ export const TIERS: Record<Tier, TierConfig> = {
     priceMonthly: 249,
     priceYearly: 187,
     minFlyers: 300,
-    followUp: true,        // alleen bij jaarcontract · kostprijs print.one
+    followUp: true,        // alleen bij jaarcontract · gereduceerd tarief
     abTesting: false,
     abTestMinFlyers: 300,
     exclusivity: false,

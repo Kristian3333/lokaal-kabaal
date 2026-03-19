@@ -98,7 +98,7 @@ export default function Landing() {
               LokaalKabaal verstuurt elke 25e automatisch jouw flyer naar alle nieuwe eigenaren in jouw postcodes. Eén abonnement, exclusief per branche per postcode, geen handmatig werk.
             </p>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '24px' }}>
-              {['€69 – €299/maand', 'Exclusief per branche/postcode', 'Elke 25e automatisch'].map(tag => (
+              {['€249 – €999/maand', 'Exclusief per branche/postcode', 'Elke 25e automatisch'].map(tag => (
                 <span key={tag} style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--ink)', background: 'var(--paper)', border: '1px solid var(--line)', padding: '3px 8px', borderRadius: '3px' }}>{tag}</span>
               ))}
             </div>
@@ -159,7 +159,7 @@ export default function Landing() {
           Bekijk abonnementen →
         </Link>
         <div style={{ marginTop: '16px', fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-          Geen contract · Per maand opzegbaar · Vanaf €69/mnd
+          Geen contract · Per maand opzegbaar · Vanaf €249/mnd
         </div>
       </section>
 
