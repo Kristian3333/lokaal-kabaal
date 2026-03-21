@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
            metadata: { platform: 'lokaalkabaal' },
          });
 
-    const baseUrl = process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
     const isYearly = billing === 'yearly';
 
     // Jaarlijks: één betaling van het totale jaarbedrag (incasso-vriendelijk)

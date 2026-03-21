@@ -8,12 +8,12 @@ export function generateVerificationCode(): string {
 }
 
 export function buildQRUrl(code: string): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL || 'https://lokaalkabaal.agency';
+  const base = process.env.NEXT_PUBLIC_APP_URL || 'https://lokaalkabaal.vercel.app';
   return `${base}/v/${code}`;
 }
 
 export function buildVerificationPageUrl(code: string): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL || 'https://lokaalkabaal.agency';
+  const base = process.env.NEXT_PUBLIC_APP_URL || 'https://lokaalkabaal.vercel.app';
   return `${base}/verify/${code}`;
 }
 
