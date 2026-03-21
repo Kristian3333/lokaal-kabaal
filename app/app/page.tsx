@@ -1864,6 +1864,14 @@ export default function LokaalKabaal() {
   const [winkelPinMsg, setWinkelPinMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [winkelPinLoaded, setWinkelPinLoaded] = useState(false);
 
+  // Branding state
+  const [brandLogoUrl, setBrandLogoUrl] = useState('');
+  const [brandKleur, setBrandKleur] = useState('#00E87A');
+  const [brandWelkomst, setBrandWelkomst] = useState('');
+  const [brandLoading, setBrandLoading] = useState(false);
+  const [brandMsg, setBrandMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [brandLoaded, setBrandLoaded] = useState(false);
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem('lk_user');
@@ -3842,7 +3850,7 @@ export default function LokaalKabaal() {
   }
 
   function renderConversies() {
-    // Laad pincode als dat nog niet is gebeurd
+    // Laad pincode + branding als dat nog niet is gebeurd
     if (!winkelPinLoaded && user?.email) {
       setWinkelPinLoaded(true);
       fetch(`/api/pincode?email=${encodeURIComponent(user.email)}`)
@@ -3850,6 +3858,17 @@ export default function LokaalKabaal() {
         .then(d => {
           setWinkelPin(d.pincode ?? null);
           setWinkelPinInput(d.pincode ?? '');
+        })
+        .catch(() => {});
+    }
+    if (!brandLoaded && user?.email) {
+      setBrandLoaded(true);
+      fetch(`/api/branding?email=${encodeURIComponent(user.email)}`)
+        .then(r => r.json())
+        .then(d => {
+          setBrandLogoUrl(d.logoUrl ?? '');
+          setBrandKleur(d.merkKleur ?? '#00E87A');
+          setBrandWelkomst(d.welkomstTekst ?? '');
         })
         .catch(() => {});
     }
@@ -3965,6 +3984,148 @@ export default function LokaalKabaal() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Codes exporteren voor webshop */}
+        {campaigns.filter(c => c.status !== 'geannuleerd').length > 0 && (
+          <div style={{
+            background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)',
+            padding: '20px 24px', marginBottom: '20px',
+          }}>
+            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '4px', color: 'var(--ink)' }}>
+              Codes exporteren
+            </div>
+            <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '14px' }}>
+              Download de kortingscodes als CSV om ze te importeren in je webshop (Shopify, WooCommerce, Lightspeed, etc.).
+              Wanneer een klant online een code gebruikt, wordt de conversie automatisch geregistreerd.
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '14px' }}>
+              {campaigns.filter(c => c.status !== 'geannuleerd').map(c => (
+                <button
+                  key={c.id}
+                  onClick={() => {
+                    window.open(`/api/codes/export?campagneId=${c.id}&format=csv`, '_blank');
+                  }}
+                  style={{
+                    padding: '8px 16px', background: 'var(--paper2)', border: '1px solid var(--line)',
+                    borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: '12px',
+                    fontFamily: 'var(--font-mono)', color: 'var(--ink)', fontWeight: 600,
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                  }}
+                >
+                  <span style={{ fontSize: '14px' }}>&#8615;</span>
+                  {c.centrum} — CSV
+                </button>
+              ))}
+            </div>
+
+            <div style={{
+              background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)',
+              padding: '10px 14px', fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)',
+              lineHeight: 1.7,
+            }}>
+              <strong style={{ color: 'var(--ink)' }}>Online conversies terugkoppelen</strong>
+              <br />
+              Optie 1: Importeer de codes als kortingscodes in je webshop. Koppel een webhook aan:{' '}
+              <code style={{ background: 'var(--white)', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>
+                POST /api/codes/redeem
+              </code>
+              <br />
+              Optie 2: Download de CSV, importeer in je webshop, en upload de gebruikte codes later handmatig.
+            </div>
+          </div>
+        )}
+
+        {/* Branding voor QR-landingspagina */}
+        <div style={{
+          background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)',
+          padding: '20px 24px', marginBottom: '20px',
+        }}>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '4px', color: 'var(--ink)' }}>
+            Landingspagina branding
+          </div>
+          <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '14px' }}>
+            Pas de pagina aan die klanten zien wanneer ze de QR-code scannen. Voeg je logo, merkkleur en welkomsttekst toe.
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>LOGO URL</label>
+              <input
+                value={brandLogoUrl}
+                onChange={e => { setBrandLogoUrl(e.target.value); setBrandMsg(null); }}
+                placeholder="https://jouwsite.nl/logo.png"
+                style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)', fontSize: '13px', boxSizing: 'border-box' as const }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>MERKKLEUR</label>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <input
+                  type="color"
+                  value={brandKleur}
+                  onChange={e => { setBrandKleur(e.target.value); setBrandMsg(null); }}
+                  style={{ width: '40px', height: '34px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', cursor: 'pointer', padding: '2px' }}
+                />
+                <input
+                  value={brandKleur}
+                  onChange={e => { setBrandKleur(e.target.value); setBrandMsg(null); }}
+                  placeholder="#FF6B00"
+                  style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)', fontSize: '13px', fontFamily: 'var(--font-mono)', boxSizing: 'border-box' as const }}
+                />
+              </div>
+            </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>WELKOMSTTEKST (optioneel)</label>
+              <textarea
+                value={brandWelkomst}
+                onChange={e => { setBrandWelkomst(e.target.value); setBrandMsg(null); }}
+                placeholder="Welkom in de buurt! Kom langs voor 10% korting op je eerste behandeling."
+                rows={2}
+                style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)', fontSize: '13px', resize: 'vertical', boxSizing: 'border-box' as const }}
+              />
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '12px' }}>
+            <button
+              onClick={async () => {
+                if (!user?.email) return;
+                setBrandLoading(true);
+                setBrandMsg(null);
+                try {
+                  const res = await fetch('/api/branding', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      email: user.email,
+                      logoUrl: brandLogoUrl,
+                      merkKleur: brandKleur,
+                      welkomstTekst: brandWelkomst,
+                    }),
+                  });
+                  const data = await res.json();
+                  setBrandMsg(res.ok ? { ok: true, text: 'Branding opgeslagen' } : { ok: false, text: data.error || 'Fout' });
+                } catch {
+                  setBrandMsg({ ok: false, text: 'Netwerkfout' });
+                } finally {
+                  setBrandLoading(false);
+                }
+              }}
+              disabled={brandLoading}
+              style={{
+                padding: '10px 20px', background: brandLoading ? 'var(--muted)' : 'var(--ink)',
+                color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)',
+                cursor: brandLoading ? 'wait' : 'pointer', fontWeight: 700, fontSize: '13px',
+              }}
+            >
+              Opslaan
+            </button>
+            {brandMsg && (
+              <span style={{ fontSize: '12px', fontWeight: 600, color: brandMsg.ok ? '#00875A' : '#CC0000' }}>
+                {brandMsg.text}
+              </span>
+            )}
           </div>
         </div>
 

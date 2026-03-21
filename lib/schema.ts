@@ -30,6 +30,10 @@ export const retailers = pgTable('retailers', {
   dashboardActiefTot:   timestamp('dashboard_actief_tot'),
   // 4-cijferige pincode voor conversie-verzilvering door personeel
   winkelPincode:        varchar('winkel_pincode', { length: 6 }),
+  // Branding voor klantgerichte verify-pagina
+  logoUrl:              varchar('logo_url', { length: 500 }),
+  merkKleur:            varchar('merk_kleur', { length: 7 }),   // hex bijv. '#FF6B00'
+  welkomstTekst:        varchar('welkomst_tekst', { length: 500 }),
   createdAt:            timestamp('created_at').defaultNow().notNull(),
   updatedAt:            timestamp('updated_at').defaultNow().notNull(),
 }, (t) => ({

@@ -42,6 +42,9 @@ CREATE TABLE IF NOT EXISTS retailers (
   periode_eind TIMESTAMP,
   dashboard_actief_tot TIMESTAMP,
   winkel_pincode VARCHAR(6),
+  logo_url VARCHAR(500),
+  merk_kleur VARCHAR(7),
+  welkomst_tekst VARCHAR(500),
   created_at TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function PinForm({ code }: { code: string }) {
+export default function PinForm({ code, accentColor }: { code: string; accentColor?: string }) {
   const [open, setOpen] = useState(false);
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
@@ -96,7 +96,7 @@ export default function PinForm({ code }: { code: string }) {
           onClick={handleSubmit}
           disabled={loading || pin.length < 4}
           style={{
-            padding: '10px 20px', background: loading ? '#999' : '#0A0A0A',
+            padding: '10px 20px', background: loading ? '#999' : (accentColor || '#0A0A0A'),
             color: '#fff', border: 'none', borderRadius: '10px',
             fontWeight: 700, fontSize: '14px',
             cursor: loading ? 'wait' : 'pointer',
