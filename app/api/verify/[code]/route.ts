@@ -3,6 +3,8 @@ import { db } from '@/lib/db';
 import { flyerVerifications } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 
+// ─── GET /api/verify/[code] — Interesse registreren (consument scant QR) ─────
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: { code: string } }
@@ -20,40 +22,103 @@ export async function GET(
     .limit(1);
 
   if (!rows.length) {
-    return NextResponse.json({ status: 'invalid', message: 'Ongeldige code', emoji: '❌' }, { status: 404 });
+    return NextResponse.json({ status: 'invalid', message: 'Ongeldige code' }, { status: 404 });
   }
 
   const v = rows[0];
-
-  if (v.gebruikt) {
-    return NextResponse.json({
-      status: 'used',
-      message: 'Al ingewisseld',
-      gebruiktOp: v.gebruiktOp,
-      emoji: '⚠️',
-    }, { status: 409 });
-  }
 
   if (new Date() > new Date(v.geldigTot)) {
     return NextResponse.json({
       status: 'expired',
       message: 'Verlopen',
       geldigTot: v.geldigTot,
-      emoji: '⏰',
     }, { status: 410 });
   }
 
-  // Geldig — markeer als gebruikt
+  if (v.interesseOp) {
+    return NextResponse.json({
+      status: 'interesse',
+      message: 'Al gescand door consument',
+      interesseOp: v.interesseOp,
+      conversieOp: v.conversieOp ?? null,
+    });
+  }
+
+  // Eerste scan → registreer interesse
   await db
     .update(flyerVerifications)
-    .set({ gebruikt: true, gebruiktOp: new Date() })
+    .set({ interesseOp: new Date() })
     .where(eq(flyerVerifications.code, code));
 
   return NextResponse.json({
-    status: 'valid',
-    emoji: '✅',
+    status: 'interesse',
+    message: 'Interesse geregistreerd',
     adres: `${v.adres}, ${v.postcode} ${v.stad}`,
     geldigTot: v.geldigTot,
-    message: 'Nieuwe bewoner geverifieerd',
+  });
+}
+
+// ─── POST /api/verify/[code] — Conversie registreren (bedrijf scant bij kassa) ─
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { code: string } }
+) {
+  if (!db) {
+    return NextResponse.json({ status: 'error', message: 'Database niet geconfigureerd' }, { status: 503 });
+  }
+
+  const code = params.code.toUpperCase().trim();
+  const body = await req.json().catch(() => ({}));
+  const { retailerId } = body as { retailerId?: string };
+
+  const rows = await db
+    .select()
+    .from(flyerVerifications)
+    .where(eq(flyerVerifications.code, code))
+    .limit(1);
+
+  if (!rows.length) {
+    return NextResponse.json({ status: 'invalid', message: 'Ongeldige code' }, { status: 404 });
+  }
+
+  const v = rows[0];
+
+  // Controleer dat de retailer bij deze flyer hoort
+  if (retailerId && v.retailerId !== retailerId) {
+    return NextResponse.json({ status: 'forbidden', message: 'Code hoort niet bij dit bedrijf' }, { status: 403 });
+  }
+
+  if (new Date() > new Date(v.geldigTot)) {
+    return NextResponse.json({ status: 'expired', message: 'Verlopen', geldigTot: v.geldigTot }, { status: 410 });
+  }
+
+  if (v.conversieOp) {
+    return NextResponse.json({
+      status: 'already-converted',
+      message: 'Al ingewisseld',
+      conversieOp: v.conversieOp,
+    }, { status: 409 });
+  }
+
+  // Registreer conversie + markeer als gebruikt
+  const now = new Date();
+  await db
+    .update(flyerVerifications)
+    .set({
+      conversieOp: now,
+      gebruikt: true,
+      gebruiktOp: now,
+      // Als consument nog niet had gescand, registreer interesse ook (walk-in)
+      ...(!v.interesseOp ? { interesseOp: now } : {}),
+    })
+    .where(eq(flyerVerifications.code, code));
+
+  return NextResponse.json({
+    status: 'conversie',
+    message: 'Conversie geregistreerd',
+    adres: `${v.adres}, ${v.postcode} ${v.stad}`,
+    interesseOp: v.interesseOp ?? now,
+    conversieOp: now,
   });
 }

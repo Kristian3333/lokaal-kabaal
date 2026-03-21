@@ -153,10 +153,16 @@ export const flyerVerifications = pgTable('flyer_verifications', {
   geldigTot:       timestamp('geldig_tot').notNull(),
   gebruikt:        boolean('gebruikt').default(false).notNull(),
   gebruiktOp:      timestamp('gebruikt_op'),
+  // QR-scan tracking: interesse = consument scant, conversie = bedrijf scant bij kassa
+  interesseOp:     timestamp('interesse_op'),
+  conversieOp:     timestamp('conversie_op'),
   followUpVerzonden: boolean('follow_up_verzonden').default(false).notNull(),
   followUpOp:        timestamp('follow_up_op'),
   abTestId:        uuid('ab_test_id').references(() => abTests.id),
   abTestVariant:   varchar('ab_test_variant', { length: 1 }),
+  // Print.one batch tracking
+  printoneBatchId: varchar('printone_batch_id', { length: 100 }),
+  printoneOrderId: varchar('printone_order_id', { length: 100 }),
   createdAt:       timestamp('created_at').defaultNow().notNull(),
 }, (t) => ({
   codeIdx:      index('idx_fv_code').on(t.code),

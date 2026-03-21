@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { db } from '@/lib/db';
-import { flyerVerifications } from '@/lib/schema';
+import { flyerVerifications, retailers } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 
 export const metadata: Metadata = { title: 'Verificatie — LokaalKabaal' };
@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: 'Verificatie — LokaalKabaal' };
 // Disable caching — elke scan is uniek
 export const dynamic = 'force-dynamic';
 
-type Status = 'valid' | 'used' | 'expired' | 'invalid' | 'no-db';
+type Status = 'interesse' | 'already-scanned' | 'expired' | 'invalid' | 'conversie' | 'no-db';
 
 interface Config {
   bg: string;
@@ -27,7 +27,7 @@ export default async function VerifyPage({
 
   let status: Status = 'invalid';
   let sub = 'Deze code bestaat niet.';
-  let adresText = '';
+  let bedrijfsnaam = '';
 
   if (!db) {
     status = 'no-db';
@@ -44,36 +44,51 @@ export default async function VerifyPage({
       sub = 'Deze code bestaat niet.';
     } else {
       const v = rows[0];
-      adresText = `${v.adres}, ${v.postcode} ${v.stad}`;
 
-      if (v.gebruikt) {
-        status = 'used';
-        const d = v.gebruiktOp
-          ? new Date(v.gebruiktOp).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-          : '—';
-        sub = `Ingewisseld op ${d}`;
-      } else if (new Date() > new Date(v.geldigTot)) {
+      // Haal bedrijfsnaam op
+      const retailerRows = await db
+        .select({ bedrijfsnaam: retailers.bedrijfsnaam })
+        .from(retailers)
+        .where(eq(retailers.id, v.retailerId))
+        .limit(1);
+      bedrijfsnaam = retailerRows[0]?.bedrijfsnaam ?? '';
+
+      if (new Date() > new Date(v.geldigTot)) {
         status = 'expired';
         const d = new Date(v.geldigTot).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
-        sub = `Geldig was t/m ${d}`;
+        sub = `Deze aanbieding was geldig t/m ${d}.`;
+      } else if (v.conversieOp) {
+        // Al bij de winkel ingewisseld
+        status = 'conversie';
+        const d = new Date(v.conversieOp).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
+        sub = `Al ingewisseld op ${d}.`;
+      } else if (v.interesseOp) {
+        // Al eerder gescand door consument
+        status = 'already-scanned';
+        sub = bedrijfsnaam
+          ? `Ga langs bij ${bedrijfsnaam} en toon deze code voor een welkomstaanbieding.`
+          : 'Ga langs bij de winkel en toon deze code voor een welkomstaanbieding.';
       } else {
-        // ✅ Geldig — markeer als gebruikt (eenmalig)
+        // Eerste scan door consument → registreer interesse
         await db
           .update(flyerVerifications)
-          .set({ gebruikt: true, gebruiktOp: new Date() })
+          .set({ interesseOp: new Date() })
           .where(eq(flyerVerifications.code, code));
-        status = 'valid';
-        sub = `Nieuwe bewoner van ${adresText}`;
+        status = 'interesse';
+        sub = bedrijfsnaam
+          ? `Ga langs bij ${bedrijfsnaam} en toon deze code voor een welkomstaanbieding!`
+          : 'Ga langs bij de winkel en toon deze code voor een welkomstaanbieding!';
       }
     }
   }
 
   const configs: Record<Status, Config> = {
-    valid:   { bg: '#00E87A', ring: '#00C265', icon: '✓', titel: 'Geldig',      sub },
-    used:    { bg: '#FF3B3B', ring: '#CC2F2F', icon: '✗', titel: 'Al gebruikt', sub },
-    expired: { bg: '#FF9500', ring: '#CC7700', icon: '!', titel: 'Verlopen',    sub },
-    invalid: { bg: '#FF3B3B', ring: '#CC2F2F', icon: '✗', titel: 'Ongeldig',   sub },
-    'no-db': { bg: '#888',    ring: '#666',    icon: '?', titel: 'Onbeschikbaar', sub },
+    interesse:       { bg: '#00E87A', ring: '#00C265', icon: '✓', titel: 'Welkom!',         sub },
+    'already-scanned': { bg: '#60a5fa', ring: '#3b82f6', icon: 'i', titel: 'Al gescand',    sub },
+    conversie:       { bg: '#8b5cf6', ring: '#7c3aed', icon: '★', titel: 'Ingewisseld',     sub },
+    expired:         { bg: '#FF9500', ring: '#CC7700', icon: '!', titel: 'Verlopen',         sub },
+    invalid:         { bg: '#FF3B3B', ring: '#CC2F2F', icon: '✗', titel: 'Ongeldig',        sub },
+    'no-db':         { bg: '#888',    ring: '#666',    icon: '?', titel: 'Onbeschikbaar',   sub },
   };
 
   const c = configs[status];
@@ -135,10 +150,29 @@ export default async function VerifyPage({
           borderRadius: '10px',
           display: 'inline-block',
           letterSpacing: '0.12em',
-          marginBottom: '36px',
+          marginBottom: '20px',
         }}>
           {code}
         </div>
+
+        {/* Bedrijfsnaam */}
+        {bedrijfsnaam && (
+          <div style={{ fontSize: '13px', color: '#999', marginBottom: '16px' }}>
+            {bedrijfsnaam}
+          </div>
+        )}
+
+        {/* CTA voor interesse */}
+        {(status === 'interesse' || status === 'already-scanned') && (
+          <div style={{
+            background: '#0A0A0A', color: '#fff',
+            padding: '14px 24px', borderRadius: '10px',
+            fontSize: '14px', fontWeight: 700,
+            marginBottom: '16px',
+          }}>
+            Toon deze pagina bij de kassa
+          </div>
+        )}
 
         {/* Brand */}
         <div style={{ fontSize: '11px', color: '#ccc', letterSpacing: '0.10em', textTransform: 'uppercase' }}>

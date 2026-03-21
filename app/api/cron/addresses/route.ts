@@ -3,7 +3,7 @@ import { db } from '../../../../lib/db';
 import {
   retailers, campaigns, flyerVerifications, creditLedger,
 } from '../../../../lib/schema';
-import { eq, and, lte, gte, sql } from 'drizzle-orm';
+import { eq, and, lte, gte } from 'drizzle-orm';
 import { generateVerificationCode, buildQRUrl } from '../../../../lib/verification';
 
 export const maxDuration = 300;
@@ -99,26 +99,71 @@ async function po<T>(path: string, method = 'GET', body?: unknown): Promise<{ ok
   return { ok: res.ok, status: res.status, data: data as T };
 }
 
-async function sendPrintoneOrder(params: {
-  templateId: string;
-  recipient: { name: string; address: string; city: string; postalCode: string };
-  sender: { name: string; address: string; city: string; postalCode: string };
-  finish?: string;
-}): Promise<{ orderId: string } | null> {
-  if (!process.env.PRINTONE_API_KEY) return null; // geen API key → skip verzending
+// ─── Print.one Batch API ─────────────────────────────────────────────────────
+// 1. createBatch() → maakt een batch aan met template + finish
+// 2. addBatchOrder() → voegt individuele orders toe aan de batch
+// 3. finalizeBatch() → zet ready=true zodat Print.one gaat verzenden
 
-  const result = await po<{ id?: string; message?: string[] }>('/orders', 'POST', {
+async function createBatch(params: {
+  name: string;
+  templateId: string;
+  finish?: string;
+  sender?: { name: string; address: string; city: string; postalCode: string };
+  sendDate?: string; // ISO date string
+}): Promise<{ batchId: string } | null> {
+  if (!process.env.PRINTONE_API_KEY) return null;
+
+  const result = await po<{ id?: string; message?: string[] }>('/batches', 'POST', {
+    name: params.name,
     templateId: params.templateId,
     finish: params.finish ?? 'GLOSSY',
-    sender: { ...params.sender, country: 'NL' },
-    recipient: { ...params.recipient, country: 'NL' },
+    ready: params.sendDate ?? null, // null = wacht op handmatige goedkeuring
+    requiredCount: 1,
+    ...(params.sender ? {
+      sender: { ...params.sender, country: 'NL' },
+    } : {}),
   });
 
   if (!result.ok) {
-    console.warn('[cron] Print.one order mislukt:', result.data);
+    console.warn('[cron] Print.one batch aanmaken mislukt:', result.data);
+    return null;
+  }
+  return { batchId: (result.data as { id: string }).id };
+}
+
+async function addBatchOrder(batchId: string, params: {
+  recipient: { name: string; address: string; city: string; postalCode: string };
+  mergeVariables?: Record<string, string>;
+}): Promise<{ orderId: string } | null> {
+  if (!process.env.PRINTONE_API_KEY) return null;
+
+  const result = await po<{ id?: string; message?: string[] }>(
+    `/batches/${batchId}/orders`, 'POST', {
+      recipient: { ...params.recipient, country: 'NL' },
+      mergeVariables: params.mergeVariables ?? {},
+    },
+  );
+
+  if (!result.ok) {
+    console.warn('[cron] Print.one batch order mislukt:', result.data);
     return null;
   }
   return { orderId: (result.data as { id: string }).id };
+}
+
+async function finalizeBatch(batchId: string): Promise<boolean> {
+  if (!process.env.PRINTONE_API_KEY) return false;
+
+  const result = await po<{ id?: string }>(`/batches/${batchId}`, 'PATCH', {
+    ready: true,
+    requiredCount: 1,
+  });
+
+  if (!result.ok) {
+    console.warn('[cron] Print.one batch finaliseren mislukt:', result.data);
+    return false;
+  }
+  return true;
 }
 
 // ─── Hulpfunctie: huidige batch maand als YYYY-MM-DD ─────────────────────────
@@ -240,7 +285,26 @@ export async function GET(req: NextRequest) {
       const werkelijkeAantal = adressen.length;
       const surplusFlyers = campagne.verwachtAantalPerMaand - werkelijkeAantal;
 
-      // ── 3. Verificatiecodes aanmaken + Print.one orders ──────────────────
+      // ── 3. Print.one batch aanmaken ──────────────────────────────────────
+      let batchId: string | null = null;
+
+      if (campagne.flyerTemplateId && process.env.PRINTONE_API_KEY) {
+        const batchResult = await createBatch({
+          name:       `${retailer.bedrijfsnaam} — ${campagne.naam} — ${maand}`,
+          templateId: campagne.flyerTemplateId,
+          finish:     'GLOSSY',
+          sender: {
+            name:       retailer.bedrijfsnaam,
+            address:    SENDER_DEFAULT.address,
+            city:       SENDER_DEFAULT.city,
+            postalCode: SENDER_DEFAULT.postalCode,
+          },
+        });
+        batchId = batchResult?.batchId ?? null;
+        if (batchId) console.log(`[cron] batch aangemaakt: ${batchId}`);
+      }
+
+      // ── 4. Verificatiecodes + batch orders per adres ────────────────────
       const verzendTaken: Array<() => Promise<void>> = [];
 
       for (const adres of adressen) {
@@ -250,7 +314,29 @@ export async function GET(req: NextRequest) {
           const geldigTot = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
           const volledigAdres = `${adres.street} ${adres.houseNumber}`;
 
-          // Sla verificatiecode op
+          let printoneOrderId: string | undefined;
+
+          // Print.one batch order toevoegen
+          if (batchId) {
+            const order = await addBatchOrder(batchId, {
+              recipient: {
+                name:       `Bewoners ${volledigAdres}`,
+                address:    volledigAdres,
+                city:       adres.city,
+                postalCode: adres.postalCode,
+              },
+              mergeVariables: {
+                qr_url: qrUrl,
+                code,
+                adres: volledigAdres,
+                postcode: adres.postalCode,
+                stad: adres.city,
+              },
+            });
+            printoneOrderId = order?.orderId;
+          }
+
+          // Sla verificatiecode op in DB
           try {
             await db!.insert(flyerVerifications).values({
               code,
@@ -261,37 +347,12 @@ export async function GET(req: NextRequest) {
               campagneId: campagne.id,
               overdrachtDatum: adres.transactionDate,
               geldigTot,
+              printoneBatchId: batchId ?? undefined,
+              printoneOrderId,
             });
+            result.verzonden++;
           } catch (dbErr) {
             console.warn(`[cron] DB insert verificatie mislukt (${code}):`, dbErr);
-            return;
-          }
-
-          // Print.one order aanmaken (alleen als template geconfigureerd is)
-          if (campagne.flyerTemplateId) {
-            const ontvanger = {
-              name:       `Bewoners ${volledigAdres}`,
-              address:    volledigAdres,
-              city:       adres.city,
-              postalCode: adres.postalCode,
-            };
-            const afzender = {
-              name:       retailer.bedrijfsnaam,
-              address:    SENDER_DEFAULT.address,
-              city:       SENDER_DEFAULT.city,
-              postalCode: SENDER_DEFAULT.postalCode,
-            };
-            const order = await sendPrintoneOrder({
-              templateId: campagne.flyerTemplateId,
-              recipient:  ontvanger,
-              sender:     afzender,
-            });
-            if (order) {
-              result.verzonden++;
-            }
-          } else {
-            // Geen template: tel als "klaar voor handmatige verzending"
-            result.verzonden++;
           }
         });
       }
@@ -299,7 +360,13 @@ export async function GET(req: NextRequest) {
       // Verwerk met max 5 gelijktijdige requests
       await withConcurrency(verzendTaken, 5, (fn) => fn());
 
-      // ── 4. Credit ledger bijwerken ────────────────────────────────────────
+      // ── 5. Batch finaliseren → Print.one gaat verzenden ──────────────────
+      if (batchId) {
+        const ok = await finalizeBatch(batchId);
+        console.log(`[cron] batch ${batchId} ${ok ? 'gefinaliseerd' : 'NIET gefinaliseerd'}`);
+      }
+
+      // ── 6. Credit ledger bijwerken ────────────────────────────────────────
       if (surplusFlyers > 0) {
         // Er waren minder overdrachten dan verwacht → surplus bijschrijven
         await db!.insert(creditLedger).values({
@@ -313,7 +380,7 @@ export async function GET(req: NextRequest) {
         result.credits = surplusFlyers;
       }
 
-      // ── 5. Laatste batch: campagne afronden + dashboard verlengen ─────────
+      // ── 7. Laatste batch: campagne afronden + dashboard verlengen ─────────
       const isLaatsteBatch = campagne.eindMaand === maand;
       if (isLaatsteBatch) {
         const dashboardActiefTot = new Date(now.getFullYear(), now.getMonth() + 2, 0); // einde volgende maand
