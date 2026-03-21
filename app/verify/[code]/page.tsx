@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { db } from '@/lib/db';
 import { flyerVerifications, retailers } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
+import PinForm from './PinForm';
 
 export const metadata: Metadata = { title: 'Verificatie — LokaalKabaal' };
 
@@ -28,6 +29,7 @@ export default async function VerifyPage({
   let status: Status = 'invalid';
   let sub = 'Deze code bestaat niet.';
   let bedrijfsnaam = '';
+  let heeftPincode = false;
 
   if (!db) {
     status = 'no-db';
@@ -45,13 +47,14 @@ export default async function VerifyPage({
     } else {
       const v = rows[0];
 
-      // Haal bedrijfsnaam op
+      // Haal bedrijfsnaam + pincode-status op
       const retailerRows = await db
-        .select({ bedrijfsnaam: retailers.bedrijfsnaam })
+        .select({ bedrijfsnaam: retailers.bedrijfsnaam, winkelPincode: retailers.winkelPincode })
         .from(retailers)
         .where(eq(retailers.id, v.retailerId))
         .limit(1);
       bedrijfsnaam = retailerRows[0]?.bedrijfsnaam ?? '';
+      heeftPincode = !!retailerRows[0]?.winkelPincode;
 
       if (new Date() > new Date(v.geldigTot)) {
         status = 'expired';
@@ -172,6 +175,11 @@ export default async function VerifyPage({
           }}>
             Toon deze pagina bij de kassa
           </div>
+        )}
+
+        {/* Medewerker PIN-verzilvering */}
+        {(status === 'interesse' || status === 'already-scanned') && heeftPincode && (
+          <PinForm code={code} />
         )}
 
         {/* Brand */}

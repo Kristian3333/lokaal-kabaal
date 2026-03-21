@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { flyerVerifications } from '@/lib/schema';
+import { flyerVerifications, retailers } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 
 // ─── GET /api/verify/[code] — Interesse registreren (consument scant QR) ─────
@@ -70,7 +70,7 @@ export async function POST(
 
   const code = params.code.toUpperCase().trim();
   const body = await req.json().catch(() => ({}));
-  const { retailerId } = body as { retailerId?: string };
+  const { retailerId, pincode } = body as { retailerId?: string; pincode?: string };
 
   const rows = await db
     .select()
@@ -84,8 +84,21 @@ export async function POST(
 
   const v = rows[0];
 
-  // Controleer dat de retailer bij deze flyer hoort
-  if (retailerId && v.retailerId !== retailerId) {
+  // Authenticatie: via pincode (QR-scan flow) of retailerId (dashboard flow)
+  if (pincode) {
+    const retailerRows = await db
+      .select({ id: retailers.id, winkelPincode: retailers.winkelPincode })
+      .from(retailers)
+      .where(eq(retailers.id, v.retailerId))
+      .limit(1);
+    const retailer = retailerRows[0];
+    if (!retailer?.winkelPincode) {
+      return NextResponse.json({ status: 'error', message: 'Geen pincode ingesteld — stel deze in via het dashboard' }, { status: 400 });
+    }
+    if (retailer.winkelPincode !== pincode) {
+      return NextResponse.json({ status: 'forbidden', message: 'Onjuiste pincode' }, { status: 403 });
+    }
+  } else if (retailerId && v.retailerId !== retailerId) {
     return NextResponse.json({ status: 'forbidden', message: 'Code hoort niet bij dit bedrijf' }, { status: 403 });
   }
 

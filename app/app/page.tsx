@@ -1857,6 +1857,13 @@ export default function LokaalKabaal() {
   const [demoStep, setDemoStep] = useState(0);
   const [spotlightEl, setSpotlightEl] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
 
+  // Winkelpincode state
+  const [winkelPin, setWinkelPin] = useState<string | null>(null);
+  const [winkelPinInput, setWinkelPinInput] = useState('');
+  const [winkelPinLoading, setWinkelPinLoading] = useState(false);
+  const [winkelPinMsg, setWinkelPinMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [winkelPinLoaded, setWinkelPinLoaded] = useState(false);
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem('lk_user');
@@ -3835,6 +3842,42 @@ export default function LokaalKabaal() {
   }
 
   function renderConversies() {
+    // Laad pincode als dat nog niet is gebeurd
+    if (!winkelPinLoaded && user?.email) {
+      setWinkelPinLoaded(true);
+      fetch(`/api/pincode?email=${encodeURIComponent(user.email)}`)
+        .then(r => r.json())
+        .then(d => {
+          setWinkelPin(d.pincode ?? null);
+          setWinkelPinInput(d.pincode ?? '');
+        })
+        .catch(() => {});
+    }
+
+    const savePin = async () => {
+      if (!user?.email || winkelPinInput.length < 4) return;
+      setWinkelPinLoading(true);
+      setWinkelPinMsg(null);
+      try {
+        const res = await fetch('/api/pincode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: user.email, pincode: winkelPinInput }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setWinkelPin(winkelPinInput);
+          setWinkelPinMsg({ ok: true, text: 'Pincode opgeslagen' });
+        } else {
+          setWinkelPinMsg({ ok: false, text: data.error || 'Fout bij opslaan' });
+        }
+      } catch {
+        setWinkelPinMsg({ ok: false, text: 'Netwerkfout' });
+      } finally {
+        setWinkelPinLoading(false);
+      }
+    };
+
     return (
       <>
         <FeatureLockBanner
@@ -3842,6 +3885,89 @@ export default function LokaalKabaal() {
           minTier="agency"
           description="Test twee flyer-varianten tegelijk. Je hebt minimaal 600 flyers nodig (300 per variant). Zie welke variant de hoogste conversie oplevert en schakel automatisch over."
         />
+
+        {/* Winkelpincode instellen */}
+        <div style={{
+          background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)',
+          padding: '20px 24px', marginBottom: '20px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: '240px' }}>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '4px', color: 'var(--ink)' }}>
+                Winkelpincode
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '12px' }}>
+                Met deze pincode kunnen jouw medewerkers flyers verzilveren door de QR-code te scannen.
+                De klant toont de flyer, de medewerker scant de QR-code en voert de pincode in.
+              </div>
+              <div style={{
+                background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)',
+                padding: '10px 14px', fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)',
+                lineHeight: 1.7, marginBottom: '14px',
+              }}>
+                <strong style={{ color: 'var(--ink)' }}>Deel deze pincode met je personeel</strong>
+                <br />
+                Elk personeelslid dat klanten ontvangt (kassa, receptie, balie) heeft deze code nodig om flyers te verzilveren.
+                De code is voor iedereen hetzelfde — je hoeft geen aparte accounts aan te maken.
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+              <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                {winkelPin ? 'Huidige pincode' : 'Nog niet ingesteld'}
+              </div>
+              {winkelPin && (
+                <div style={{
+                  fontFamily: "'SF Mono', monospace", fontSize: '28px', fontWeight: 700,
+                  letterSpacing: '0.2em', color: 'var(--ink)', background: 'var(--paper2)',
+                  padding: '8px 20px', borderRadius: 'var(--radius)', border: '2px solid var(--green)',
+                }}>
+                  {winkelPin}
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={winkelPinInput}
+                  onChange={e => {
+                    setWinkelPinInput(e.target.value.replace(/[^0-9]/g, '').slice(0, 6));
+                    setWinkelPinMsg(null);
+                  }}
+                  onKeyDown={e => { if (e.key === 'Enter') savePin(); }}
+                  placeholder="0000"
+                  style={{
+                    fontFamily: "'SF Mono', monospace", fontSize: '16px', fontWeight: 700,
+                    letterSpacing: '0.15em', textAlign: 'center', width: '100px',
+                    padding: '8px', border: '1px solid var(--line)', borderRadius: 'var(--radius)',
+                    background: 'var(--paper2)',
+                  }}
+                />
+                <button
+                  onClick={savePin}
+                  disabled={winkelPinLoading || winkelPinInput.length < 4}
+                  style={{
+                    padding: '8px 16px', background: winkelPinLoading ? 'var(--muted)' : 'var(--ink)',
+                    color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)',
+                    cursor: winkelPinLoading ? 'wait' : 'pointer', fontWeight: 700, fontSize: '13px',
+                    opacity: winkelPinInput.length < 4 ? 0.4 : 1,
+                  }}
+                >
+                  {winkelPin ? 'Wijzigen' : 'Instellen'}
+                </button>
+              </div>
+              {winkelPinMsg && (
+                <div style={{
+                  fontSize: '12px', fontWeight: 600,
+                  color: winkelPinMsg.ok ? '#00875A' : '#CC0000',
+                }}>
+                  {winkelPinMsg.text}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
         <ConversiesDashboard campaigns={campaigns} onStartCampagne={() => setPage('wizard')} />
       </>
     );

@@ -28,6 +28,8 @@ export const retailers = pgTable('retailers', {
   periodeEind:          timestamp('periode_eind'),
   // Dashboard lifecycle: actief t/m 1 maand na laatste batch
   dashboardActiefTot:   timestamp('dashboard_actief_tot'),
+  // 4-cijferige pincode voor conversie-verzilvering door personeel
+  winkelPincode:        varchar('winkel_pincode', { length: 6 }),
   createdAt:            timestamp('created_at').defaultNow().notNull(),
   updatedAt:            timestamp('updated_at').defaultNow().notNull(),
 }, (t) => ({
