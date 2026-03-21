@@ -5,44 +5,42 @@ function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-02-25.clover' });
 }
 
-// ─── Tier-prijzen (maandelijks, in cents) ─────────────────────────────────────
+// ─── Tier-prijzen ─────────────────────────────────────────────────────────────
 //
-// Print.one A6 bulktarief (300+ stuks): €0,69/stuk incl. bezorging
-// Ons tarief: +30% premium. Prijzen dekken platform + print + bezorging.
-//
-// Buurt:  10 pc4  · €249/m  · €187/m (jaarlijks)
-// Wijk:   50 pc4  · €499/m  · €374/m (jaarlijks)
-// Stad:   onbep.  · €999/m  · €749/m (jaarlijks)
+// Starter:  1 campagne  · €99/m  · €891/jaar  (= €74,25/m · −25%)
+// Pro:      3 campagnes · €199/m · €1.791/jaar (= €149,25/m · −25%)
+// Agency:   Onbeperkt   · €499/m · €4.491/jaar (= €374,25/m · −25%)
 
-const TIER_PRICES: Record<string, { monthly: number; yearly: number; name: string; maxPc4s: number | null }> = {
-  buurt: { monthly: 24900, yearly: 18700, name: 'LokaalKabaal Buurt',  maxPc4s: 10 },
-  wijk:  { monthly: 49900, yearly: 37400, name: 'LokaalKabaal Wijk',   maxPc4s: 50 },
-  stad:  { monthly: 99900, yearly: 74900, name: 'LokaalKabaal Stad',   maxPc4s: null },
+const TIER_PRICES: Record<string, { monthly: number; yearlyTotal: number; name: string; maxCampaigns: number | null }> = {
+  starter: { monthly: 9900,  yearlyTotal:  89100, name: 'LokaalKabaal Starter', maxCampaigns: 1 },
+  pro:     { monthly: 19900, yearlyTotal: 179100, name: 'LokaalKabaal Pro',     maxCampaigns: 3 },
+  agency:  { monthly: 49900, yearlyTotal: 449100, name: 'LokaalKabaal Agency',  maxCampaigns: null },
 };
 
 export async function POST(req: NextRequest) {
   try {
     const {
-      tier,           // 'buurt' | 'wijk' | 'stad'
+      tier,           // 'starter' | 'pro' | 'agency'
       billing,        // 'monthly' | 'yearly'
-      email,          // klant e-mail
-      bedrijfsnaam,   // bedrijfsnaam
-      branche,        // branche/categorie
-      postcodes,      // string[] — geselecteerde pc4's
+      email,
+      bedrijfsnaam,
+      branche,
+      // Campagne-context (optioneel, voor metadata)
+      centrum,
+      duurMaanden,
+      verwachtAantalPerMaand,
+      formaat,
+      dubbelzijdig,
     } = await req.json();
 
-    if (!tier || !billing || !email) {
-      return NextResponse.json({ error: 'tier, billing en email zijn verplicht' }, { status: 400 });
+    if (!tier || !email || !billing) {
+      return NextResponse.json({ error: 'tier, email en billing zijn verplicht' }, { status: 400 });
     }
 
     const tierConfig = TIER_PRICES[tier as string];
     if (!tierConfig) {
       return NextResponse.json({ error: `Ongeldig pakket: ${tier}` }, { status: 400 });
     }
-
-    const isYearly = billing === 'yearly';
-    const unitAmount = isYearly ? tierConfig.yearly * 12 : tierConfig.monthly;
-    const interval = isYearly ? 'year' : 'month';
 
     const stripe = getStripe();
 
@@ -55,20 +53,28 @@ export async function POST(req: NextRequest) {
            metadata: { platform: 'lokaalkabaal' },
          });
 
-    const pc4String = Array.isArray(postcodes) ? postcodes.join(',') : (postcodes ?? '');
+    const baseUrl = process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000';
+    const isYearly = billing === 'yearly';
+
+    // Jaarlijks: één betaling van het totale jaarbedrag (incasso-vriendelijk)
+    // Maandelijks: terugkerend maandbedrag
+    const unitAmount = isYearly ? tierConfig.yearlyTotal : tierConfig.monthly;
+    const interval: 'month' | 'year' = isYearly ? 'year' : 'month';
 
     const session = await stripe.checkout.sessions.create({
       customer: customer.id,
       mode: 'subscription',
-      payment_method_types: ['card', 'ideal'],
+      payment_method_types: ['card', 'ideal', 'sepa_debit'],
       line_items: [
         {
           price_data: {
             currency: 'eur',
             product_data: {
-              name: `${tierConfig.name} — ${branche ?? 'Branche'}`,
+              name: `${tierConfig.name} — ${branche ?? 'Lokale retailer'}`,
               description: [
-                tierConfig.maxPc4s ? `${tierConfig.maxPc4s} postcodegebieden` : 'Onbeperkt postcodegebieden',
+                tierConfig.maxCampaigns !== null
+                  ? `Max. ${tierConfig.maxCampaigns} gelijktijdige campagne${tierConfig.maxCampaigns !== 1 ? 's' : ''}`
+                  : 'Onbeperkt campagnes',
                 'Min. 300 flyers per batch',
                 'A6 standaard incl. bezorging',
                 isYearly ? 'Jaarcontract (−25%)' : 'Maandelijks opzegbaar',
@@ -85,21 +91,25 @@ export async function POST(req: NextRequest) {
         metadata: {
           tier,
           billing,
-          branche: branche ?? '',
-          bedrijfsnaam: bedrijfsnaam ?? '',
-          postcodes: pc4String,
-          isJaarcontract: isYearly ? 'true' : 'false',
-          platform: 'lokaalkabaal',
+          branche:              branche ?? '',
+          bedrijfsnaam:         bedrijfsnaam ?? '',
+          isJaarcontract:       isYearly ? 'true' : 'false',
+          centrum:              centrum ?? '',
+          duurMaanden:          String(duurMaanden ?? 1),
+          verwachtAantalPerMaand: String(verwachtAantalPerMaand ?? 0),
+          formaat:              formaat ?? 'a6',
+          dubbelzijdig:         dubbelzijdig ? 'true' : 'false',
+          platform:             'lokaalkabaal',
         },
       },
-      success_url: `${process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000'}/app?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url:  `${process.env.NEXT_PUBLIC_URL ?? 'http://localhost:3000'}/app?payment=cancelled`,
+      success_url: `${baseUrl}/app?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url:  `${baseUrl}/app?payment=cancelled`,
       locale: 'nl',
       custom_text: {
         submit: {
           message: isYearly
-            ? 'Het volledige jaarbedrag wordt direct afgeschreven. Bij jaarcontract Stad is persoonlijke flyerhulp inbegrepen.'
-            : 'De eerste maand wordt direct afgeschreven. Maandelijks opzegbaar.',
+            ? `Het volledige jaarbedrag (€${(tierConfig.yearlyTotal / 100).toLocaleString('nl')}) wordt direct afgeschreven via incasso.`
+            : 'De eerste maand wordt direct afgeschreven via automatische incasso op de 25e.',
         },
       },
     });

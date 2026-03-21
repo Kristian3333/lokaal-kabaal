@@ -3,7 +3,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { TIERS, TEST_ACCOUNTS, isTestAccount, type Tier } from '../../lib/tiers';
+import { TIERS, TEST_ACCOUNTS, isTestAccount, canStartCampaign, type Tier } from '../../lib/tiers';
+import { prijsPerStuk, toeslagLabel, type FlyerFormaat } from '../../lib/printone-pricing';
 import FlyerExport, { PREVIEW_PX, PRINT_DIMS } from '../../components/FlyerExport';
 
 const NLMap = dynamic(() => import('../../components/NLMap'), { ssr: false, loading: () => (
@@ -58,34 +59,32 @@ function estimeerDekkingsgebied(straalKm: number): {
   return { pc4Count, estAdressenMaand, referentieVorigjaar, suggestieFlyers };
 }
 
-// A6 enkel­zijdig = standaard (inbegrepen in abonnement, toeslag = 0)
-// Premium formaten rekenen toeslag per verstuurd stuk bovenop het abonnement
-function berekenPrijs(aantalFlyers: number, formaat: string, dubbelzijdig: boolean): number {
-  const formaatToeslag = formaat === 'a5' ? 0.18 : formaat === 'sq' ? 0.19 : 0;
-  const dubbelToeslag  = dubbelzijdig ? 0.10 : 0;
-  return aantalFlyers * (formaatToeslag + dubbelToeslag);
+// Toeslag bovenop A6-basisprijs (€0,69) per formaat — via printone-pricing.ts
+function berekenPrijs(aantalFlyers: number, formaat: FlyerFormaat, dubbelzijdig: boolean): number {
+  // Alleen toeslag t.o.v. A6 enkelvoudig; basisprijs zit in printkosten
+  const pps = prijsPerStuk(formaat, dubbelzijdig);
+  const a6Base = 0.69;
+  return parseFloat(((pps - a6Base) * aantalFlyers).toFixed(2));
 }
 
-// Abonnementsmodel — prijzen per pakket (incl. print + bezorging A6)
-// Buurt:  10 pc4  · €199/m  · Wijk: 50 pc4 · €399/m  · Stad: onbeperkt · €799/m
+// Abonnementsmodel — nieuwe tiers Starter/Pro/Agency (prijzen per maand)
 const ABONNEMENT_TIERS = [
-  { name: 'Buurt', pc4s: 10,       monthly: 199 },
-  { name: 'Wijk',  pc4s: 50,       monthly: 399 },
-  { name: 'Stad',  pc4s: Infinity, monthly: 799 },
+  { name: 'Starter', monthly: 99 },
+  { name: 'Pro',     monthly: 199 },
+  { name: 'Agency',  monthly: 499 },
 ];
 
-function berekenAbonnement(pc4Count: number): {
-  tier: string; includedPc4s: number | string; base: number;
-  extraPc4s: number; extraKosten: number; total: number;
+function berekenAbonnement(userTier: Tier): {
+  tier: string; base: number; total: number;
 } {
-  const n = Math.max(1, pc4Count);
-  for (const t of ABONNEMENT_TIERS) {
-    if (n <= t.pc4s) {
-      return { tier: t.name, includedPc4s: t.pc4s === Infinity ? '∞' : t.pc4s, base: t.monthly, extraPc4s: 0, extraKosten: 0, total: t.monthly };
-    }
-  }
-  // Meer dan 50 pc4s → Stad (onbeperkt, vast tarief)
-  return { tier: 'Stad', includedPc4s: '∞', base: 799, extraPc4s: 0, extraKosten: 0, total: 799 };
+  // Abonnement is nu gekoppeld aan de gekozen plan, niet aan pc4-count
+  const tierMap: Record<Tier, { name: string; monthly: number }> = {
+    starter: { name: 'Starter', monthly: 99 },
+    pro:     { name: 'Pro',     monthly: 199 },
+    agency:  { name: 'Agency',  monthly: 499 },
+  };
+  const t = tierMap[userTier] ?? tierMap.starter;
+  return { tier: t.name, base: t.monthly, total: t.monthly };
 }
 
 function formatPrijs(x: number): string {
@@ -123,8 +122,16 @@ interface WizState {
   centrum: string;
   straal: number;
   aantalFlyers: number;
-  formaat: 'a6' | 'a5' | 'sq';
+  formaat: FlyerFormaat;
   dubbelzijdig: boolean;
+  // Campagne duur (1–24 maanden)
+  duurMaanden: number;
+  // Geavanceerde targeting-filters (Pro/Agency only)
+  filterBouwjaarMin: number;
+  filterBouwjaarMax: number;
+  filterWozMin: number;
+  filterWozMax: number;
+  filterEnergielabel: string[];   // bijv. ['A', 'B', 'C']
   proefFlyer: boolean;
   proefAdres: string;
   email: string;
@@ -1713,6 +1720,11 @@ export default function LokaalKabaal() {
     if (typeof window !== 'undefined') localStorage.setItem('lk_campaigns', JSON.stringify(campaigns));
   }, [campaigns]);
   const [user, setUser] = useState<{ email: string; naam: string; tier?: Tier; isJaarcontract?: boolean } | null>(null);
+  const [subStatus, setSubStatus] = useState<{
+    subscriptionStatus: string;
+    dashboardActiefTot: string | null;
+    dagenResterend: number | null;
+  } | null>(null);
   const [showDemo, setShowDemo] = useState(false);
   const [demoStep, setDemoStep] = useState(0);
   const [spotlightEl, setSpotlightEl] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
@@ -1720,7 +1732,31 @@ export default function LokaalKabaal() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem('lk_user');
-      if (raw) setUser(JSON.parse(raw));
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setUser(parsed);
+        // Haal actuele subscription status op vanuit de DB
+        if (parsed.email) {
+          fetch(`/api/subscription/status?email=${encodeURIComponent(parsed.email)}`)
+            .then(r => r.json())
+            .then(data => {
+              if (data.found) {
+                setSubStatus({
+                  subscriptionStatus: data.subscriptionStatus,
+                  dashboardActiefTot: data.dashboardActiefTot,
+                  dagenResterend: data.dagenResterend,
+                });
+                // Sync tier uit DB als die afwijkt van localStorage
+                if (data.tier && data.tier !== parsed.tier) {
+                  const updated = { ...parsed, tier: data.tier, isJaarcontract: data.isJaarcontract };
+                  localStorage.setItem('lk_user', JSON.stringify(updated));
+                  setUser(updated);
+                }
+              }
+            })
+            .catch(() => {}); // stil falen — DB misschien niet beschikbaar in dev
+        }
+      }
     } catch {}
   }, []);
 
@@ -1800,7 +1836,11 @@ export default function LokaalKabaal() {
     datum: '',
     centrum: '', straal: 10,
     aantalFlyers: 500,
-    formaat: 'a5', dubbelzijdig: false,
+    formaat: 'a6', dubbelzijdig: false,
+    duurMaanden: 3,
+    filterBouwjaarMin: 1900, filterBouwjaarMax: new Date().getFullYear(),
+    filterWozMin: 0, filterWozMax: 2000000,
+    filterEnergielabel: [],
     proefFlyer: false, proefAdres: '', email: '',
     pc4Lijst: [],
     pc4Add: '',
@@ -1810,6 +1850,13 @@ export default function LokaalKabaal() {
   const [wiz, setWiz] = useState<WizState>(INIT_WIZ);
 
   const startNieuweCampagne = () => {
+    // Campagne-slot limiet controleren op basis van tier
+    const activeCampaigns = campaigns.filter(c => c.status === 'actief').length;
+    if (!canStartCampaign(userTier, activeCampaigns)) {
+      const cfg = TIERS[userTier];
+      alert(`Je ${cfg.label}-abonnement staat max. ${cfg.maxCampaigns} gelijktijdige campagne${cfg.maxCampaigns !== 1 ? 's' : ''} toe. Upgrade naar Pro of Agency voor meer campagnes.`);
+      return;
+    }
     setWiz(INIT_WIZ);
     setPage('wizard');
   };
@@ -1976,8 +2023,8 @@ export default function LokaalKabaal() {
   ];
 
   // Helper: controleert of de huidige gebruiker toegang heeft tot een feature op basis van tier
-  const tierOrder: Tier[] = ['buurt', 'wijk', 'stad'];
-  const userTier: Tier = user?.tier ?? 'buurt';
+  const tierOrder: Tier[] = ['starter', 'pro', 'agency'];
+  const userTier: Tier = user?.tier ?? 'starter';
   function hasAccess(minTier: Tier): boolean {
     return tierOrder.indexOf(userTier) >= tierOrder.indexOf(minTier);
   }
@@ -1985,36 +2032,103 @@ export default function LokaalKabaal() {
 
   // ── Pages ──
 
+  // ── Dashboard lifecycle helpers ──────────────────────────────────────────────
+
+  function DashboardLifecycleBanner() {
+    if (!subStatus) return null;
+    const { subscriptionStatus, dagenResterend } = subStatus;
+    const tierCfg = TIERS[userTier];
+
+    // Dashboard verlopen
+    if (subscriptionStatus === 'geannuleerd' && dagenResterend !== null && dagenResterend <= 0) {
+      return (
+        <div style={{
+          background: 'rgba(231,76,60,0.06)', border: '1px solid rgba(231,76,60,0.3)',
+          borderRadius: 'var(--radius)', padding: '20px 24px', marginBottom: '20px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span style={{ width: '8px', height: '8px', background: '#c0392b', borderRadius: '50%', display: 'inline-block' }} />
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: '#c0392b', fontWeight: 700, letterSpacing: '0.06em' }}>DASHBOARD VERLOPEN</span>
+          </div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', marginBottom: '6px' }}>
+            Je abonnement is beëindigd
+          </div>
+          <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '16px', lineHeight: 1.6 }}>
+            Je hebt geen actief abonnement meer. Vernieuw je abonnement om campagnes te blijven beheren en nieuwe bewoners te bereiken.
+          </div>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <a href="/#prijzen" style={{ display: 'inline-block', padding: '10px 20px', background: tierCfg.color, color: '#0A0A0A', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', textDecoration: 'none' }}>
+              Abonnement verlengen →
+            </a>
+            <a href="/#prijzen" style={{ display: 'inline-block', padding: '10px 20px', background: 'var(--ink)', color: '#fff', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', textDecoration: 'none' }}>
+              Jaarlijks (−25%) →
+            </a>
+          </div>
+        </div>
+      );
+    }
+
+    // Dashboard verloopt binnen 14 dagen
+    if (
+      (subscriptionStatus === 'geannuleerd' || subscriptionStatus === 'gepauzeerd') &&
+      dagenResterend !== null && dagenResterend > 0 && dagenResterend <= 14
+    ) {
+      return (
+        <div style={{
+          background: 'rgba(255,160,0,0.06)', border: '1px solid rgba(255,160,0,0.3)',
+          borderRadius: 'var(--radius)', padding: '20px 24px', marginBottom: '20px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <span style={{ width: '8px', height: '8px', background: '#e8a020', borderRadius: '50%', display: 'inline-block' }} />
+            <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: '#e8a020', fontWeight: 700, letterSpacing: '0.06em' }}>DASHBOARD VERLOOPT OVER {dagenResterend} DAG{dagenResterend !== 1 ? 'EN' : ''}</span>
+          </div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '6px' }}>
+            Je campagne is afgelopen — vernieuw om door te gaan
+          </div>
+          <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '16px', lineHeight: 1.6 }}>
+            Na {dagenResterend} dag{dagenResterend !== 1 ? 'en' : ''} vervalt de toegang tot je dashboard en campagnedata. Vernieuw nu en behoud je geschiedenis.
+          </div>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <a href="/#prijzen" style={{ display: 'inline-block', padding: '10px 20px', background: tierCfg.color, color: '#0A0A0A', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', textDecoration: 'none' }}>
+              Maandelijks verlengen ({tierCfg.label} · €{tierCfg.priceMonthly}/mnd) →
+            </a>
+            <a href="/#prijzen" style={{ display: 'inline-block', padding: '10px 20px', background: 'var(--paper2)', color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', textDecoration: 'none' }}>
+              Jaarlijks (−25% · €{tierCfg.priceYearly.toFixed(2).replace('.', ',')}/mnd) →
+            </a>
+          </div>
+        </div>
+      );
+    }
+
+    // Abonnement gepauzeerd (betaling mislukt)
+    if (subscriptionStatus === 'gepauzeerd') {
+      return (
+        <div style={{
+          background: 'rgba(255,160,0,0.06)', border: '1px solid rgba(255,160,0,0.3)',
+          borderRadius: 'var(--radius)', padding: '16px 20px', marginBottom: '20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap',
+        }}>
+          <div>
+            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: '#e8a020', fontWeight: 700, marginBottom: '3px' }}>ABONNEMENT GEPAUZEERD</div>
+            <div style={{ fontSize: '13px', color: 'var(--ink)' }}>Betaling mislukt — update je betaalgegevens om flyers te blijven versturen.</div>
+          </div>
+          <a href="/api/stripe/portal" style={{ display: 'inline-block', padding: '9px 18px', background: '#e8a020', color: '#0A0A0A', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '12px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            Betaalgegevens bijwerken →
+          </a>
+        </div>
+      );
+    }
+
+    return null;
+  }
+
   function renderDashboard() {
     return (
       <div className="fade-in">
 
-        {/* Feature-lock banners voor niet-beschikbare features */}
-        {/* Follow-up: wijk+ tier én jaarcontract vereist */}
-        {(!hasAccess('wijk') || !user?.isJaarcontract) && (
-          <div style={{
-            display: 'flex', alignItems: 'flex-start', gap: '14px',
-            background: '#60a5fa08', border: '1px solid #60a5fa30',
-            borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: '20px',
-          }}>
-            <div style={{ fontSize: '18px', flexShrink: 0, marginTop: '1px' }}>🔒</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '4px', color: 'var(--ink)' }}>
-                Follow-up flyer — alleen bij jaarcontract (Wijk of Stad)
-              </div>
-              <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '10px' }}>
-                Automatisch een 2e kaart versturen naar adressen die de QR nog niet hebben gescand na 30 dagen.
-                De 2e kaart wordt gefactureerd tegen gereduceerd tarief.
-              </div>
-              <button
-                onClick={() => window.open('/#prijzen', '_blank')}
-                style={{ padding: '6px 14px', background: '#60a5fa', color: '#0A0A0A', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: 700, fontSize: '11px', fontFamily: 'var(--font-mono)' }}
-              >
-                Bekijk jaarcontracten →
-              </button>
-            </div>
-          </div>
-        )}
+        {/* Dashboard lifecycle banner */}
+        <DashboardLifecycleBanner />
+
         {/* Dashboard header met nieuwe campagne knop */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', letterSpacing: '0.08em' }}>MIJN CAMPAGNES</div>
@@ -2168,10 +2282,12 @@ export default function LokaalKabaal() {
     const availableMonths = getAvailableMonths();
     const stats = estimeerDekkingsgebied(straal);
     const actualPc4Count = wiz.pc4Lijst.length > 0 ? wiz.pc4Lijst.length : stats.pc4Count;
-    const abonnement = berekenAbonnement(actualPc4Count);
+    const abonnement = berekenAbonnement(userTier);
     const prijs = abonnement.total;
     const proefPrijs = 4.95;
     const totaal = prijs + (proefFlyer ? proefPrijs : 0);
+    const { duurMaanden, filterBouwjaarMin, filterBouwjaarMax, filterWozMin, filterWozMax, filterEnergielabel } = wiz;
+    const kanFiltersGebruiken = hasAccess('pro');
 
     const canNext = (
       (step === 1 && akkoord.av && akkoord.privacy) ||
@@ -2179,8 +2295,9 @@ export default function LokaalKabaal() {
       (step === 3 && datum !== '') ||
       (step === 4 && centrum !== '') ||
       step === 5 ||
-      (step === 6 && (wiz.email || '').includes('@') && (!proefFlyer || adresStatus === 'ok')) ||
-      step === 7
+      step === 6 ||
+      (step === 7 && (wiz.email || '').includes('@') && (!proefFlyer || adresStatus === 'ok')) ||
+      step === 8
     );
 
     const specFiltered = SPECS.filter(s => s.toLowerCase().includes(specQ.toLowerCase()));
@@ -2190,12 +2307,12 @@ export default function LokaalKabaal() {
         {/* Progress bar — fixed top */}
         <div style={{ flexShrink: 0, background: 'var(--paper)', padding: '12px 24px 10px', borderBottom: '1px solid var(--line)' }}>
           <div style={{ display: 'flex', gap: '4px', marginBottom: '6px', maxWidth: '680px' }}>
-            {Array.from({ length: 7 }, (_, i) => (
+            {Array.from({ length: 8 }, (_, i) => (
               <div key={i} style={{ flex: 1, height: '3px', borderRadius: '2px', background: i + 1 <= step ? 'var(--green)' : 'var(--line)', transition: 'background 0.3s' }} />
             ))}
           </div>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)' }}>
-            Stap {step} van 7 — {['Akkoord', 'Branche', 'Startdatum', 'Werkgebied', 'Formaat & aantallen', 'Controleer', 'Bevestiging'][step - 1]}
+            Stap {step} van 8 — {['Akkoord', 'Branche', 'Startdatum', 'Werkgebied', 'Formaat & aantallen', 'Duur & filters', 'Controleer', 'Bevestiging'][step - 1]}
           </div>
         </div>
 
@@ -2311,23 +2428,53 @@ export default function LokaalKabaal() {
                     STRAAL: {straal} KM
                   </label>
                   <input
-                    type="range" min={1} max={1000} step={5} value={straal}
+                    type="range" min={1} max={250} step={1} value={Math.min(straal, 250)}
                     onChange={e => updateWiz({ straal: Number(e.target.value) })}
                     style={{ width: '100%', accentColor: 'var(--green)', marginTop: '8px' }}
                   />
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                    <span>1 km</span><span>250 km</span><span>500 km</span><span>1000 km</span>
+                    <span>1 km</span><span>50 km</span><span>150 km</span><span>250 km</span>
                   </div>
                 </div>
               </div>
 
-              <CoverageVisual centrum={centrum} straalKm={straal} onPc4sChange={list => updateWiz({ pc4Lijst: list })} onEstChange={est => updateWiz({ aantalFlyers: roundUp50(Math.max(250, est)) })} />
+              {(() => {
+                const maxPc4s = TIERS[userTier].maxPc4s;
+                return (
+                  <CoverageVisual
+                    centrum={centrum}
+                    straalKm={straal}
+                    onPc4sChange={list => {
+                      // Kap de lijst op het tier-maximum
+                      const gekapteLijst = maxPc4s !== null ? list.slice(0, maxPc4s) : list;
+                      updateWiz({ pc4Lijst: gekapteLijst });
+                    }}
+                    onEstChange={est => updateWiz({ aantalFlyers: roundUp50(Math.max(250, est)) })}
+                  />
+                );
+              })()}
+
+              {/* PC4 tier-limiet melding */}
+              {(() => {
+                const maxPc4s = TIERS[userTier].maxPc4s;
+                const atLimit = maxPc4s !== null && wiz.pc4Lijst.length >= maxPc4s;
+                return atLimit ? (
+                  <div style={{ marginTop: '12px', background: 'rgba(255,200,0,0.07)', border: '1px solid rgba(255,200,0,0.25)', borderRadius: 'var(--radius)', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                    <div style={{ fontSize: '12px', color: '#b8860b', fontFamily: 'var(--font-mono)' }}>
+                      Limiet bereikt: max. {maxPc4s} pc4's voor {TIERS[userTier].label}
+                    </div>
+                    <a href="/#prijzen" style={{ fontSize: '11px', color: '#b8860b', fontFamily: 'var(--font-mono)', fontWeight: 700, textDecoration: 'underline', whiteSpace: 'nowrap' }}>
+                      Upgrade →
+                    </a>
+                  </div>
+                ) : null;
+              })()}
 
               {/* PC4 chip editor */}
               {wiz.pc4Lijst.length > 0 && (
                 <div style={{ marginTop: '16px' }}>
                   <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
-                    GESELECTEERDE POSTCODES ({wiz.pc4Lijst.length}) — klik × om te verwijderen
+                    GESELECTEERDE POSTCODES ({wiz.pc4Lijst.length}{TIERS[userTier].maxPc4s !== null ? `/${TIERS[userTier].maxPc4s}` : ''}) — klik × om te verwijderen
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
                     {wiz.pc4Lijst.map(pc4 => (
@@ -2344,36 +2491,42 @@ export default function LokaalKabaal() {
                       </span>
                     ))}
                   </div>
-                  {/* Handmatig postcode toevoegen */}
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <input
-                      type="text" maxLength={4} placeholder="+ postcode toevoegen"
-                      value={wiz.pc4Add}
-                      onChange={e => updateWiz({ pc4Add: e.target.value.replace(/\D/g, '').slice(0, 4) })}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter') {
-                          const v = wiz.pc4Add.trim();
-                          if (/^\d{4}$/.test(v) && !wiz.pc4Lijst.includes(v))
-                            updateWiz({ pc4Lijst: [...wiz.pc4Lijst, v].sort(), pc4Add: '' });
-                          else
-                            updateWiz({ pc4Add: '' });
-                        }
-                      }}
-                      style={{ padding: '7px 10px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', fontFamily: 'var(--font-mono)', fontSize: '13px', width: '160px', background: 'var(--paper2)' }}
-                    />
-                    <button
-                      onClick={() => {
-                        const v = wiz.pc4Add.trim();
-                        if (/^\d{4}$/.test(v) && !wiz.pc4Lijst.includes(v))
-                          updateWiz({ pc4Lijst: [...wiz.pc4Lijst, v].sort(), pc4Add: '' });
-                        else
-                          updateWiz({ pc4Add: '' });
-                      }}
-                      style={{ padding: '7px 14px', background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', fontFamily: 'var(--font-mono)', fontSize: '12px', cursor: 'pointer' }}
-                    >
-                      Voeg toe
-                    </button>
-                  </div>
+                  {/* Handmatig postcode toevoegen — geblokkeerd bij limiet */}
+                  {(() => {
+                    const maxPc4s = TIERS[userTier].maxPc4s;
+                    const atLimit = maxPc4s !== null && wiz.pc4Lijst.length >= maxPc4s;
+                    return !atLimit ? (
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <input
+                          type="text" maxLength={4} placeholder="+ postcode toevoegen"
+                          value={wiz.pc4Add}
+                          onChange={e => updateWiz({ pc4Add: e.target.value.replace(/\D/g, '').slice(0, 4) })}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                              const v = wiz.pc4Add.trim();
+                              if (/^\d{4}$/.test(v) && !wiz.pc4Lijst.includes(v))
+                                updateWiz({ pc4Lijst: [...wiz.pc4Lijst, v].sort(), pc4Add: '' });
+                              else
+                                updateWiz({ pc4Add: '' });
+                            }
+                          }}
+                          style={{ padding: '7px 10px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', fontFamily: 'var(--font-mono)', fontSize: '13px', width: '160px', background: 'var(--paper2)' }}
+                        />
+                        <button
+                          onClick={() => {
+                            const v = wiz.pc4Add.trim();
+                            if (/^\d{4}$/.test(v) && !wiz.pc4Lijst.includes(v))
+                              updateWiz({ pc4Lijst: [...wiz.pc4Lijst, v].sort(), pc4Add: '' });
+                            else
+                              updateWiz({ pc4Add: '' });
+                          }}
+                          style={{ padding: '7px 14px', background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', fontFamily: 'var(--font-mono)', fontSize: '12px', cursor: 'pointer' }}
+                        >
+                          Voeg toe
+                        </button>
+                      </div>
+                    ) : null;
+                  })()}
                 </div>
               )}
             </div>
@@ -2402,28 +2555,32 @@ export default function LokaalKabaal() {
                 </div>
               )}
 
-              {/* Formaat */}
+              {/* Formaat — A6 is het standaard Print.one-formaat */}
               <div style={{ marginBottom: '20px' }}>
-                <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '10px' }}>FORMAAT</div>
+                <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '10px' }}>FORMAAT (Print.one tarieven)</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                  {[
-                    { id: 'a6' as const, label: 'A6', afm: '105×148 mm', toeslag: '−€0,10/stuk' },
-                    { id: 'a5' as const, label: 'A5', afm: '148×210 mm', toeslag: 'Standaard', std: true },
-                    { id: 'sq' as const, label: 'Vierkant', afm: '148×148 mm', toeslag: '+€0,05/stuk' },
-                  ].map(f => (
-                    <div key={f.id} onClick={() => updateWiz({ formaat: f.id })}
-                      style={{
-                        padding: '16px', border: `2px solid ${formaat === f.id ? 'var(--green)' : 'var(--line)'}`,
-                        borderRadius: 'var(--radius)', cursor: 'pointer', textAlign: 'center',
-                        background: formaat === f.id ? 'var(--green-bg)' : 'var(--paper)',
-                        transition: 'all 0.15s', position: 'relative',
-                      }}>
-                      {f.std && <div style={{ position: 'absolute', top: '-8px', left: '50%', transform: 'translateX(-50%)', background: 'var(--green)', color: 'var(--ink)', fontSize: '9px', fontWeight: 700, padding: '1px 8px', borderRadius: '2px', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>STANDAARD</div>}
-                      <div style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', marginBottom: '4px' }}>{f.label}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{f.afm}</div>
-                      <div style={{ fontSize: '11px', color: formaat === f.id ? 'var(--green-dim)' : 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '6px' }}>{f.toeslag}</div>
-                    </div>
-                  ))}
+                  {([
+                    { id: 'a6' as FlyerFormaat, label: 'A6', afm: '105×148 mm', std: true },
+                    { id: 'a5' as FlyerFormaat, label: 'A5', afm: '148×210 mm', std: false },
+                    { id: 'sq' as FlyerFormaat, label: 'Vierkant', afm: '148×148 mm', std: false },
+                  ] as const).map(f => {
+                    const toeslag = toeslagLabel(f.id, dubbelzijdig);
+                    const isSelected = formaat === f.id;
+                    return (
+                      <div key={f.id} onClick={() => updateWiz({ formaat: f.id })}
+                        style={{
+                          padding: '16px', border: `2px solid ${isSelected ? 'var(--green)' : 'var(--line)'}`,
+                          borderRadius: 'var(--radius)', cursor: 'pointer', textAlign: 'center',
+                          background: isSelected ? 'var(--green-bg)' : 'var(--paper)',
+                          transition: 'all 0.15s', position: 'relative',
+                        }}>
+                        {f.std && <div style={{ position: 'absolute', top: '-8px', left: '50%', transform: 'translateX(-50%)', background: 'var(--green)', color: 'var(--ink)', fontSize: '9px', fontWeight: 700, padding: '1px 8px', borderRadius: '2px', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>STANDAARD</div>}
+                        <div style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', marginBottom: '4px' }}>{f.label}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{f.afm}</div>
+                        <div style={{ fontSize: '11px', color: isSelected ? 'var(--green-dim)' : 'var(--muted)', fontFamily: 'var(--font-mono)', fontWeight: 600, marginTop: '6px' }}>{toeslag}</div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -2433,9 +2590,23 @@ export default function LokaalKabaal() {
                   <input type="checkbox" checked={dubbelzijdig} onChange={e => updateWiz({ dubbelzijdig: e.target.checked })} style={{ accentColor: 'var(--green)', width: '16px', height: '16px' }} />
                   <div>
                     <div style={{ fontWeight: 600, fontSize: '14px' }}>Dubbelzijdig</div>
-                    <div style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>+€0,06 per flyer — achterkant voor extra info, kortingscode of kaart</div>
+                    <div style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>+€0,10 per flyer — achterkant voor extra info, kortingscode of kaart</div>
                   </div>
                 </label>
+              </div>
+
+              {/* Verwacht aantal flyers per maand */}
+              <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.3)', borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: '16px' }}>
+                <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--green)', letterSpacing: '0.08em', marginBottom: '6px' }}>VERWACHT AANTAL FLYERS PER MAAND</div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '4px' }}>
+                  <span style={{ fontFamily: 'var(--font-serif)', fontSize: '32px', color: 'var(--green)', lineHeight: 1 }}>
+                    {stats.estAdressenMaand.toLocaleString('nl')}
+                  </span>
+                  <span style={{ fontSize: '12px', color: 'var(--muted)' }}>nieuwe woningeigenaren/maand in uw werkgebied</span>
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                  Dit aantal wordt elke 25e verstuurd. Printkosten: <strong>€{(prijsPerStuk(formaat, dubbelzijdig) * stats.estAdressenMaand).toFixed(2).replace('.', ',')}</strong> ({stats.estAdressenMaand} × €{prijsPerStuk(formaat, dubbelzijdig).toFixed(2).replace('.', ',')}/stuk)
+                </div>
               </div>
 
               {/* Offerte bij groot werkgebied */}
@@ -2463,10 +2634,10 @@ export default function LokaalKabaal() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                    <span>{abonnement.tier} ({actualPc4Count} PC4{actualPc4Count !== 1 ? 's' : ''} — t/m {abonnement.includedPc4s} inbegrepen)</span>
+                    <span>{abonnement.tier} abonnement ({actualPc4Count} PC4-gebieden in werkgebied)</span>
                     <span style={{ fontFamily: 'var(--font-mono)' }}>{formatPrijs(abonnement.base)}/mnd</span>
                   </div>
-                  {/* Extra PC4 kosten worden niet meer apart berekend — Stad-pakket is onbeperkt */}
+                  {/* Abonnement is vaste maandprijs op basis van tier */}
                   <div style={{ height: '1px', background: 'var(--line)', margin: '2px 0' }} />
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <span style={{ fontWeight: 700 }}>Totaal per maand</span>
@@ -2480,8 +2651,162 @@ export default function LokaalKabaal() {
             </div>
           )}
 
-          {/* STAP 6: Proef flyer + overzicht */}
+          {/* STAP 6: Campagne duur & doelgroepfilters */}
           {step === 6 && (
+            <div>
+              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '8px' }}>Campagneduur & doelgroep</h2>
+              <p style={{ color: 'var(--muted)', marginBottom: '20px' }}>
+                Kies hoe lang je campagne loopt. Elke 25e van de maand gaat een batch de deur uit.
+              </p>
+
+              {/* Campagne duur slider */}
+              <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', letterSpacing: '0.06em' }}>
+                    HOEVEEL MAANDEN WIL JE DEZE CAMPAGNE DRAAIEN?
+                  </label>
+                  <span style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', color: 'var(--green)', lineHeight: 1 }}>
+                    {duurMaanden} mnd
+                  </span>
+                </div>
+                <input
+                  type="range" min={1} max={24} step={1} value={duurMaanden}
+                  onChange={e => updateWiz({ duurMaanden: Number(e.target.value) })}
+                  style={{ width: '100%', accentColor: 'var(--green)', marginBottom: '8px' }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                  <span>1 mnd</span><span>6 mnd</span><span>12 mnd</span><span>24 mnd</span>
+                </div>
+
+                {/* Samenvatting campagneduur */}
+                <div style={{ marginTop: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                  <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '10px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}>VERWACHT FLYERS</div>
+                    <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: 'var(--green)' }}>{stats.estAdressenMaand.toLocaleString('nl')}/mnd</div>
+                  </div>
+                  <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '10px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}>TOTAAL FLYERS</div>
+                    <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: 'var(--ink)' }}>{(stats.estAdressenMaand * duurMaanden).toLocaleString('nl')}</div>
+                  </div>
+                  <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '10px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}>TOTAAL PRINTKOSTEN</div>
+                    <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: 'var(--ink)' }}>€{(prijsPerStuk(formaat, dubbelzijdig) * stats.estAdressenMaand * duurMaanden).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}</div>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: '12px', fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', background: 'rgba(255,200,0,0.06)', border: '1px solid rgba(255,200,0,0.2)', borderRadius: 'var(--radius)', padding: '8px 12px' }}>
+                  Incasso op de 25e van de maand · surplusflyers worden als credits bijgeschreven en automatisch toegepast
+                </div>
+              </div>
+
+              {/* Geavanceerde doelgroepfilters */}
+              <div style={{ position: 'relative', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                    GEAVANCEERDE DOELGROEPFILTERS
+                  </div>
+                  {!kanFiltersGebruiken && (
+                    <div style={{ fontSize: '10px', background: 'rgba(255,200,0,0.1)', border: '1px solid rgba(255,200,0,0.3)', borderRadius: '4px', padding: '3px 8px', color: '#b8860b', fontFamily: 'var(--font-mono)' }}>
+                      Pro of Agency vereist
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ position: 'relative', opacity: kanFiltersGebruiken ? 1 : 0.4, pointerEvents: kanFiltersGebruiken ? 'auto' : 'none' }}>
+                  {/* Bouwjaar */}
+                  <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px', marginBottom: '12px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, marginBottom: '10px' }}>Bouwjaar woning</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div>
+                        <label style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>VANAF</label>
+                        <input type="number" min={1800} max={filterBouwjaarMax} value={filterBouwjaarMin}
+                          onChange={e => updateWiz({ filterBouwjaarMin: Math.min(Number(e.target.value), filterBouwjaarMax) })}
+                          style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', fontFamily: 'var(--font-mono)', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>T/M</label>
+                        <input type="number" min={filterBouwjaarMin} max={new Date().getFullYear()} value={filterBouwjaarMax}
+                          onChange={e => updateWiz({ filterBouwjaarMax: Math.max(Number(e.target.value), filterBouwjaarMin) })}
+                          style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', fontFamily: 'var(--font-mono)', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* WOZ-waarde */}
+                  <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px', marginBottom: '12px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, marginBottom: '10px' }}>WOZ-waarde woning</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                      <div>
+                        <label style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>VANAF (€)</label>
+                        <input type="number" min={0} max={filterWozMax} step={10000} value={filterWozMin}
+                          onChange={e => updateWiz({ filterWozMin: Math.min(Number(e.target.value), filterWozMax) })}
+                          style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', fontFamily: 'var(--font-mono)', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>T/M (€)</label>
+                        <input type="number" min={filterWozMin} max={5000000} step={10000} value={filterWozMax}
+                          onChange={e => updateWiz({ filterWozMax: Math.max(Number(e.target.value), filterWozMin) })}
+                          style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', fontFamily: 'var(--font-mono)', boxSizing: 'border-box' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Energielabel */}
+                  <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, marginBottom: '10px' }}>Energielabel</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      {['A++', 'A+', 'A', 'B', 'C', 'D', 'E', 'F', 'G'].map(label => {
+                        const selected = filterEnergielabel.includes(label);
+                        return (
+                          <button key={label}
+                            onClick={() => {
+                              const next = selected
+                                ? filterEnergielabel.filter(l => l !== label)
+                                : [...filterEnergielabel, label];
+                              updateWiz({ filterEnergielabel: next });
+                            }}
+                            style={{
+                              padding: '6px 12px', border: `2px solid ${selected ? 'var(--green)' : 'var(--line)'}`,
+                              borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: selected ? 700 : 400,
+                              background: selected ? 'var(--green-bg)' : 'var(--paper)',
+                              color: selected ? 'var(--green-dim)' : 'var(--ink)',
+                              fontSize: '12px', fontFamily: 'var(--font-mono)',
+                              transition: 'all 0.15s',
+                            }}>
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {filterEnergielabel.length === 0 && (
+                      <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '8px' }}>Geen selectie = alle energielabels</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Lock overlay voor Starter */}
+                {!kanFiltersGebruiken && (
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(255,255,255,0.95) 60%, transparent)', padding: '20px 16px 16px', borderRadius: 'var(--radius)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', minHeight: '80px' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '16px', marginBottom: '6px' }}>🔒</div>
+                      <div style={{ fontSize: '12px', fontWeight: 600, marginBottom: '4px' }}>Beschikbaar vanaf Pro</div>
+                      <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '10px' }}>Upgrade voor bouwjaar, WOZ-waarde en energielabel-filtering</div>
+                      <a href="/login" style={{ display: 'inline-block', padding: '8px 18px', background: 'var(--ink)', color: '#fff', borderRadius: 'var(--radius)', fontSize: '12px', fontWeight: 700, textDecoration: 'none' }}>
+                        Upgrade naar Pro →
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* STAP 7: Proef flyer + overzicht */}
+          {step === 7 && (
             <div>
               <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '8px' }}>Controleer & proef flyer</h2>
               <p style={{ color: 'var(--muted)', marginBottom: '20px' }}>
@@ -2521,7 +2846,8 @@ export default function LokaalKabaal() {
                   { l: 'Werkgebied', v: centrum ? `${centrum} · ${straal} km` : '—' },
                   { l: 'PC4-gebieden', v: wiz.pc4Lijst.length > 0 ? wiz.pc4Lijst.join(', ') : `~${stats.pc4Count} gebieden` },
                   { l: 'Formaat', v: `${formaat.toUpperCase()}${dubbelzijdig ? ' dubbelzijdig' : ' enkelvoudig'}` },
-                  { l: 'Abonnement', v: `${abonnement.tier} · ${actualPc4Count} PC4s · ${formatPrijs(abonnement.total)}/mnd` },
+                  { l: 'Abonnement', v: `${abonnement.tier} · ${formatPrijs(abonnement.total)}/mnd` },
+                  { l: 'Campagneduur', v: `${duurMaanden} maand${duurMaanden !== 1 ? 'en' : ''}` },
                   { l: 'Bezorging', v: 'Elke 25e van de maand' },
                 ].map(({ l, v }) => (
                   <div key={l} style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '12px' }}>
@@ -2635,7 +2961,7 @@ export default function LokaalKabaal() {
               {/* Totaal */}
               <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <span style={{ color: 'var(--muted)', fontSize: '13px' }}>{abonnement.tier} abonnement · {actualPc4Count} PC4-postcodes ({formaat.toUpperCase()})</span>
+                  <span style={{ color: 'var(--muted)', fontSize: '13px' }}>{abonnement.tier} abonnement · {formaat.toUpperCase()}{dubbelzijdig ? ' dubbelzijdig' : ''} · {duurMaanden} mnd</span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{formatPrijs(prijs)}/mnd</span>
                 </div>
                 {proefFlyer && (
@@ -2653,8 +2979,8 @@ export default function LokaalKabaal() {
             </div>
           )}
 
-          {/* STAP 7: Bevestiging */}
-          {step === 7 && (
+          {/* STAP 8: Bevestiging */}
+          {step === 8 && (
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
               {proefFlyer ? (
                 <>
@@ -2702,7 +3028,7 @@ export default function LokaalKabaal() {
                   </p>
                   <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px', maxWidth: '420px', margin: '0 auto 20px', textAlign: 'left' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <span style={{ color: 'var(--muted)', fontSize: '13px' }}>{abonnement.tier} · {actualPc4Count} PC4-postcodes · alle bewoners inbegrepen</span>
+                      <span style={{ color: 'var(--muted)', fontSize: '13px' }}>{abonnement.tier} · ~{stats.estAdressenMaand}/mnd flyers · {duurMaanden} mnd campagne</span>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{formatPrijs(prijs)}/mnd</span>
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
@@ -2735,14 +3061,16 @@ export default function LokaalKabaal() {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                              maxFlyers: aantalFlyers,
-                              formaat,
-                              dubbelzijdig,
-                              spec,
-                              datum,
-                              centrum,
+                              tier: userTier,
+                              billing: user?.isJaarcontract ? 'yearly' : 'monthly',
                               email: wiz.email || 'klant@lokaalkabaal.nl',
                               bedrijfsnaam: flyer.bedrijfsnaam || 'Klant',
+                              branche: spec,
+                              centrum,
+                              duurMaanden,
+                              verwachtAantalPerMaand: stats.estAdressenMaand,
+                              formaat,
+                              dubbelzijdig,
                             }),
                           });
                           const data = await res.json();
@@ -2790,7 +3118,7 @@ export default function LokaalKabaal() {
         </div>{/* end scrollable content */}
 
         {/* Nav knoppen — pinned to bottom */}
-        {step < 7 && (
+        {step < 8 && (
           <div style={{ flexShrink: 0, borderTop: '1px solid var(--line)', background: 'var(--paper)', padding: '12px 24px' }}>
           {orderError && (
             <div style={{ marginBottom: '10px', padding: '10px 14px', background: 'rgba(231,76,60,0.08)', border: '1px solid rgba(231,76,60,0.3)', borderRadius: 'var(--radius)', fontSize: '12px', color: '#c0392b', fontFamily: 'var(--font-mono)' }}>
@@ -2806,7 +3134,7 @@ export default function LokaalKabaal() {
             <button
               disabled={!canNext || orderLoading}
               onClick={async () => {
-                if (step === 6 && proefFlyer) {
+                if (step === 7 && proefFlyer) {
                   setOrderLoading(true);
                   setOrderError('');
                   try {
@@ -2867,7 +3195,7 @@ export default function LokaalKabaal() {
                 borderRadius: 'var(--radius)', cursor: (canNext && !orderLoading) ? 'pointer' : 'not-allowed',
                 fontWeight: 700, fontSize: '13px', transition: 'all 0.15s'
               }}>
-              {orderLoading ? 'Bestelling plaatsen…' : step === 6 ? (proefFlyer ? 'Proef bestellen — €4,95 →' : 'Campagne activeren →') : 'Volgende →'}
+              {orderLoading ? 'Bestelling plaatsen…' : step === 7 ? (proefFlyer ? 'Proef bestellen — €4,95 →' : 'Campagne activeren →') : 'Volgende →'}
             </button>
           </div>
           </div>
@@ -3383,7 +3711,7 @@ export default function LokaalKabaal() {
       <>
         <FeatureLockBanner
           feature="A/B testen"
-          minTier="stad"
+          minTier="agency"
           description="Test twee flyer-varianten tegelijk. Je hebt minimaal 600 flyers nodig (300 per variant). Zie welke variant de hoogste conversie oplevert en schakel automatisch over."
         />
         <ConversiesDashboard campaigns={campaigns} onStartCampagne={() => setPage('wizard')} />
@@ -3443,12 +3771,12 @@ export default function LokaalKabaal() {
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--ink)' }}>Pakket: {cfg.label}</div>
                   <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                    {cfg.maxPc4s ? `${cfg.maxPc4s} postcodes` : 'Onbeperkt postcodes'} · €{cfg.priceMonthly}/maand · min. {cfg.minFlyers} flyers/batch
-                    {user?.isJaarcontract ? ' · Jaarcontract' : ''}
+                    {cfg.maxCampaigns !== null ? `Max. ${cfg.maxCampaigns} campagne${cfg.maxCampaigns !== 1 ? 's' : ''}` : 'Onbeperkt campagnes'} · €{cfg.priceMonthly}/maand
+                    {user?.isJaarcontract ? ' · Jaarcontract (−25%)' : ' · Maandelijks opzegbaar'}
                   </div>
                 </div>
               </div>
-              {userTier !== 'stad' && (
+              {userTier !== 'agency' && (
                 <button
                   onClick={() => window.open('/#prijzen', '_blank')}
                   style={{ padding: '7px 16px', background: cfg.color, color: '#0A0A0A', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: 700, fontSize: '12px', fontFamily: 'var(--font-mono)' }}

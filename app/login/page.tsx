@@ -28,7 +28,7 @@ export default function Login() {
     localStorage.setItem('lk_user', JSON.stringify({
       email,
       naam: testAccount?.naam ?? naam,
-      tier: testAccount?.tier ?? 'buurt',
+      tier: testAccount?.tier ?? 'starter',
       isJaarcontract: testAccount?.isJaarcontract ?? false,
     }));
     setLoading(false);
@@ -36,9 +36,9 @@ export default function Login() {
   };
 
   const tierColors: Record<string, string> = {
-    buurt: '#94a3b8',
-    wijk:  '#60a5fa',
-    stad:  '#00E87A',
+    starter: '#94a3b8',
+    pro:     '#60a5fa',
+    agency:  '#00E87A',
   };
 
   return (
@@ -140,8 +140,8 @@ export default function Login() {
         <div style={{ borderTop: '1px solid var(--line)', marginTop: '24px', paddingTop: '20px', textAlign: 'center' }}>
           <p style={{ fontSize: '12px', color: 'var(--muted)' }}>
             Nog geen account?{' '}
-            <Link href="/app" style={{ color: 'var(--green-dim)', fontWeight: 600, textDecoration: 'none' }}>
-              Gratis starten
+            <Link href="/#prijzen" style={{ color: 'var(--green-dim)', fontWeight: 600, textDecoration: 'none' }}>
+              Eerste batch voor €49
             </Link>
           </p>
         </div>

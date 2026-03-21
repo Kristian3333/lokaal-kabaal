@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
 
         if (!email) break;
 
-        const tier = (meta.tier ?? 'buurt') as 'buurt' | 'wijk' | 'stad';
+        const tier = (meta.tier ?? 'starter') as 'starter' | 'pro' | 'agency';
         const isJaarcontract = meta.isJaarcontract === 'true';
 
         // Upsert retailer op basis van e-mail
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
 
       case 'customer.subscription.updated': {
         const sub = event.data.object as Stripe.Subscription;
-        const tier = (sub.metadata.tier ?? 'buurt') as 'buurt' | 'wijk' | 'stad';
+        const tier = (sub.metadata.tier ?? 'starter') as 'starter' | 'pro' | 'agency';
         const isJaarcontract = sub.metadata.isJaarcontract === 'true';
         const status = sub.status === 'active' ? 'actief'
           : sub.status === 'past_due' ? 'gepauzeerd'
@@ -112,9 +112,18 @@ export async function POST(req: NextRequest) {
 
       case 'customer.subscription.deleted': {
         const sub = event.data.object as Stripe.Subscription;
+        // Stel dashboardActiefTot in op 1 maand na annulering
+        // (de abonnee kan het dashboard nog 1 maand raadplegen)
+        const dashboardActiefTot = new Date();
+        dashboardActiefTot.setMonth(dashboardActiefTot.getMonth() + 1);
+
         await db
           .update(retailers)
-          .set({ subscriptionStatus: 'geannuleerd', updatedAt: new Date() })
+          .set({
+            subscriptionStatus: 'geannuleerd',
+            dashboardActiefTot,
+            updatedAt: new Date(),
+          })
           .where(eq(retailers.stripeSubscriptionId, sub.id));
         break;
       }

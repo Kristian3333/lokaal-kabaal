@@ -7,21 +7,6 @@ import HeroMapAnim from '@/components/HeroMapAnim';
 import { motion, useInView } from 'motion/react';
 import { useRef, useEffect, useState } from 'react';
 
-// ─── Ticker items ─────────────────────────────────────────────────────────────
-
-const TICKERS = [
-  "Kapper Bloemendaal — 340 flyers verstuurd",
-  "Pizzeria Rotterdam Oost — campagne gestart",
-  "Yoga Utrecht — 12 nieuwe klanten",
-  "Bakkerij Den Haag — 3e maand actief",
-  "Restaurant Amsterdam Noord — eerste batch",
-  "Nagelstudio Haarlem — 890 bezorgd",
-  "Slagerij Leiden — 5e maand actief",
-  "Rijschool Eindhoven — 44 nieuwe leerlingen",
-  "Fysiotherapeut Breda — 67 flyers bezorgd",
-  "Installateur Arnhem — €12.400 omzet eerste jaar",
-];
-
 // ─── Scroll-reveal wrapper ────────────────────────────────────────────────────
 
 function FadeUp({
@@ -232,39 +217,6 @@ export default function Landing() {
           </motion.div>
         </div>
       </section>
-
-      {/* ── TICKER ──────────────────────────────────────────────────────────── */}
-      <div style={{
-        overflow: 'hidden',
-        background: '#111',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
-        padding: '11px 0',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0' }}>
-          <div style={{
-            flexShrink: 0, padding: '0 20px',
-            fontSize: '9px', fontFamily: 'var(--font-mono)',
-            color: 'rgba(255,255,255,0.2)', letterSpacing: '0.1em',
-            textTransform: 'uppercase', borderRight: '1px solid rgba(255,255,255,0.07)',
-            marginRight: '20px',
-          }}>
-            Actieve campagnes
-          </div>
-          <div className="ticker-inner">
-            {[...TICKERS, ...TICKERS].map((item, i) => (
-              <span key={i} style={{
-                display: 'inline-flex', alignItems: 'center', gap: '8px',
-                padding: '0 36px',
-                fontSize: '11px', fontFamily: 'var(--font-mono)',
-                color: 'rgba(255,255,255,0.35)',
-              }}>
-                <span style={{ width: '5px', height: '5px', background: 'var(--green)', borderRadius: '50%', flexShrink: 0 }} />
-                {item}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* ── HET MOMENT ──────────────────────────────────────────────────────── */}
       <section style={{ padding: '100px 40px', maxWidth: '1080px', margin: '0 auto' }}>

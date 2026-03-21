@@ -1,13 +1,16 @@
 import {
   pgTable, uuid, varchar, boolean, timestamp, date, index,
-  integer, text, pgEnum,
+  integer, pgEnum, numeric, smallint,
 } from 'drizzle-orm/pg-core';
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
-export const tierEnum = pgEnum('tier', ['buurt', 'wijk', 'stad']);
+// MIGRATIE VEREIST: tier enum is gewijzigd van 'buurt'|'wijk'|'stad' naar 'starter'|'pro'|'agency'
+export const tierEnum = pgEnum('tier', ['starter', 'pro', 'agency']);
 export const abTestStatusEnum = pgEnum('ab_test_status', ['actief', 'gestopt', 'afgerond']);
 export const subscriptionStatusEnum = pgEnum('subscription_status', ['actief', 'gepauzeerd', 'geannuleerd', 'proef']);
+export const campaignStatusEnum = pgEnum('campaign_status', ['concept', 'actief', 'gepauzeerd', 'afgerond', 'geannuleerd']);
+export const creditRedenEnum = pgEnum('credit_reden', ['surplus', 'annulering', 'aanpassing', 'uitbetaling']);
 
 // ─── Retailers (klanten) ──────────────────────────────────────────────────────
 
@@ -18,18 +21,87 @@ export const retailers = pgTable('retailers', {
   branche:              varchar('branche', { length: 100 }).notNull(),
   stripeCustomerId:     varchar('stripe_customer_id', { length: 100 }).unique(),
   stripeSubscriptionId: varchar('stripe_subscription_id', { length: 100 }).unique(),
-  tier:                 tierEnum('tier').default('buurt').notNull(),
+  tier:                 tierEnum('tier').default('starter').notNull(),
   subscriptionStatus:   subscriptionStatusEnum('subscription_status').default('proef').notNull(),
-  // Jaarcontract vlag — bepaalt of persoonlijke flyerhulp beschikbaar is (Stad)
   isJaarcontract:       boolean('is_jaarcontract').default(false).notNull(),
-  // Factureringsperiode start/eind voor huidig abonnement
   periodeStart:         timestamp('periode_start'),
   periodeEind:          timestamp('periode_eind'),
+  // Dashboard lifecycle: actief t/m 1 maand na laatste batch
+  dashboardActiefTot:   timestamp('dashboard_actief_tot'),
   createdAt:            timestamp('created_at').defaultNow().notNull(),
   updatedAt:            timestamp('updated_at').defaultNow().notNull(),
 }, (t) => ({
   emailIdx:    index('idx_retailers_email').on(t.email),
   stripeIdx:   index('idx_retailers_stripe_sub').on(t.stripeSubscriptionId),
+}));
+
+// ─── Campagnes ────────────────────────────────────────────────────────────────
+//
+// Elke campagne heeft een duur (1–24 maanden), een werkgebied, een formaat
+// en optionele targeting-filters (Pro/Agency).
+// Flyers worden elke 25e van de maand verstuurd.
+// Na de laatste batch blijft het dashboard 1 maand actief.
+
+export const campaigns = pgTable('campaigns', {
+  id:               uuid('id').primaryKey().defaultRandom(),
+  retailerId:       uuid('retailer_id').notNull().references(() => retailers.id, { onDelete: 'cascade' }),
+  naam:             varchar('naam', { length: 255 }).notNull(),
+  branche:          varchar('branche', { length: 100 }).notNull(),
+  status:           campaignStatusEnum('status').default('concept').notNull(),
+
+  // Werkgebied
+  centrum:          varchar('centrum', { length: 255 }).notNull(),
+  straalKm:         numeric('straal_km', { precision: 6, scale: 2 }).notNull(),
+  pc4Lijst:         varchar('pc4_lijst', { length: 4000 }),          // kommagescheiden pc4's
+
+  // Flyer instellingen
+  formaat:          varchar('formaat', { length: 5 }).notNull().default('a6'),   // 'a6' | 'a5' | 'sq'
+  dubbelzijdig:     boolean('dubbelzijdig').default(false).notNull(),
+  flyerTemplateId:  varchar('flyer_template_id', { length: 255 }),
+
+  // Volume & duur
+  verwachtAantalPerMaand: integer('verwacht_aantal_per_maand').notNull(),
+  duurMaanden:      smallint('duur_maanden').notNull().default(1),   // 1–24
+
+  // Startdatum + berekende einddatum
+  startMaand:       date('start_maand').notNull(),                   // eerste batch op de 25e van deze maand
+  eindMaand:        date('eind_maand').notNull(),                    // laatste batch op de 25e van deze maand
+
+  // Targeting-filters (Pro/Agency only)
+  filterBouwjaarMin:  smallint('filter_bouwjaar_min'),               // bijv. 1900
+  filterBouwjaarMax:  smallint('filter_bouwjaar_max'),               // bijv. 2024
+  filterWozMin:       integer('filter_woz_min'),                     // in € (bijv. 150000)
+  filterWozMax:       integer('filter_woz_max'),                     // in € (bijv. 1500000)
+  filterEnergielabel: varchar('filter_energielabel', { length: 50 }), // kommagescheiden, bijv. 'A,B,C'
+
+  // Stripe koppeling
+  stripeSubscriptionItemId: varchar('stripe_subscription_item_id', { length: 100 }),
+
+  createdAt:        timestamp('created_at').defaultNow().notNull(),
+  updatedAt:        timestamp('updated_at').defaultNow().notNull(),
+}, (t) => ({
+  retailerIdx: index('idx_campaigns_retailer').on(t.retailerId),
+  statusIdx:   index('idx_campaigns_status').on(t.status),
+}));
+
+// ─── Credit-ledger ────────────────────────────────────────────────────────────
+//
+// Credits = flyers die betaald zijn maar niet (of nog niet) verzonden.
+// Worden automatisch toegepast in de maand na de laatste campagnemaand.
+// Credits verlopen niet binnen dit window.
+
+export const creditLedger = pgTable('credit_ledger', {
+  id:          uuid('id').primaryKey().defaultRandom(),
+  retailerId:  uuid('retailer_id').notNull().references(() => retailers.id, { onDelete: 'cascade' }),
+  campagneId:  uuid('campagne_id').references(() => campaigns.id, { onDelete: 'set null' }),
+  reden:       creditRedenEnum('reden').notNull(),
+  aantalFlyers: integer('aantal_flyers').notNull(),                  // positief = surplus, negatief = verbruikt
+  maand:       date('maand').notNull(),                             // de maand waarop dit geldt
+  toelichting: varchar('toelichting', { length: 500 }),
+  createdAt:   timestamp('created_at').defaultNow().notNull(),
+}, (t) => ({
+  retailerIdx: index('idx_credits_retailer').on(t.retailerId),
+  maandIdx:    index('idx_credits_maand').on(t.maand),
 }));
 
 // ─── Retailer actieve postcodes ───────────────────────────────────────────────
@@ -45,42 +117,16 @@ export const retailerPostcodes = pgTable('retailer_postcodes', {
   pc4Idx:      index('idx_rp_pc4').on(t.pc4),
 }));
 
-// ─── Exclusiviteit per postcode + branche (alleen Stad-tier) ─────────────────
-//
-// Wanneer een Stad-klant postcodes claimt, registreren we dit hier.
-// Bij een nieuwe Stad-aanmelding checken we of de combinatie pc4+branche
-// al bezet is voor de gewenste periode. Als bezet, tonen we een melding:
-//   "Postcodegebied XXXX is bezet door een concurrent in [branche]
-//    van [startDatum] t/m [eindDatum]."
-
-export const pc4Exclusivity = pgTable('pc4_exclusivity', {
-  id:         uuid('id').primaryKey().defaultRandom(),
-  pc4:        varchar('pc4', { length: 4 }).notNull(),
-  branche:    varchar('branche', { length: 100 }).notNull(),
-  retailerId: uuid('retailer_id').notNull().references(() => retailers.id, { onDelete: 'cascade' }),
-  startDatum: date('start_datum').notNull(),
-  eindDatum:  date('eind_datum'),              // null = onbeperkt actief
-  actief:     boolean('actief').default(true).notNull(),
-  createdAt:  timestamp('created_at').defaultNow().notNull(),
-}, (t) => ({
-  pc4BrancheIdx: index('idx_excl_pc4_branche').on(t.pc4, t.branche),
-  retailerIdx:   index('idx_excl_retailer').on(t.retailerId),
-}));
-
-// ─── A/B testen (alleen Stad-tier) ───────────────────────────────────────────
-//
-// Elke A/B test heeft minimaal 300 flyers per variant (600 totaal).
-// De twee varianten worden willekeurig toegewezen aan ontvangende adressen.
+// ─── A/B testen (alleen Agency-tier) ─────────────────────────────────────────
 
 export const abTests = pgTable('ab_tests', {
   id:               uuid('id').primaryKey().defaultRandom(),
   retailerId:       uuid('retailer_id').notNull().references(() => retailers.id, { onDelete: 'cascade' }),
+  campagneId:       uuid('campagne_id').references(() => campaigns.id, { onDelete: 'cascade' }),
   naam:             varchar('naam', { length: 255 }).notNull(),
-  // Template-identifiers (bijv. Vercel Blob URL of template naam)
   variantANaam:     varchar('variant_a_naam', { length: 255 }).notNull(),
   variantBNaam:     varchar('variant_b_naam', { length: 255 }).notNull(),
   status:           abTestStatusEnum('status').default('actief').notNull(),
-  // Tellingen (worden geüpdated bij elke flyer-verzending en elke scan)
   aantalA:          integer('aantal_a').default(0).notNull(),
   aantalB:          integer('aantal_b').default(0).notNull(),
   scansA:           integer('scans_a').default(0).notNull(),
@@ -107,12 +153,10 @@ export const flyerVerifications = pgTable('flyer_verifications', {
   geldigTot:       timestamp('geldig_tot').notNull(),
   gebruikt:        boolean('gebruikt').default(false).notNull(),
   gebruiktOp:      timestamp('gebruikt_op'),
-  // Follow-up flyer (Wijk + Stad): tweede flyer verstuurd na 30 dagen als QR ongebruikt
   followUpVerzonden: boolean('follow_up_verzonden').default(false).notNull(),
   followUpOp:        timestamp('follow_up_op'),
-  // A/B test koppeling (alleen Stad-tier)
   abTestId:        uuid('ab_test_id').references(() => abTests.id),
-  abTestVariant:   varchar('ab_test_variant', { length: 1 }),  // 'A' of 'B'
+  abTestVariant:   varchar('ab_test_variant', { length: 1 }),
   createdAt:       timestamp('created_at').defaultNow().notNull(),
 }, (t) => ({
   codeIdx:      index('idx_fv_code').on(t.code),
@@ -122,60 +166,81 @@ export const flyerVerifications = pgTable('flyer_verifications', {
   followUpIdx:  index('idx_fv_follow_up').on(t.gebruikt, t.followUpVerzonden, t.verzondenOp),
 }));
 
+// ─── PC4-exclusiviteit (alleen Agency-tier) ───────────────────────────────────
+
+export const pc4Exclusivity = pgTable('pc4_exclusivity', {
+  id:          uuid('id').primaryKey().defaultRandom(),
+  retailerId:  uuid('retailer_id').notNull().references(() => retailers.id, { onDelete: 'cascade' }),
+  pc4:         varchar('pc4', { length: 4 }).notNull(),
+  branche:     varchar('branche', { length: 100 }).notNull(),
+  vanMaand:    date('van_maand').notNull(),
+  totMaand:    date('tot_maand').notNull(),
+  createdAt:   timestamp('created_at').defaultNow().notNull(),
+}, (t) => ({
+  pc4Idx:     index('idx_excl_pc4').on(t.pc4),
+  brancheIdx: index('idx_excl_branche').on(t.branche),
+}));
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type Retailer = typeof retailers.$inferSelect;
 export type NewRetailer = typeof retailers.$inferInsert;
+export type Campaign = typeof campaigns.$inferSelect;
+export type NewCampaign = typeof campaigns.$inferInsert;
+export type CreditEntry = typeof creditLedger.$inferSelect;
+export type NewCreditEntry = typeof creditLedger.$inferInsert;
 export type RetailerPostcode = typeof retailerPostcodes.$inferSelect;
-export type Pc4Exclusivity = typeof pc4Exclusivity.$inferSelect;
 export type AbTest = typeof abTests.$inferSelect;
 export type NewAbTest = typeof abTests.$inferInsert;
 export type FlyerVerification = typeof flyerVerifications.$inferSelect;
 export type NewFlyerVerification = typeof flyerVerifications.$inferInsert;
 
 // ─── Feature-gating helpers ───────────────────────────────────────────────────
-//
-// Gebruik deze functies in API routes en het dashboard om te controleren
-// welke features een klant heeft op basis van hun tier.
 
 export const TIER_LIMITS = {
-  buurt: {
-    maxPc4s:          10,
-    minFlyers:        300,
-    followUp:         true,   // alleen bij jaarcontract · kostprijs print.one
+  starter: {
+    maxCampaigns:     1,
+    maxPc4s:          40,
+    advancedFilters:  false,
+    followUp:         false,
     abTesting:        false,
-    exclusivity:      false,
-    personalizedQr:   false,  // basis QR-tracking
+    personalizedQr:   false,
     flyerHelp:        false,
     unlimitedTemplates: true,
   },
-  wijk: {
-    maxPc4s:          50,
-    minFlyers:        300,
-    followUp:         true,   // alleen bij jaarcontract · kostprijs print.one (€0,69/stuk 300+ of €1,52 klein)
+  pro: {
+    maxCampaigns:     3,
+    maxPc4s:          80,
+    advancedFilters:  true,
+    followUp:         true,
     abTesting:        false,
-    exclusivity:      false,
-    personalizedQr:   true,   // gepersonaliseerde welkomstpagina bij QR-scan
-    flyerHelp:        false,
-    unlimitedTemplates: true,
-  },
-  stad: {
-    maxPc4s:          Infinity,
-    minFlyers:        300,    // minimum per batch; A/B test vereist 600 (300+300)
-    followUp:         true,   // alleen bij jaarcontract · kostprijs print.one
-    abTesting:        true,
-    exclusivity:      true,
     personalizedQr:   true,
-    flyerHelp:        true,   // alleen bij jaarcontract
+    flyerHelp:        false,
+    unlimitedTemplates: true,
+  },
+  agency: {
+    maxCampaigns:     Infinity,
+    maxPc4s:          Infinity,
+    advancedFilters:  true,
+    followUp:         true,
+    abTesting:        true,
+    personalizedQr:   true,
+    flyerHelp:        true,
     unlimitedTemplates: true,
   },
 } as const;
 
 export type Tier = keyof typeof TIER_LIMITS;
 
-export function canUseFeature<F extends keyof typeof TIER_LIMITS.buurt>(
+export function canUseFeature<F extends keyof (typeof TIER_LIMITS)['starter']>(
   tier: Tier,
   feature: F,
 ): boolean {
   return TIER_LIMITS[tier][feature] as boolean;
+}
+
+/** Controleert of een retailer nog een campagne mag starten */
+export function canStartCampaign(tier: Tier, activeCampaigns: number): boolean {
+  const limit = TIER_LIMITS[tier].maxCampaigns;
+  return activeCampaigns < limit;
 }

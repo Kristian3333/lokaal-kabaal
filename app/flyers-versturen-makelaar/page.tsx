@@ -227,7 +227,7 @@ export default function FlyersMakelaar() {
         </main>
 
         <footer style={{ borderTop: '1px solid var(--line)', padding: '32px 40px', maxWidth: '800px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
-          <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>© 2025 LokaalKabaal</div>
+          <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>© 2026 LokaalKabaal</div>
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
             {[
               { href: '/flyers-versturen-nieuwe-bewoners', label: 'Flyers nieuwe bewoners' },

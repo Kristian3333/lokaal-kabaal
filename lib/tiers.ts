@@ -1,72 +1,72 @@
 // Client-safe tier configuratie (geen Drizzle imports)
 // Gebruik deze in zowel client- als server-componenten.
 
-export type Tier = 'buurt' | 'wijk' | 'stad';
+export type Tier = 'starter' | 'pro' | 'agency';
 
 export interface TierConfig {
   label: string;
   color: string;
-  maxPc4s: number | null;   // null = onbeperkt
-  priceMonthly: number;
-  priceYearly: number;
-  minFlyers: number;
+  priceMonthly: number;        // €/maand (maandelijks)
+  priceYearly: number;         // €/maand equivalent bij jaarlijks (−25%)
+  priceYearlyTotal: number;    // totaal jaarbedrag
+  maxCampaigns: number | null; // null = onbeperkt
+  maxPc4s: number | null;      // null = onbeperkt; min 40 zodat 300 flyers/mnd haalbaar is
   // Features
+  advancedFilters: boolean;    // bouwjaar, WOZ, energielabel
   followUp: boolean;
   abTesting: boolean;
-  abTestMinFlyers: number;  // per variant
-  exclusivity: boolean;
   personalizedQr: boolean;
-  flyerHelp: boolean;       // alleen bij jaarcontract
+  flyerHelp: boolean;
   unlimitedTemplates: boolean;
   conversionDashboard: boolean;
 }
 
 export const TIERS: Record<Tier, TierConfig> = {
-  buurt: {
-    label: 'Buurt',
+  starter: {
+    label: 'Starter',
     color: '#94a3b8',
-    maxPc4s: 10,
-    priceMonthly: 249,
-    priceYearly: 187,
-    minFlyers: 300,
-    followUp: true,        // alleen bij jaarcontract · gereduceerd tarief
+    priceMonthly: 99,
+    priceYearly: 74.25,         // 99 * 0.75
+    priceYearlyTotal: 891,      // 74.25 * 12
+    maxCampaigns: 1,
+    maxPc4s: 40,                // ~300 flyers/mnd bij gemiddeld 7–8 overdrachten/pc4
+    advancedFilters: false,
+    followUp: false,
     abTesting: false,
-    abTestMinFlyers: 300,
-    exclusivity: false,
     personalizedQr: false,
     flyerHelp: false,
     unlimitedTemplates: true,
     conversionDashboard: true,
   },
-  wijk: {
-    label: 'Wijk',
+  pro: {
+    label: 'Pro',
     color: '#60a5fa',
-    maxPc4s: 50,
-    priceMonthly: 499,
-    priceYearly: 374,
-    minFlyers: 300,
-    followUp: true,        // alleen bij jaarcontract (isJaarcontract === true)
+    priceMonthly: 199,
+    priceYearly: 149.25,        // 199 * 0.75
+    priceYearlyTotal: 1791,     // 149.25 * 12
+    maxCampaigns: 3,
+    maxPc4s: 80,
+    advancedFilters: true,
+    followUp: true,
     abTesting: false,
-    abTestMinFlyers: 300,
-    exclusivity: false,
     personalizedQr: true,
     flyerHelp: false,
     unlimitedTemplates: true,
     conversionDashboard: true,
   },
-  stad: {
-    label: 'Stad',
+  agency: {
+    label: 'Agency',
     color: '#00E87A',
-    maxPc4s: null,
-    priceMonthly: 999,
-    priceYearly: 749,
-    minFlyers: 300,
-    followUp: true,        // alleen bij jaarcontract (isJaarcontract === true)
+    priceMonthly: 499,
+    priceYearly: 374.25,        // 499 * 0.75
+    priceYearlyTotal: 4491,     // 374.25 * 12
+    maxCampaigns: null,
+    maxPc4s: null,              // onbeperkt
+    advancedFilters: true,
+    followUp: true,
     abTesting: true,
-    abTestMinFlyers: 300,
-    exclusivity: true,
     personalizedQr: true,
-    flyerHelp: true,       // alleen bij jaarcontract
+    flyerHelp: true,
     unlimitedTemplates: true,
     conversionDashboard: true,
   },
@@ -75,39 +75,46 @@ export const TIERS: Record<Tier, TierConfig> = {
 // Testaccounts — voorgedefinieerde accounts voor het testen van de pakketten
 export const TEST_ACCOUNTS: { email: string; naam: string; tier: Tier; isJaarcontract: boolean; label: string }[] = [
   {
-    email: 'test-buurt@lokaalkabaal.nl',
-    naam: 'Test Buurt',
-    tier: 'buurt',
+    email: 'test-starter@lokaalkabaal.nl',
+    naam: 'Test Starter',
+    tier: 'starter',
     isJaarcontract: false,
-    label: 'Buurt (maand)',
+    label: 'Starter (maand)',
   },
   {
-    email: 'test-buurt-jaar@lokaalkabaal.nl',
-    naam: 'Test Buurt (Jaar)',
-    tier: 'buurt',
+    email: 'test-starter-jaar@lokaalkabaal.nl',
+    naam: 'Test Starter (Jaar)',
+    tier: 'starter',
     isJaarcontract: true,
-    label: 'Buurt + jaarcontract',
+    label: 'Starter + jaarcontract',
   },
   {
-    email: 'test-wijk@lokaalkabaal.nl',
-    naam: 'Test Wijk',
-    tier: 'wijk',
+    email: 'test-pro@lokaalkabaal.nl',
+    naam: 'Test Pro',
+    tier: 'pro',
     isJaarcontract: false,
-    label: 'Wijk (maand)',
+    label: 'Pro (maand)',
   },
   {
-    email: 'test-stad@lokaalkabaal.nl',
-    naam: 'Test Stad',
-    tier: 'stad',
-    isJaarcontract: false,
-    label: 'Stad (maand)',
-  },
-  {
-    email: 'test-stad-jaar@lokaalkabaal.nl',
-    naam: 'Test Stad (Jaar)',
-    tier: 'stad',
+    email: 'test-pro-jaar@lokaalkabaal.nl',
+    naam: 'Test Pro (Jaar)',
+    tier: 'pro',
     isJaarcontract: true,
-    label: 'Stad + jaarcontract',
+    label: 'Pro + jaarcontract',
+  },
+  {
+    email: 'test-agency@lokaalkabaal.nl',
+    naam: 'Test Agency',
+    tier: 'agency',
+    isJaarcontract: false,
+    label: 'Agency (maand)',
+  },
+  {
+    email: 'test-agency-jaar@lokaalkabaal.nl',
+    naam: 'Test Agency (Jaar)',
+    tier: 'agency',
+    isJaarcontract: true,
+    label: 'Agency + jaarcontract',
   },
 ];
 
@@ -117,4 +124,11 @@ export function isTestAccount(email: string): boolean {
 
 export function getTestAccount(email: string) {
   return TEST_ACCOUNTS.find(a => a.email === email) ?? null;
+}
+
+/** Geeft true als het aantal actieve campagnes onder de limiet ligt */
+export function canStartCampaign(tier: Tier, activeCampaigns: number): boolean {
+  const limit = TIERS[tier].maxCampaigns;
+  if (limit === null) return true;
+  return activeCampaigns < limit;
 }
