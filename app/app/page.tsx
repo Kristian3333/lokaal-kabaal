@@ -255,10 +255,15 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
   });
 
   const pxDims = PREVIEW_PX[formaat] ?? PREVIEW_PX['a5'];
+  const a5Dims = PREVIEW_PX['a5'];
+  // A6 renders at A5 internal layout then uses CSS zoom to shrink — zoom affects layout size
+  const isA6 = formaat === 'a6';
+  const zoomRatio = isA6 ? pxDims.w / a5Dims.w : 1;
   const base: React.CSSProperties = {
-    width: `${pxDims.w}px`, height: `${pxDims.h}px`, borderRadius: '8px', overflow: 'hidden',
+    width: `${a5Dims.w}px`, height: `${a5Dims.h}px`, borderRadius: '8px', overflow: 'hidden',
     position: 'relative', flexShrink: 0, fontFamily: 'var(--font-sans)',
     boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
+    zoom: zoomRatio,
   };
 
   const ctaText = flyer.cta || '10% welkomstkorting';
@@ -267,9 +272,9 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
     overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: lines, WebkitBoxOrient: 'vertical' as const,
   });
   const ellipsisStyle: React.CSSProperties = { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-  // Small drag hint — top-right corner chip, non-intrusive
+  // Small drag hint — top-right corner chip, non-intrusive. data-html2canvas-ignore hides it from PDF export.
   const dragOverlay = onHeroOffsetChange ? (
-    <div style={{ position: 'absolute', top: '5px', right: '5px', background: 'rgba(0,0,0,0.52)', borderRadius: '3px', padding: '2px 5px', pointerEvents: 'none', zIndex: 2 }}>
+    <div data-html2canvas-ignore="true" style={{ position: 'absolute', top: '5px', right: '5px', background: 'rgba(0,0,0,0.52)', borderRadius: '3px', padding: '2px 5px', pointerEvents: 'none', zIndex: 2 }}>
       <span style={{ fontSize: '7px', color: 'rgba(255,255,255,0.85)', fontFamily: 'var(--font-mono)' }}>↕ sleep</span>
     </div>
   ) : null;
@@ -875,10 +880,14 @@ function FlyerBackPreview({ flyer, formaat = 'a5' }: { flyer: FlyerState; formaa
   const backTekst = flyer.backTekst || 'Vragen? Wij helpen je graag verder.';
 
   const pxDims = PREVIEW_PX[formaat] ?? PREVIEW_PX['a5'];
+  const a5Dims = PREVIEW_PX['a5'];
+  const isA6 = formaat === 'a6';
+  const zoomRatio = isA6 ? pxDims.w / a5Dims.w : 1;
   const base: React.CSSProperties = {
-    width: `${pxDims.w}px`, height: `${pxDims.h}px`, borderRadius: '8px', overflow: 'hidden',
+    width: `${a5Dims.w}px`, height: `${a5Dims.h}px`, borderRadius: '8px', overflow: 'hidden',
     position: 'relative', flexShrink: 0, fontFamily: 'var(--font-sans)',
     boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
+    zoom: zoomRatio,
   };
 
   const contactRows = [
