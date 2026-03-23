@@ -124,8 +124,20 @@ async function scrapeBasic(url: string) {
         || null;
       logo = html.match(/<img[^>]+alt=["'][^"']*logo[^"']*["'][^>]+src=["']([^"']+)["']/i)?.[1] || null;
 
+      // Extraheer hex kleuren uit CSS in de HTML
+      const hexMatches = html.match(/#[0-9a-fA-F]{6}\b/g) || [];
+      const cssRgbMatches = html.match(/rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+/g) || [];
+      // Converteer hex naar rgb(...) formaat zodat kleurenUitCSSArray ze kan verwerken
+      const hexAsRgb = hexMatches.map(hex => {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgb(${r}, ${g}, ${b})`;
+      });
+      const kleuren = [...hexAsRgb, ...cssRgbMatches];
+
       const scrapedOk = !!(h1 || meta);
-      return { kleuren: [], logo, fotos: ogImage ? [ogImage] : [], h1, meta, scrapedOk };
+      return { kleuren, logo, fotos: ogImage ? [ogImage] : [], h1, meta, scrapedOk };
     }
     // Non-200 response (bijv. 403 Cloudflare, 429 rate limit)
     return { kleuren: [], logo: null, fotos: [], h1: '', meta: '', scrapedOk: false, httpStatus: res.status };
