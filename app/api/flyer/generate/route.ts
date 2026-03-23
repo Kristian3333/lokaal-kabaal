@@ -37,7 +37,7 @@ async function scrapeSite(url: string) {
                 if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') bgSet.add(bg);
                 // Ook tekst- en borderkleur ophalen (bevat vaak merk-kleuren)
                 const color = s.color;
-                if (color && color !== 'rgba(0, 0, 0, 0)') bgSet.add(color);
+                if (color && color !== 'rgba(0, 0, 0, 0)' && color !== 'rgb(0, 0, 0)') bgSet.add(color);
                 const bc = s.borderColor;
                 if (bc && bc !== 'rgba(0, 0, 0, 0)' && bc !== 'transparent') bgSet.add(bc);
               });
@@ -238,6 +238,19 @@ function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
   return [h * 360, s, l];
 }
 
+// Standaard browser-kleuren die GEEN merkkleur zijn (link blauw, visited purple, etc.)
+const BROWSER_DEFAULTS = new Set([
+  '0,0,240',     // #0000f0 — afgerond van #0000ee (default link blue)
+  '0,0,228',     // #0000e4 — afgerond van #0000ee
+  '0,0,252',     // #0000fc
+  '84,84,204',   // #5454cc — visited link
+  '84,0,168',    // #5400a8 — visited link purple
+  '96,0,168',    // #6000a8
+  '0,0,0',       // puur zwart
+  '252,252,252', // bijna-wit
+  '240,240,240', // lichtgrijs
+]);
+
 function kleurenUitCSSArray(cssKleuren: string[]): { primair: string; accent: string } | null {
   if (!cssKleuren || cssKleuren.length === 0) return null;
 
@@ -249,13 +262,23 @@ function kleurenUitCSSArray(cssKleuren: string[]): { primair: string; accent: st
     const [r, g, b] = rgb;
     const key = `${Math.round(r/12)*12},${Math.round(g/12)*12},${Math.round(b/12)*12}`;
     if (uniek.has(key)) continue;
+    // Filter standaard browser-kleuren
+    if (BROWSER_DEFAULTS.has(key)) continue;
     const [hue, sat, lum] = rgbToHsl(r, g, b);
     uniek.set(key, { rgb, sat, lum, hue });
   }
 
   // Gesatureerde kleuren (echte merkkleuren) gesorteerd op saturatie
+  // Filter ook: pure blauw (#0000xx) met lum < 0.5 is bijna altijd een link-kleur
   const merkKleuren = Array.from(uniek.values())
-    .filter(c => c.sat > 0.15 && c.lum > 0.08 && c.lum < 0.92)
+    .filter(c => {
+      if (c.sat < 0.15 || c.lum <= 0.08 || c.lum >= 0.92) return false;
+      // Pure blauw (hue 230-250, sat > 0.9) met lage luminantie = browser link kleur
+      if (c.hue > 225 && c.hue < 255 && c.sat > 0.85 && c.lum < 0.52) return false;
+      // Pure paars (hue 270-300, sat > 0.8) = visited link kleur
+      if (c.hue > 265 && c.hue < 305 && c.sat > 0.75 && c.lum < 0.4) return false;
+      return true;
+    })
     .sort((a, b) => b.sat - a.sat);
 
   if (merkKleuren.length === 0) return null;
@@ -640,6 +663,7 @@ export async function POST(req: NextRequest) {
       } catch { /* SVG parse fout — negeer */ }
     }
     const alleKleuren = [...(scraped.kleuren || []), ...extraKleuren];
+    console.log('[flyer] raw kleuren sample:', alleKleuren.slice(0, 15), '| extra SVG:', extraKleuren.length);
     const kleuren = kleurenUitCSSArray(alleKleuren)
       ?? (besteFoto ? await dominanteKleuren(besteFoto) : { primair: '#0A0A0A', accent: '#00E87A' });
     console.log('[flyer] kleuren:', kleuren, '| raw count:', alleKleuren.length);
