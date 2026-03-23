@@ -1,11 +1,19 @@
 'use client';
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import Nav from '@/components/Nav';
 import PricingSection from '@/components/PricingSection';
 import HeroMapAnim from '@/components/HeroMapAnim';
-import { motion, useInView } from 'motion/react';
+import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { useRef, useEffect, useState } from 'react';
+
+const Hero3D = dynamic(() => import('@/components/Hero3D'), { ssr: false });
+
+// ─── Spring config ────────────────────────────────────────────────────────────
+
+const SPRING = { type: 'spring' as const, stiffness: 60, damping: 18, mass: 0.8 };
+const SPRING_FAST = { type: 'spring' as const, stiffness: 90, damping: 16, mass: 0.6 };
 
 // ─── Scroll-reveal wrapper ────────────────────────────────────────────────────
 
@@ -22,14 +30,42 @@ function FadeUp({
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 28 }}
+      initial={{ opacity: 0, y: 40 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.55, delay, ease: [0.21, 0.47, 0.32, 0.98] }}
+      transition={{ ...SPRING, delay }}
       className={className}
       style={style}
     >
       {children}
     </motion.div>
+  );
+}
+
+// ─── Stagger text reveal (split by word) ──────────────────────────────────────
+
+function StaggerText({
+  text, className, style, delay = 0,
+}: {
+  text: string;
+  className?: string;
+  style?: React.CSSProperties;
+  delay?: number;
+}) {
+  const words = text.split(' ');
+  return (
+    <span className={className} style={{ ...style, display: 'inline-flex', flexWrap: 'wrap', gap: '0 0.3em' }}>
+      {words.map((word, i) => (
+        <motion.span
+          key={i}
+          initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ ...SPRING, delay: delay + i * 0.06 }}
+          style={{ display: 'inline-block' }}
+        >
+          {word}
+        </motion.span>
+      ))}
+    </span>
   );
 }
 
@@ -99,84 +135,118 @@ export default function Landing() {
       {/* ── HERO ────────────────────────────────────────────────────────────── */}
       <section style={{
         background: 'var(--ink)',
-        padding: '80px 40px 100px',
+        padding: '120px 40px 140px',
         overflow: 'hidden',
+        position: 'relative',
       }}>
+        {/* 3D particle background */}
+        <Hero3D />
+
+        {/* Radial glow */}
+        <div style={{
+          position: 'absolute', top: '-20%', right: '-10%',
+          width: '600px', height: '600px',
+          background: 'radial-gradient(circle, rgba(0,232,122,0.08) 0%, transparent 70%)',
+          pointerEvents: 'none', zIndex: 0,
+        }} />
+
         <div style={{
           maxWidth: '1100px', margin: '0 auto',
           display: 'grid', gridTemplateColumns: '1fr auto',
           gap: '60px', alignItems: 'center',
+          position: 'relative', zIndex: 1,
         }} className="hero-grid">
 
           {/* Left column */}
           <div>
             <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
+              initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              transition={{ ...SPRING_FAST, delay: 0.1 }}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '7px',
-                padding: '4px 12px',
-                background: 'rgba(0,232,122,0.08)',
-                border: '1px solid rgba(0,232,122,0.2)',
+                padding: '5px 14px',
+                background: 'rgba(0,232,122,0.06)',
+                border: '1px solid rgba(0,232,122,0.15)',
                 borderRadius: '20px',
                 fontSize: '11px', fontFamily: 'var(--font-mono)',
-                color: 'var(--green-dim)', marginBottom: '28px',
+                color: 'var(--green-dim)', marginBottom: '32px',
+                backdropFilter: 'blur(12px)',
               }}
             >
-              <span style={{ width: '6px', height: '6px', background: 'var(--green)', borderRadius: '50%', display: 'inline-block' }} />
+              <motion.span
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                style={{ width: '6px', height: '6px', background: 'var(--green)', borderRadius: '50%', display: 'inline-block' }}
+              />
               Hyperlocal direct mail · elke 25e automatisch verstuurd
             </motion.div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1, ease: [0.21, 0.47, 0.32, 0.98] }}
-              style={{
-                fontFamily: 'var(--font-serif)',
-                fontSize: 'clamp(42px, 6vw, 68px)',
-                lineHeight: 1.02,
-                fontWeight: 400,
-                color: '#fff',
-                letterSpacing: '-0.02em',
-                marginBottom: '24px',
-                maxWidth: '640px',
-              }}
-            >
-              Van nieuwe bewoner<br />
-              naar <em style={{ color: 'var(--green)' }}>vaste klant.</em>
-            </motion.h1>
+            <h1 style={{
+              fontFamily: 'var(--font-serif)',
+              fontSize: 'clamp(48px, 7vw, 82px)',
+              lineHeight: 0.98,
+              fontWeight: 400,
+              color: '#fff',
+              letterSpacing: '-0.03em',
+              marginBottom: '28px',
+              maxWidth: '680px',
+            }}>
+              <StaggerText text="Van nieuwe bewoner" delay={0.2} />
+              <br />
+              <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '0 0.3em' }}>
+                <StaggerText text="naar" delay={0.5} />
+                {' '}
+                <motion.em
+                  initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
+                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  transition={{ ...SPRING, delay: 0.6 }}
+                  style={{ color: 'var(--green)', fontStyle: 'italic' }}
+                >
+                  vaste klant.
+                </motion.em>
+              </span>
+            </h1>
 
             <motion.p
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              transition={{ ...SPRING, delay: 0.5 }}
               style={{
-                fontSize: '17px', color: 'rgba(255,255,255,0.55)',
-                lineHeight: 1.7, maxWidth: '500px', marginBottom: '40px',
+                fontSize: '18px', color: 'rgba(255,255,255,0.50)',
+                lineHeight: 1.75, maxWidth: '520px', marginBottom: '44px',
               }}
             >
-              Elke maand verhuizen <strong style={{ color: '#fff' }}>tienduizenden huishoudens</strong> in Nederland. De eerste 30 dagen kiezen ze hun vaste kapper, bakker en installateur. LokaalKabaal zorgt dat jouw flyer als eerste op de mat ligt.
+              Elke maand verhuizen <strong style={{ color: 'rgba(255,255,255,0.85)' }}>tienduizenden huishoudens</strong> in Nederland. De eerste 30 dagen kiezen ze hun vaste kapper, bakker en installateur. LokaalKabaal zorgt dat jouw flyer als eerste op de mat ligt.
             </motion.p>
 
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}
+              transition={{ ...SPRING, delay: 0.65 }}
+              style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}
             >
               <Link href="/login" style={{
-                padding: '14px 28px',
+                padding: '16px 32px',
                 background: 'var(--green)', color: 'var(--ink)',
-                borderRadius: 'var(--radius)', fontWeight: 800,
+                borderRadius: '4px', fontWeight: 800,
                 fontSize: '14px', textDecoration: 'none',
-                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                letterSpacing: '-0.01em',
+                boxShadow: '0 0 40px rgba(0,232,122,0.25), 0 0 80px rgba(0,232,122,0.1)',
               }}>
-                Claim jouw postcodes →
+                Claim jouw postcodes
+                <motion.span
+                  animate={{ x: [0, 4, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  →
+                </motion.span>
               </Link>
               <Link href="/flyers-versturen-nieuwe-bewoners" style={{
-                padding: '14px 20px', color: 'rgba(255,255,255,0.5)',
+                padding: '16px 20px', color: 'rgba(255,255,255,0.45)',
                 fontSize: '13px', textDecoration: 'none',
+                borderBottom: '1px solid rgba(255,255,255,0.1)',
               }}>
                 Hoe het werkt
               </Link>
@@ -186,10 +256,10 @@ export default function Landing() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.45 }}
+              transition={{ ...SPRING, delay: 0.85 }}
               style={{
-                display: 'flex', gap: '36px', marginTop: '52px',
-                paddingTop: '40px', borderTop: '1px solid rgba(255,255,255,0.08)',
+                display: 'flex', gap: '40px', marginTop: '60px',
+                paddingTop: '40px', borderTop: '1px solid rgba(255,255,255,0.06)',
                 flexWrap: 'wrap',
               }}
             >
@@ -197,20 +267,25 @@ export default function Landing() {
                 ['900.000+', 'eigendomsoverdrachten/jaar in NL'],
                 ['30 dagen',  'beslissingsvenster nieuwe bewoners'],
                 ['4–8%',      'conversieratio welkomstflyer'],
-              ] as [string, string][]).map(([n, l]) => (
-                <div key={l}>
-                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', color: '#fff', marginBottom: '4px', lineHeight: 1 }}>{n}</div>
-                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', lineHeight: 1.4, maxWidth: '140px' }}>{l}</div>
-                </div>
+              ] as [string, string][]).map(([n, l], i) => (
+                <motion.div
+                  key={l}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ ...SPRING, delay: 0.9 + i * 0.08 }}
+                >
+                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '30px', color: '#fff', marginBottom: '6px', lineHeight: 1, letterSpacing: '-0.02em' }}>{n}</div>
+                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.30)', fontFamily: 'var(--font-mono)', lineHeight: 1.4, maxWidth: '140px', letterSpacing: '0.02em', textTransform: 'uppercase' }}>{l}</div>
+                </motion.div>
               ))}
             </motion.div>
           </div>
 
           {/* Right column — animated map */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, delay: 0.25, ease: [0.21, 0.47, 0.32, 0.98] }}
+            initial={{ opacity: 0, scale: 0.92, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+            transition={{ ...SPRING, delay: 0.4 }}
             className="hero-map-col"
           >
             <HeroMapAnim />
@@ -551,26 +626,51 @@ export default function Landing() {
       <PricingSection />
 
       {/* ── FINAL CTA ───────────────────────────────────────────────────────── */}
-      <section style={{ padding: '100px 40px', textAlign: 'center', maxWidth: '640px', margin: '0 auto' }}>
+      <section style={{
+        padding: '120px 40px',
+        textAlign: 'center',
+        maxWidth: '720px',
+        margin: '0 auto',
+        position: 'relative',
+      }}>
+        {/* Subtle glow behind CTA */}
+        <div style={{
+          position: 'absolute', top: '50%', left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '400px', height: '400px',
+          background: 'radial-gradient(circle, rgba(0,232,122,0.04) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
         <FadeUp>
-          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(32px, 5vw, 50px)', fontWeight: 400, marginBottom: '16px', lineHeight: 1.08 }}>
+          <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '20px' }}>
+            Klaar om te groeien?
+          </div>
+          <h2 style={{
+            fontFamily: 'var(--font-serif)',
+            fontSize: 'clamp(36px, 5.5vw, 56px)',
+            fontWeight: 400, marginBottom: '20px', lineHeight: 1.04,
+            letterSpacing: '-0.02em',
+          }}>
             Elke maand nieuwe klanten.<br />
             <em style={{ color: 'var(--muted)' }}>Zonder extra werk.</em>
           </h2>
-          <p style={{ color: 'var(--muted)', fontSize: '15px', marginBottom: '36px', lineHeight: 1.65 }}>
+          <p style={{ color: 'var(--muted)', fontSize: '16px', marginBottom: '40px', lineHeight: 1.7, maxWidth: '480px', margin: '0 auto 40px' }}>
             Stel eenmalig in. Elke 25e verstuurt LokaalKabaal automatisch jouw flyer naar alle nieuwe bewoners in jouw postcodes.
           </p>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
             <Link href="/login" style={{
-              padding: '16px 40px',
+              padding: '18px 44px',
               background: 'var(--ink)', color: '#fff',
-              borderRadius: 'var(--radius)', fontWeight: 800,
+              borderRadius: '4px', fontWeight: 800,
               fontSize: '15px', textDecoration: 'none',
               display: 'inline-block',
+              letterSpacing: '-0.01em',
+              boxShadow: '0 4px 30px rgba(10,10,10,0.2)',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
             }}>
               Eerste batch voor €49 →
             </Link>
-            <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', letterSpacing: '0.02em' }}>
               Eenmalig instappen · of direct abonnement · vanaf €199/mnd
             </div>
           </div>
