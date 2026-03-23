@@ -242,44 +242,53 @@ function kleurenUitCSSArray(cssKleuren: string[]): { primair: string; accent: st
   if (!cssKleuren || cssKleuren.length === 0) return null;
 
   // Verzamel unieke kleuren met hun saturatie
-  const uniek = new Map<string, { rgb: [number,number,number]; sat: number; lum: number }>();
+  const uniek = new Map<string, { rgb: [number,number,number]; sat: number; lum: number; hue: number }>();
   for (const css of cssKleuren) {
     const rgb = cssRgbToRgb(css);
     if (!rgb) continue;
     const [r, g, b] = rgb;
     const key = `${Math.round(r/12)*12},${Math.round(g/12)*12},${Math.round(b/12)*12}`;
     if (uniek.has(key)) continue;
-    const [, sat, lum] = rgbToHsl(r, g, b);
-    uniek.set(key, { rgb, sat, lum });
+    const [hue, sat, lum] = rgbToHsl(r, g, b);
+    uniek.set(key, { rgb, sat, lum, hue });
   }
 
   // Gesatureerde kleuren (echte merkkleuren) gesorteerd op saturatie
   const merkKleuren = Array.from(uniek.values())
-    .filter(c => c.sat > 0.25 && c.lum > 0.1 && c.lum < 0.92)
+    .filter(c => c.sat > 0.15 && c.lum > 0.08 && c.lum < 0.92)
     .sort((a, b) => b.sat - a.sat);
-
-  // Donkere kleuren (voor achtergrond)
-  const donkereKleuren = Array.from(uniek.values())
-    .filter(c => c.lum < 0.25 && c.sat < 0.4)
-    .sort((a, b) => a.lum - b.lum);
 
   if (merkKleuren.length === 0) return null;
 
-  // De meest gesatureerde kleur = accent (de "pop" kleur van het merk)
+  // Accent = meest gesatureerde kleur (de "pop" kleur van het merk)
   const accentRgb = merkKleuren[0].rgb;
   const accent = rgbToHex(accentRgb[0], accentRgb[1], accentRgb[2]);
 
-  // Primair = donkere achtergrondkleur, of bijna-zwart als fallback
-  let primair = '#0f0f0f';
-  if (donkereKleuren.length > 0) {
-    const p = donkereKleuren[0].rgb;
-    primair = rgbToHex(p[0], p[1], p[2]);
-  } else if (merkKleuren.length > 1) {
-    // Tweede merk kleur als primair, mits donker genoeg
-    const tweede = merkKleuren[1];
-    if (tweede.lum < 0.5) {
-      primair = rgbToHex(tweede.rgb[0], tweede.rgb[1], tweede.rgb[2]);
+  // Primair: zoek een contrasterende tweede merkkleur
+  // Strategie: 1) donkere variant van accent, 2) tweede merkkleur met ander hue, 3) donker neutraal
+  let primair: string;
+
+  // Probeer een tweede merkkleur met voldoende hue-verschil
+  const tweedeMerk = merkKleuren.find((c, i) => {
+    if (i === 0) return false;
+    const hueDiff = Math.abs(c.hue - merkKleuren[0].hue);
+    const hueDistance = Math.min(hueDiff, 360 - hueDiff);
+    return hueDistance > 30 || Math.abs(c.lum - merkKleuren[0].lum) > 0.25;
+  });
+
+  if (tweedeMerk) {
+    // Gebruik tweede merkkleur — donkerder maken als te licht voor achtergrond
+    const [r, g, b] = tweedeMerk.rgb;
+    if (tweedeMerk.lum > 0.55) {
+      // Te licht als achtergrond → maak donkerder (60% intensiteit)
+      primair = rgbToHex(Math.round(r * 0.45), Math.round(g * 0.45), Math.round(b * 0.45));
+    } else {
+      primair = rgbToHex(r, g, b);
     }
+  } else {
+    // Geen tweede kleur: maak donkere variant van accent
+    const [r, g, b] = accentRgb;
+    primair = rgbToHex(Math.round(r * 0.18), Math.round(g * 0.18), Math.round(b * 0.18));
   }
 
   return { primair, accent };
@@ -434,7 +443,10 @@ function buildFlyerHTML(d: {
   stad?: string;
   geldigTot?: Date;
 }): string {
-  const rgb = d.primairKleur.match(/\d+/g)?.map(Number) || [255, 255, 255];
+  const hex = (d.primairKleur || '#ffffff').replace('#', '');
+  const rgb = hex.length === 6
+    ? [parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16)]
+    : [255, 255, 255];
   const luminantie = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
   const tekstKleur = luminantie > 0.5 ? '#0A0A0A' : '#FFFFFF';
   const mutedKleur = luminantie > 0.5 ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)';
@@ -455,9 +467,9 @@ function buildFlyerHTML(d: {
   }
   .accent-bar{position:absolute;top:0;left:0;right:0;height:1.5mm;background:${d.accentKleur}}
   .flyer{width:100%;height:100%;display:flex;flex-direction:column;padding:9mm 9mm 7mm}
-  .header{display:flex;align-items:center;gap:4mm;padding-bottom:5mm;border-bottom:0.4mm solid ${d.accentKleur}55;margin-bottom:5mm}
-  .logo{max-height:14mm;max-width:42mm;height:auto;width:auto;object-fit:contain;display:block}
-  .bedrijfsnaam{font-size:15pt;font-weight:800;color:${tekstKleur};line-height:1.1}
+  .header{display:flex;align-items:center;gap:4mm;padding-bottom:5mm;border-bottom:0.4mm solid ${d.accentKleur}55;margin-bottom:5mm;overflow:hidden;min-width:0}
+  .logo{max-height:14mm;max-width:36mm;height:auto;width:auto;object-fit:contain;display:block;flex-shrink:0}
+  .bedrijfsnaam{font-size:15pt;font-weight:800;color:${tekstKleur};line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
   .branche-badge{
     display:inline-block;background:${d.accentKleur};color:#0A0A0A;
     font-size:6.5pt;font-weight:700;font-family:'DM Mono',monospace;
@@ -466,13 +478,13 @@ function buildFlyerHTML(d: {
   }
   .hero{width:100%;height:48mm;object-fit:cover;border-radius:1mm;margin-bottom:4.5mm;display:block}
   .hero-placeholder{width:100%;height:48mm;background:${d.accentKleur}22;border-radius:1mm;margin-bottom:4.5mm}
-  .headline{font-size:17pt;font-weight:800;color:${tekstKleur};line-height:1.2;margin-bottom:3mm}
-  .bodytekst{font-size:8.5pt;color:${mutedKleur};line-height:1.7;margin-bottom:4mm;flex:1}
-  .usps{display:flex;flex-direction:column;gap:1.5mm;margin-bottom:5mm}
-  .usp{display:flex;align-items:center;gap:2mm;font-size:8pt;color:${tekstKleur};font-weight:600}
+  .headline{font-size:17pt;font-weight:800;color:${tekstKleur};line-height:1.2;margin-bottom:3mm;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;max-height:3.6em}
+  .bodytekst{font-size:8.5pt;color:${mutedKleur};line-height:1.7;margin-bottom:4mm;flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical}
+  .usps{display:flex;flex-direction:column;gap:1.5mm;margin-bottom:5mm;overflow:hidden}
+  .usp{display:flex;align-items:center;gap:2mm;font-size:8pt;color:${tekstKleur};font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dot{width:1.8mm;height:1.8mm;background:${d.accentKleur};border-radius:50%;flex-shrink:0}
   .footer{border-top:.4mm solid ${d.accentKleur}33;padding-top:3mm;display:flex;justify-content:space-between;align-items:flex-end}
-  .contact{font-size:7pt;color:${mutedKleur};line-height:1.8;font-family:'DM Mono',monospace}
+  .contact{font-size:7pt;color:${mutedKleur};line-height:1.8;font-family:'DM Mono',monospace;overflow:hidden;text-overflow:ellipsis;max-width:60mm}
   .watermark{font-size:5.5pt;color:${mutedKleur};font-family:'DM Mono',monospace;opacity:.4}
   .qr-section{position:absolute;bottom:8mm;right:8mm;display:flex;flex-direction:column;align-items:center;gap:1.5mm}
   .qr-code{width:18mm;height:18mm}

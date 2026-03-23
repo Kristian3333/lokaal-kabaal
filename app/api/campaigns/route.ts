@@ -189,20 +189,20 @@ function buildTemplateHTML(d: {
 body{width:148mm;height:210mm;background:${pk};font-family:'Manrope',sans-serif;overflow:hidden;position:relative}
 .accent-bar{position:absolute;top:0;left:0;right:0;height:1.5mm;background:${ak}}
 .flyer{width:100%;height:100%;display:flex;flex-direction:column;padding:9mm 9mm 7mm}
-.header{display:flex;align-items:center;gap:4mm;padding-bottom:5mm;border-bottom:0.4mm solid ${ak}55;margin-bottom:5mm}
-.logo{max-height:14mm;max-width:42mm;height:auto;width:auto;object-fit:contain}
-.bedrijfsnaam{font-size:15pt;font-weight:800;color:${tk};line-height:1.1}
+.header{display:flex;align-items:center;gap:4mm;padding-bottom:5mm;border-bottom:0.4mm solid ${ak}55;margin-bottom:5mm;overflow:hidden;min-width:0}
+.logo{max-height:14mm;max-width:36mm;height:auto;width:auto;object-fit:contain;flex-shrink:0}
+.bedrijfsnaam{font-size:15pt;font-weight:800;color:${tk};line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
 .badge{display:inline-block;background:${ak};color:#0A0A0A;font-size:6.5pt;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase;padding:1mm 2.5mm;border-radius:.3mm;margin-bottom:3.5mm}
 .hero{width:100%;height:48mm;object-fit:cover;border-radius:1mm;margin-bottom:4.5mm}
 .hero-ph{width:100%;height:48mm;background:${ak}22;border-radius:1mm;margin-bottom:4.5mm}
-.headline{font-size:17pt;font-weight:800;color:${tk};line-height:1.2;margin-bottom:3mm}
-.body{font-size:8.5pt;color:${mk};line-height:1.7;margin-bottom:4mm;flex:1}
-.usps{display:flex;flex-direction:column;gap:1.5mm;margin-bottom:5mm}
-.usp{display:flex;align-items:center;gap:2mm;font-size:8pt;color:${tk};font-weight:600}
+.headline{font-size:17pt;font-weight:800;color:${tk};line-height:1.2;margin-bottom:3mm;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;max-height:3.6em}
+.body{font-size:8.5pt;color:${mk};line-height:1.7;margin-bottom:4mm;flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical}
+.usps{display:flex;flex-direction:column;gap:1.5mm;margin-bottom:5mm;overflow:hidden}
+.usp{display:flex;align-items:center;gap:2mm;font-size:8pt;color:${tk};font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dot{width:1.8mm;height:1.8mm;background:${ak};border-radius:50%;flex-shrink:0}
 .adr{margin-top:3mm;padding:2.5mm 3mm;background:${ak}18;border-left:1.5mm solid ${ak};border-radius:.5mm}
 .footer{border-top:.4mm solid ${ak}33;padding-top:3mm;display:flex;justify-content:space-between;align-items:flex-end}
-.contact{font-size:7pt;color:${mk};line-height:1.8;font-family:'DM Mono',monospace}
+.contact{font-size:7pt;color:${mk};line-height:1.8;font-family:'DM Mono',monospace;overflow:hidden;text-overflow:ellipsis;max-width:60mm}
 .wm{font-size:5.5pt;color:${mk};font-family:'DM Mono',monospace;opacity:.4}
 .qr{position:absolute;bottom:8mm;right:8mm;display:flex;flex-direction:column;align-items:center;gap:1.5mm}
 .qr img{width:18mm;height:18mm}
