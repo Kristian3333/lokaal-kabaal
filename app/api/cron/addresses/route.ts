@@ -118,7 +118,7 @@ async function createBatch(params: {
     templateId: params.templateId,
     finish: params.finish ?? 'GLOSSY',
     ready: params.sendDate ?? null, // null = wacht op handmatige goedkeuring
-    requiredCount: 1,
+    requiredCount: 300, // Print.one minimum
     ...(params.sender ? {
       sender: { ...params.sender, country: 'NL' },
     } : {}),
@@ -156,7 +156,6 @@ async function finalizeBatch(batchId: string): Promise<boolean> {
 
   const result = await po<{ id?: string }>(`/batches/${batchId}`, 'PATCH', {
     ready: true,
-    requiredCount: 1,
   });
 
   if (!result.ok) {

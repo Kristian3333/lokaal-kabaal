@@ -1939,6 +1939,9 @@ export default function LokaalKabaal() {
       if (stored) {
         try {
           const pc = JSON.parse(stored) as NonNullable<typeof pendingCampaign>;
+          const storedFlyer = sessionStorage.getItem('lk_pending_flyer');
+          const flyerDesign = storedFlyer ? JSON.parse(storedFlyer) : null;
+
           const newCampaign: Campaign = {
             id: Date.now(),
             spec: pc.spec,
@@ -1954,7 +1957,33 @@ export default function LokaalKabaal() {
             proefAdres: pc.proefAdres || undefined,
           };
           setCampaigns(prev => [...prev, newCampaign]);
+
+          // Sla campagne op in database + maak Print.one template aan
+          const userEmail = user?.email || localStorage.getItem('lk_user') && JSON.parse(localStorage.getItem('lk_user')!).email;
+          if (userEmail) {
+            fetch('/api/campaigns', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: userEmail,
+                naam: `${pc.spec} campagne`,
+                branche: pc.spec,
+                centrum: pc.centrum,
+                verwachtAantalPerMaand: pc.aantalFlyers,
+                duurMaanden: 1,
+                startMaand: pc.datum,
+                formaat: pc.formaat,
+                dubbelzijdig: pc.dubbelzijdig,
+                stripeSessionId: params.get('session_id'),
+                flyerDesign,
+              }),
+            }).then(res => res.json()).then(data => {
+              if (data.id) console.log('[payment] campagne opgeslagen:', data.id, 'template:', data.flyerTemplateId);
+            }).catch(err => console.warn('[payment] campagne opslaan mislukt:', err));
+          }
+
           sessionStorage.removeItem('lk_pending_campaign');
+          sessionStorage.removeItem('lk_pending_flyer');
           setPendingCampaign(null);
         } catch {}
       }
@@ -2311,6 +2340,21 @@ export default function LokaalKabaal() {
                 onClick={async () => {
                   if (!pendingCampaign) return;
                   sessionStorage.setItem('lk_pending_campaign', JSON.stringify(pendingCampaign));
+                  // Sla flyer design data op voor Print.one template na betaling
+                  sessionStorage.setItem('lk_pending_flyer', JSON.stringify({
+                    bedrijfsnaam: flyer.bedrijfsnaam,
+                    logoUrl: flyer.logoData,
+                    heroImageUrl: flyer.heroImageUrl,
+                    primairKleur: flyer.kleur,
+                    accentKleur: flyer.accent,
+                    headline: flyer.headline,
+                    bodytekst: flyer.tekst,
+                    usps: flyer.usp ? flyer.usp.split('\n').filter(Boolean).slice(0, 3) : [],
+                    cta: flyer.cta,
+                    telefoon: flyer.telefoon,
+                    email: flyer.email,
+                    website: flyer.website,
+                  }));
                   const res = await fetch('/api/stripe/checkout', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

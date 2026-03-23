@@ -3,6 +3,22 @@ import { db } from '@/lib/db';
 import { flyerVerifications } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 
+// ─── Webhook verificatie ────────────────────────────────────────────────────
+// Verificatie via URL-token: /api/printone/webhook?token=xxx
+// Of via header: x-webhook-secret (als PRINTONE_WEBHOOK_SECRET is ingesteld)
+const WEBHOOK_SECRET = process.env.PRINTONE_WEBHOOK_SECRET ?? '';
+
+function isValidWebhook(req: NextRequest): boolean {
+  // Check URL token
+  const urlToken = req.nextUrl.searchParams.get('token');
+  if (WEBHOOK_SECRET && urlToken === WEBHOOK_SECRET) return true;
+  // Check header
+  if (WEBHOOK_SECRET && req.headers.get('x-webhook-secret') === WEBHOOK_SECRET) return true;
+  // Geen secret geconfigureerd → accepteer alles (dev)
+  if (!WEBHOOK_SECRET) return true;
+  return false;
+}
+
 // ─── POST /api/printone/webhook ──────────────────────────────────────────────
 // Print.one stuurt webhook events naar dit endpoint.
 // We verwerken:
@@ -11,6 +27,11 @@ import { eq } from 'drizzle-orm';
 // - qr_code_scanned    → registreer interesse (consument heeft QR gescand)
 
 export async function POST(req: NextRequest) {
+  if (!isValidWebhook(req)) {
+    console.warn('[printone-webhook] ongeldig webhook secret — verworpen');
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const body = await req.json().catch(() => null);
   if (!body) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
