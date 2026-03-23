@@ -613,7 +613,7 @@ export async function POST(req: NextRequest) {
     // Stap 3: kleuren — CSS kleuren zijn de meest betrouwbare bron
     const kleuren = kleurenUitCSSArray(scraped.kleuren || [])
       ?? (besteFoto ? await dominanteKleuren(besteFoto) : { primair: '#0A0A0A', accent: '#00E87A' });
-    console.log('[flyer] kleuren:', kleuren);
+    console.log('[flyer] kleuren:', kleuren, '| raw count:', scraped.kleuren?.length);
 
     // Stap 3b: verificatiecode genereren + in DB opslaan (optioneel — als adres + retailer meegegeven)
     let verificationCode: string | undefined;
@@ -688,6 +688,7 @@ export async function POST(req: NextRequest) {
       tekst,
       verificationCode: verificationCode ?? null,
       qrUrl: qrUrl ?? null,
+      _debug: { rawKleurenCount: scraped.kleuren?.length ?? 0, scrapedOk: scraped.scrapedOk, httpStatus: scraped.httpStatus },
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Onbekende fout';
