@@ -610,10 +610,27 @@ export async function POST(req: NextRequest) {
     ]);
     console.log('[flyer] besteFoto:', besteFoto, '| tekst headline:', tekst?.headline);
 
-    // Stap 3: kleuren — CSS kleuren zijn de meest betrouwbare bron
-    const kleuren = kleurenUitCSSArray(scraped.kleuren || [])
+    // Stap 3: kleuren — meerdere bronnen combineren
+    // Voeg kleuren uit logo SVG toe (bijv. fill="#df0000")
+    const extraKleuren: string[] = [];
+    if (scraped.logo && scraped.logo.startsWith('data:image/svg')) {
+      try {
+        const svgData = scraped.logo.includes('base64,')
+          ? Buffer.from(scraped.logo.split('base64,')[1], 'base64').toString()
+          : decodeURIComponent(scraped.logo.split(',')[1] || '');
+        const svgHexes = svgData.match(/#[0-9a-fA-F]{6}\b/g) || [];
+        for (const hex of svgHexes) {
+          const r = parseInt(hex.slice(1, 3), 16);
+          const g = parseInt(hex.slice(3, 5), 16);
+          const b = parseInt(hex.slice(5, 7), 16);
+          extraKleuren.push(`rgb(${r}, ${g}, ${b})`);
+        }
+      } catch { /* SVG parse fout — negeer */ }
+    }
+    const alleKleuren = [...(scraped.kleuren || []), ...extraKleuren];
+    const kleuren = kleurenUitCSSArray(alleKleuren)
       ?? (besteFoto ? await dominanteKleuren(besteFoto) : { primair: '#0A0A0A', accent: '#00E87A' });
-    console.log('[flyer] kleuren:', kleuren, '| raw count:', scraped.kleuren?.length);
+    console.log('[flyer] kleuren:', kleuren, '| raw count:', alleKleuren.length);
 
     // Stap 3b: verificatiecode genereren + in DB opslaan (optioneel — als adres + retailer meegegeven)
     let verificationCode: string | undefined;
