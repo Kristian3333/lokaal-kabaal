@@ -35,6 +35,30 @@ async function scrapeSite(url: string) {
                 const s = getComputedStyle(el);
                 const bg = s.backgroundColor;
                 if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') bgSet.add(bg);
+                // Ook tekst- en borderkleur ophalen (bevat vaak merk-kleuren)
+                const color = s.color;
+                if (color && color !== 'rgba(0, 0, 0, 0)') bgSet.add(color);
+                const bc = s.borderColor;
+                if (bc && bc !== 'rgba(0, 0, 0, 0)' && bc !== 'transparent') bgSet.add(bc);
+              });
+              // Hex kleuren uit inline styles en style tags
+              const htmlStr = document.documentElement.innerHTML || '';
+              const hexMatches = htmlStr.match(/#[0-9a-fA-F]{6}(?=[^0-9a-fA-F])/g) || [];
+              hexMatches.forEach(hex => {
+                const r = parseInt(hex.slice(1,3),16);
+                const g = parseInt(hex.slice(3,5),16);
+                const b = parseInt(hex.slice(5,7),16);
+                bgSet.add('rgb('+r+', '+g+', '+b+')');
+              });
+              // SVG fill kleuren
+              document.querySelectorAll('svg [fill]').forEach(el => {
+                const fill = el.getAttribute('fill');
+                if (fill && fill.startsWith('#') && fill.length === 7) {
+                  const r = parseInt(fill.slice(1,3),16);
+                  const g = parseInt(fill.slice(3,5),16);
+                  const b = parseInt(fill.slice(5,7),16);
+                  bgSet.add('rgb('+r+', '+g+', '+b+')');
+                }
               });
 
               // ── Logo: breed zoeken ──
