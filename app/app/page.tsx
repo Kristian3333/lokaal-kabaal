@@ -2089,7 +2089,7 @@ export default function LokaalKabaal() {
       setPage('dashboard');
       window.history.replaceState({}, '', '/app');
     }
-  }, []);
+  }, [fetchCampaigns]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const uitloggen = async (): Promise<void> => {
     try {
