@@ -216,7 +216,7 @@ export default function PricingSection() {
                   </div>
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', padding: '4px 10px' }}>
                     <span style={{ fontSize: '15px', fontWeight: 700, color: t.hero ? 'var(--green)' : '#fff', fontFamily: 'var(--font-mono)' }}>{t.maxPc4s}</span>
-                    <span style={{ fontSize: '10px', color: 'rgba(255,255,255,.4)', fontFamily: 'var(--font-mono)' }}>pc4's</span>
+                    <span style={{ fontSize: '10px', color: 'rgba(255,255,255,.4)', fontFamily: 'var(--font-mono)' }}>pc4&apos;s</span>
                   </div>
                 </div>
 

@@ -2672,7 +2672,7 @@ export default function LokaalKabaal() {
                 return atLimit ? (
                   <div style={{ marginTop: '12px', background: 'rgba(255,200,0,0.07)', border: '1px solid rgba(255,200,0,0.25)', borderRadius: 'var(--radius)', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
                     <div style={{ fontSize: '12px', color: '#b8860b', fontFamily: 'var(--font-mono)' }}>
-                      Limiet bereikt: max. {maxPc4s} pc4's voor {TIERS[userTier].label}
+                      Limiet bereikt: max. {maxPc4s} pc4&apos;s voor {TIERS[userTier].label}
                     </div>
                     <a href="/#prijzen" style={{ fontSize: '11px', color: '#b8860b', fontFamily: 'var(--font-mono)', fontWeight: 700, textDecoration: 'underline', whiteSpace: 'nowrap' }}>
                       Upgrade →

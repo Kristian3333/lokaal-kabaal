@@ -562,7 +562,7 @@ export default function Landing() {
               Nieuwe bewoners zijn de meest <em style={{ color: 'var(--muted)' }}>waardevolle doelgroep die bestaat.</em>
             </h2>
             <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.8, marginBottom: '24px' }}>
-              Eén nieuwe vaste klant levert gemiddeld honderden euro's per jaar op — vaak meer dan het volledige maandbedrag van je abonnement. De ROI is uitzonderlijk, omdat je in het juiste moment aanwezig bent.
+              Eén nieuwe vaste klant levert gemiddeld honderden euro&apos;s per jaar op -- vaak meer dan het volledige maandbedrag van je abonnement. De ROI is uitzonderlijk, omdat je in het juiste moment aanwezig bent.
             </p>
             <div style={{
               padding: '16px 20px',

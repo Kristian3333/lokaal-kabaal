@@ -126,7 +126,7 @@ export default function DirectMailMKB() {
               Laten we eerlijk zijn over wat digitale advertenties doen voor een lokale kapper in Rotterdam-Noord.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444', marginBottom: '16px' }}>
-              <strong>Google Ads:</strong> U biedt op "kapper Rotterdam". De gemiddelde CPC ligt op €0,80–2,50. Van de mensen die klikken converteert 2–5% naar een afspraak. Dat is €40–125 per nieuwe klant. Bovendien verdwijnt uw zichtbaarheid zodra u stopt met betalen.
+              <strong>Google Ads:</strong> U biedt op &quot;kapper Rotterdam&quot;. De gemiddelde CPC ligt op &euro;0,80-2,50. Van de mensen die klikken converteert 2-5% naar een afspraak. Dat is &euro;40-125 per nieuwe klant. Bovendien verdwijnt uw zichtbaarheid zodra u stopt met betalen.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444', marginBottom: '16px' }}>
               <strong>Facebook/Instagram:</strong> 80–90% van uw advertentiebudget gaat naar mensen die al een vaste kapper hebben en niet van plan zijn te wisselen. Conversieratio&apos;s voor niet-getriggerde lokale advertenties liggen op 0,5–1,5%.
@@ -186,7 +186,7 @@ export default function DirectMailMKB() {
               Een eigendomsoverdracht is geen willekeurig adres. Het is een adres waar iemand net een woning heeft gekocht. Die persoon staat nu voor een reeks nieuwe keuzes: welke dienstverleners in de buurt? Welke winkel wordt de vaste? Welk restaurant wordt het stamadres?
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444', marginBottom: '16px' }}>
-              Dit is wat marketeers een <strong>"high intent moment"</strong> noemen. Uw flyer arriveert niet als ongewenste reclame bij iemand die tevreden is met zijn huidige situatie. Uw flyer arriveert als nuttige informatie bij iemand die precies zoekt wat u aanbiedt.
+              Dit is wat marketeers een <strong>&quot;high intent moment&quot;</strong> noemen. Uw flyer arriveert niet als ongewenste reclame bij iemand die tevreden is met zijn huidige situatie. Uw flyer arriveert als nuttige informatie bij iemand die precies zoekt wat u aanbiedt.
             </p>
             <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.2)', borderRadius: 'var(--radius)', padding: '14px 16px', fontSize: '13px', color: 'var(--green-dim)' }}>
               LokaalKabaal is de enige aanbieder in Nederland die Kadaster-eigendomsoverdrachten gebruikt als trigger voor geautomatiseerde direct mail voor lokale MKB.

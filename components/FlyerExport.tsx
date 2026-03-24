@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 
 // Print dimensions in mm (incl. 3mm bleed rondom) — alle formaten portrait
 // print.one specs: A6 105×148mm, A5 148×210mm, Vierkant 148×148mm + 3mm bleed rondom
@@ -17,42 +17,64 @@ export const PREVIEW_PX = {
   sq: { w: Math.round(154 * SCREEN_SCALE), h: Math.round(154 * SCREEN_SCALE) }, // 231×231
 };
 
-interface FlyerExportProps {
-  flyerRef: React.RefObject<HTMLDivElement>;
+// Print-ready render pixels (SCALE = 3 px/mm for ~300dpi)
+export const PRINT_RENDER_PX = {
+  a6: { w: Math.round(111 * 3), h: Math.round(154 * 3) },
+  a5: { w: Math.round(154 * 3), h: Math.round(216 * 3) },
+  sq: { w: Math.round(154 * 3), h: Math.round(154 * 3) },
+};
+
+export interface FlyerExportProps {
+  frontRef: React.RefObject<HTMLDivElement>;
+  backRef?: React.RefObject<HTMLDivElement>;
   formaat: 'a6' | 'a5' | 'sq';
+  dubbelzijdig?: boolean;
   bedrijfsnaam: string;
 }
 
-export default function FlyerExport({ flyerRef, formaat, bedrijfsnaam }: FlyerExportProps) {
+export default function FlyerExport({ frontRef, backRef, formaat, dubbelzijdig, bedrijfsnaam }: FlyerExportProps) {
   const [loading, setLoading] = useState(false);
   const dims = PRINT_DIMS[formaat];
 
   const exportPDF = async () => {
-    if (!flyerRef.current) return;
+    if (!frontRef.current) return;
     setLoading(true);
     try {
       const html2canvas = (await import('html2canvas')).default;
       const jsPDF = (await import('jspdf')).jsPDF;
 
       // Render at 3x for ~300dpi equivalent
-      const canvas = await html2canvas(flyerRef.current, {
+      const frontCanvas = await html2canvas(frontRef.current, {
         scale: 3,
         useCORS: true,
         backgroundColor: null,
         logging: false,
       });
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      const frontImg = frontCanvas.toDataURL('image/jpeg', 0.95);
 
-      // PDF in mm — alle formaten portrait (of vierkant)
+      // PDF in mm -- alle formaten portrait (of vierkant)
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: [dims.w, dims.h], // incl. bleed
       });
 
-      // Full bleed image
-      pdf.addImage(imgData, 'JPEG', 0, 0, dims.w, dims.h);
+      // Full bleed front image
+      pdf.addImage(frontImg, 'JPEG', 0, 0, dims.w, dims.h);
+
+      // Back page for double-sided flyers
+      if (dubbelzijdig && backRef?.current) {
+        const backCanvas = await html2canvas(backRef.current, {
+          scale: 3,
+          useCORS: true,
+          backgroundColor: null,
+          logging: false,
+        });
+        const backImg = backCanvas.toDataURL('image/jpeg', 0.95);
+        pdf.addPage([dims.w, dims.h], 'portrait');
+        pdf.addImage(backImg, 'JPEG', 0, 0, dims.w, dims.h);
+      }
 
       // Crop marks (3mm bleed → crop marks at trim edge)
       const bleed = 3;

@@ -173,7 +173,7 @@ export default function FlyersNieuweBewoners() {
                 Nieuwe bewoners zijn geen gewone consument. Ze zijn een doelgroep in een uitzonderlijke beslissingsfase — en voor lokale ondernemers is die fase goud waard.
               </p>
               <p style={{ fontSize: '15px', color: 'var(--muted)', lineHeight: 1.8, marginBottom: '16px' }}>
-                Wanneer iemand verhuist, komen ze in een omgeving die ze nog niet kennen. Gewoontes zijn doorbroken. Alles staat open. Dit noemen marketeers een <strong style={{ color: 'var(--ink)' }}>"life event trigger"</strong> — een levensgebeurtenis die gedrag fundamenteel verandert.
+                Wanneer iemand verhuist, komen ze in een omgeving die ze nog niet kennen. Gewoontes zijn doorbroken. Alles staat open. Dit noemen marketeers een <strong style={{ color: 'var(--ink)' }}>&quot;life event trigger&quot;</strong> -- een levensgebeurtenis die gedrag fundamenteel verandert.
               </p>
               <p style={{ fontSize: '15px', color: 'var(--muted)', lineHeight: 1.8 }}>
                 LokaalKabaal zorgt dat jouw flyer in dat venster arriveert — vóór je concurrent.

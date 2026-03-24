@@ -97,7 +97,7 @@ export default function FlyersKapper() {
               Wanneer iemand verhuist, valt het kapperspreferentiesysteem volledig weg. De vaste kapper van tien jaar zit misschien aan de andere kant van de stad. Het is niet prettig om een uur te reizen voor een knipbeurt. De meeste nieuwe bewoners besluiten bewust of onbewust: ik ga een nieuwe, dichterbije kapper zoeken.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444', marginBottom: '16px' }}>
-              Die zoekopdracht begint gemiddeld <strong>binnen 10–14 dagen na de verhuizing</strong>. Ze googlen "kapper [buurt]", vragen het aan de nieuwe buren, of stappen gewoon ergens binnen. Maar wie er als eerste een fysieke aanwijzing heeft gegeven dat ze bestaan — een flyer op de mat, een aanbieding voor de eerste knipbeurt — die staat al op de shortlist.
+              Die zoekopdracht begint gemiddeld <strong>binnen 10–14 dagen na de verhuizing</strong>. Ze googlen &quot;kapper [buurt]&quot;, vragen het aan de nieuwe buren, of stappen gewoon ergens binnen. Maar wie er als eerste een fysieke aanwijzing heeft gegeven dat ze bestaan — een flyer op de mat, een aanbieding voor de eerste knipbeurt — die staat al op de shortlist.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444' }}>
               Het koopgedrag is ook anders dan bij gewone nieuwe klanten. Nieuwe bewoners zijn niet selectief op prijs — ze zijn selectief op <strong>nabijheid en vertrouwen</strong>. Ze willen weten dat u er bent, dat u professioneel bent, en dat er een goede reden is om eens langs te komen. Een welkomstaanbieding (eerste knipbeurt met korting, of gratis wassen bij eerste bezoek) verlaagt de drempel tot nul.

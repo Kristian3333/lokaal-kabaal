@@ -163,9 +163,9 @@ export default function NLMap({ center, straalKm, centrumPc4, onPc4sFound }: NLM
   // Kaart initialiseren (eenmalig)
   useEffect(() => {
     if (!mapRef.current || typeof window === 'undefined') return;
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // eslint-disable-next-line
     const L = require('leaflet') as typeof import('leaflet');
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // eslint-disable-next-line
     require('leaflet/dist/leaflet.css');
 
     if (!leafletMapRef.current) {
@@ -193,7 +193,7 @@ export default function NLMap({ center, straalKm, centrumPc4, onPc4sFound }: NLM
   // Cirkel + PC4 updaten als center of straal wijzigt
   useEffect(() => {
     if (!leafletMapRef.current || !center) return;
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    // eslint-disable-next-line
     const L = require('leaflet') as typeof import('leaflet');
     const map = leafletMapRef.current as import('leaflet').Map;
     const coords: [number, number] = [center.lat, center.lon];
