@@ -3,11 +3,11 @@ import Link from 'next/link';
 import Nav from '@/components/Nav';
 
 export const metadata: Metadata = {
-  title: 'Flyers Versturen voor Restaurants — Bereik Nieuwe Bewoners',
+  title: 'Flyers Versturen voor Restaurants - Bereik Nieuwe Bewoners',
   description: 'Bereik nieuwe bewoners als restaurant voordat ze hun vaste eetadres kiezen. Automatische flyers via Kadaster. Vaste gast = €600/jaar gemiddeld. Geen contract.',
   alternates: { canonical: 'https://lokaalkabaal.agency/flyers-versturen-restaurant' },
   openGraph: {
-    title: 'Flyers Versturen voor Restaurants — Bereik Nieuwe Bewoners | LokaalKabaal',
+    title: 'Flyers Versturen voor Restaurants - Bereik Nieuwe Bewoners | LokaalKabaal',
     description: 'Bereik nieuwe bewoners als restaurant voordat ze hun vaste eetadres kiezen. Automatische flyers via Kadaster. Vaste gast = €600/jaar.',
     url: 'https://lokaalkabaal.agency/flyers-versturen-restaurant',
   },
@@ -30,7 +30,7 @@ const faqSchema = {
       name: 'Wat is de beste aanbieding voor op een restaurantflyer voor nieuwe bewoners?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Een welkomstaanbieding werkt goed: een gratis aperitief bij het eerste bezoek, 10% korting op de eerste reservering, of een gratis dessert. Zet uw sfeer en keuken in de verf met een mooie foto. Nieuwe bewoners willen weten "wat is dit voor tent" — geef ze die indruk in één oogopslag. Voeg altijd een reserveringslink of telefoonnummer toe.',
+        text: 'Een welkomstaanbieding werkt goed: een gratis aperitief bij het eerste bezoek, 10% korting op de eerste reservering, of een gratis dessert. Zet uw sfeer en keuken in de verf met een mooie foto. Nieuwe bewoners willen weten "wat is dit voor tent" -- geef ze die indruk in één oogopslag. Voeg altijd een reserveringslink of telefoonnummer toe.',
       },
     },
     {
@@ -64,13 +64,13 @@ export default function FlyersRestaurant() {
         {/* Hero */}
         <section style={{ maxWidth: '800px', margin: '0 auto', padding: '60px 40px 48px' }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--green-dim)', letterSpacing: '0.12em', marginBottom: '16px', textTransform: 'uppercase' }}>
-            Branche — Restaurants & eetgelegenheden
+            Branche -- Restaurants & eetgelegenheden
           </div>
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '44px', fontWeight: 400, lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: '20px' }}>
-            Flyers versturen voor restaurants —<br /><em style={{ color: 'var(--green-dim)' }}>wees het eerste restaurant</em><br />dat nieuwe bewoners ontdekken
+            Flyers versturen voor restaurants --<br /><em style={{ color: 'var(--green-dim)' }}>wees het eerste restaurant</em><br />dat nieuwe bewoners ontdekken
           </h1>
           <p style={{ fontSize: '16px', color: 'var(--muted)', lineHeight: 1.7, maxWidth: '600px', marginBottom: '32px' }}>
-            Nieuwe bewoners verkennen hun buurt. Ze zoeken een restaurant om te vieren, te ontspannen, te eten als ze geen zin hebben om te koken. Het restaurant dat ze als eerste leren kennen — via een flyer op de mat — heeft een structureel voordeel. LokaalKabaal verstuurt automatisch uw welkomstflyer zodra er een nieuwe eigenaar is geregistreerd in uw postcodes. Vaste gast: gemiddeld <strong>€600 per jaar</strong>. De flyer: minder dan €3.
+            Nieuwe bewoners verkennen hun buurt. Ze zoeken een restaurant om te vieren, te ontspannen, te eten als ze geen zin hebben om te koken. Het restaurant dat ze als eerste leren kennen -- via een flyer op de mat -- heeft een structureel voordeel. LokaalKabaal verstuurt automatisch uw welkomstflyer zodra er een nieuwe eigenaar is geregistreerd in uw postcodes. Vaste gast: gemiddeld <strong>€600 per jaar</strong>. De flyer: minder dan €3.
           </p>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <Link href="/login" style={{ padding: '12px 24px', background: 'var(--ink)', color: 'var(--paper)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px' }}>
@@ -94,10 +94,10 @@ export default function FlyersRestaurant() {
               Mensen die verhuizen, beginnen hun sociale leven opnieuw op te bouwen. Ze zoeken een buurtrestaurant om vrienden uit te nodigen, om te gaan eten na een lange verhuisdag, om te ontsnappen aan de verhuischaos. Ze zijn actief, nieuwsgierig en open voor ontdekkingen.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444', marginBottom: '16px' }}>
-              Restaurants bouwen hun klantenbestand op basis van gewoontes en herinneringen. Het restaurant waar je voor het eerst naartoe ging in de nieuwe buurt — dat blijft hangen. <strong>Eerste indrukken zijn disproportioneel sterk</strong> in de horeca. Wie er vroeg bij is, plukt daar jaren van.
+              Restaurants bouwen hun klantenbestand op basis van gewoontes en herinneringen. Het restaurant waar je voor het eerst naartoe ging in de nieuwe buurt -- dat blijft hangen. <strong>Eerste indrukken zijn disproportioneel sterk</strong> in de horeca. Wie er vroeg bij is, plukt daar jaren van.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444', marginBottom: '16px' }}>
-              Nieuwe bewoners beslissen snel. Binnen de eerste maand na de verhuizing zijn ze al in de meeste horecagelegenheden in de buurt geweest die ze opvielen — of hebben ze er al één als favoriet aangemerkt. Wie op dat moment al op de mat lag, was er eerder dan Google en eerder dan de buren.
+              Nieuwe bewoners beslissen snel. Binnen de eerste maand na de verhuizing zijn ze al in de meeste horecagelegenheden in de buurt geweest die ze opvielen -- of hebben ze er al één als favoriet aangemerkt. Wie op dat moment al op de mat lag, was er eerder dan Google en eerder dan de buren.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444' }}>
               Een vaste restaurantgast komt gemiddeld 1–2 keer per maand. Bij een gemiddelde besteding van €35–50 per bezoek loopt dat op tot <strong>€420–1.200 per jaar</strong>. En ze nemen vrienden mee.
@@ -114,7 +114,7 @@ export default function FlyersRestaurant() {
               U draait de bediening, de keuken, de inkoop. Marketing is het laatste waar u aan wilt denken. LokaalKabaal regelt het.
             </p>
             <div style={{ marginBottom: '20px' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '10px', letterSpacing: '0.08em' }}>DE SETUP (EENMALIG — 20 MINUTEN)</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '10px', letterSpacing: '0.08em' }}>DE SETUP (EENMALIG -- 20 MINUTEN)</div>
               {[
                 'Maak een account aan en stel uw restaurant in',
                 'Selecteer de postcodes rondom uw zaak',
@@ -133,7 +133,7 @@ export default function FlyersRestaurant() {
             </p>
             <div style={{ background: 'var(--paper2)', borderRadius: 'var(--radius)', padding: '14px 16px' }}>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.08em' }}>WAT STAAT ER OP EEN GOEDE RESTAURANTFLYER?</div>
-              {['Uw naam, logo en adres — duidelijk en stijlvol', 'Een pakkende sfeer: keuken, sfeer, doelgroep in één zin', 'Welkomstaanbieding: bijv. gratis aperitief of 10% korting eerste bezoek', 'Reserveringslink, telefoonnummer of QR-code', 'Openingstijden en sluitingsdagen'].map((s, i) => (
+              {['Uw naam, logo en adres -- duidelijk en stijlvol', 'Een pakkende sfeer: keuken, sfeer, doelgroep in één zin', 'Welkomstaanbieding: bijv. gratis aperitief of 10% korting eerste bezoek', 'Reserveringslink, telefoonnummer of QR-code', 'Openingstijden en sluitingsdagen'].map((s, i) => (
                 <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '12px', color: '#555', padding: '3px 0' }}>
                   <span style={{ color: 'var(--green)', flexShrink: 0 }}>✓</span>{s}
                 </div>
@@ -164,7 +164,7 @@ export default function FlyersRestaurant() {
               ))}
             </div>
             <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.25)', borderRadius: 'var(--radius)', padding: '16px 20px' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.08em' }}>REKENVOORBEELD — 10 NIEUWE BEWONERS/MND · 5% CONVERSIE</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.08em' }}>REKENVOORBEELD -- 10 NIEUWE BEWONERS/MND · 5% CONVERSIE</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 {[
                   { label: 'Nieuwe gasten/jaar', val: '~6' },
@@ -187,7 +187,7 @@ export default function FlyersRestaurant() {
             </h2>
             {[
               { q: 'Hoeveel nieuwe bewoners zijn er gemiddeld per maand in mijn postcodes?', a: 'In een stedelijke wijk in Nederland zijn er gemiddeld 3–8 eigendomsoverdrachten per postcode per maand. Voor een restaurant dat 3–5 postcodes rondom zich activeert, zijn dat 9–40 potentiële nieuwe gasten per maand. LokaalKabaal toont u vooraf het historische overdrachtsvolume voor uw gekozen postcodes.' },
-              { q: 'Wat is de beste aanbieding voor op mijn restaurantflyer?', a: 'Een welkomstaanbieding werkt goed: een gratis aperitief bij het eerste bezoek, 10% korting op de eerste reservering, of een gratis dessert. Zet uw sfeer en keuken in de verf met een mooie foto. Nieuwe bewoners willen weten "wat is dit voor tent" — geef ze die indruk in één oogopslag. Voeg altijd een reserveringslink of telefoonnummer toe.' },
+              { q: 'Wat is de beste aanbieding voor op mijn restaurantflyer?', a: 'Een welkomstaanbieding werkt goed: een gratis aperitief bij het eerste bezoek, 10% korting op de eerste reservering, of een gratis dessert. Zet uw sfeer en keuken in de verf met een mooie foto. Nieuwe bewoners willen weten "wat is dit voor tent" -- geef ze die indruk in één oogopslag. Voeg altijd een reserveringslink of telefoonnummer toe.' },
               { q: 'Wanneer is de beste periode om te starten als restaurant?', a: 'Voor restaurants zijn er twee goede periodes: direct na de verhuispiek (juni–augustus) als nieuwe bewoners hun buurt verkennen, en in het najaar (september–november) als mensen meer binnen eten. Maar eerlijk gezegd: elk moment is goed. Nieuwe bewoners zoeken het hele jaar door een vaste buurtrestaurant.' },
             ].map((f, i) => (
               <div key={i} style={{ borderBottom: '1px solid var(--line)', padding: '18px 0' }}>

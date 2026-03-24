@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { requireDb } from '../../../../lib/db';
 import { retailers } from '../../../../lib/schema';
 import { eq } from 'drizzle-orm';
+import { sendPaymentConfirmation } from '@/lib/email';
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-02-25.clover' });
@@ -75,6 +76,12 @@ export async function POST(req: NextRequest) {
             isJaarcontract,
           });
         }
+
+        // Fire-and-forget: email failure must not break the webhook
+        const bedrijfsnaam = meta.bedrijfsnaam ?? session.customer_details?.name ?? '';
+        sendPaymentConfirmation(email, bedrijfsnaam, tier).catch((err) => {
+          console.error('[webhook] payment confirmation email failed:', err);
+        });
 
         break;
       }

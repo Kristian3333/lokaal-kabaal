@@ -31,7 +31,7 @@ const faqSchema = {
       name: 'Hoe snel na een verhuizing ontvangen nieuwe bewoners mijn flyer?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Maandelijks verwerkt LokaalKabaal alle nieuwe eigendomsoverdrachten en verstuurt op de 25e een bulkprintorder. De nieuwe bewoner ontvangt uw flyer gemiddeld binnen 2–3 weken na hun verhuizing — ruimschoots in het 30-dagen beslissingsvenster.',
+        text: 'Maandelijks verwerkt LokaalKabaal alle nieuwe eigendomsoverdrachten en verstuurt op de 25e een bulkprintorder. De nieuwe bewoner ontvangt uw flyer gemiddeld binnen 2–3 weken na hun verhuizing -- ruimschoots in het 30-dagen beslissingsvenster.',
       },
     },
     {
@@ -170,13 +170,13 @@ export default function FlyersNieuweBewoners() {
                 <em style={{ color: 'var(--muted)' }}>30 dagen.</em>
               </h2>
               <p style={{ fontSize: '15px', color: 'var(--muted)', lineHeight: 1.8, marginBottom: '16px' }}>
-                Nieuwe bewoners zijn geen gewone consument. Ze zijn een doelgroep in een uitzonderlijke beslissingsfase — en voor lokale ondernemers is die fase goud waard.
+                Nieuwe bewoners zijn geen gewone consument. Ze zijn een doelgroep in een uitzonderlijke beslissingsfase -- en voor lokale ondernemers is die fase goud waard.
               </p>
               <p style={{ fontSize: '15px', color: 'var(--muted)', lineHeight: 1.8, marginBottom: '16px' }}>
                 Wanneer iemand verhuist, komen ze in een omgeving die ze nog niet kennen. Gewoontes zijn doorbroken. Alles staat open. Dit noemen marketeers een <strong style={{ color: 'var(--ink)' }}>&quot;life event trigger&quot;</strong> -- een levensgebeurtenis die gedrag fundamenteel verandert.
               </p>
               <p style={{ fontSize: '15px', color: 'var(--muted)', lineHeight: 1.8 }}>
-                LokaalKabaal zorgt dat jouw flyer in dat venster arriveert — vóór je concurrent.
+                LokaalKabaal zorgt dat jouw flyer in dat venster arriveert -- vóór je concurrent.
               </p>
             </div>
 
@@ -270,7 +270,7 @@ export default function FlyersNieuweBewoners() {
                 {
                   n: '02',
                   titel: 'Upload je flyerontwerp',
-                  tekst: 'Upload je eigen ontwerp of laat ons helpen. Elke flyer krijgt automatisch het juiste adres — gepersonaliseerd voor elke nieuwe bewoner.',
+                  tekst: 'Upload je eigen ontwerp of laat ons helpen. Elke flyer krijgt automatisch het juiste adres -- gepersonaliseerd voor elke nieuwe bewoner.',
                 },
                 {
                   n: '03',
@@ -324,10 +324,10 @@ export default function FlyersNieuweBewoners() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px', borderRadius: 'var(--radius)', overflow: 'hidden' }} className="grid-2">
               {[
-                { branche: 'Kapsalon', waarde: '€360', sub: 'per vaste klant/jaar · 6–8 knipcycli × €50', tekst: 'Eén nieuwe vaste klant brengt de jaarkosten van een Buurt-abonnement ruimschoots terug — zelfs in de eerste maand.' },
+                { branche: 'Kapsalon', waarde: '€360', sub: 'per vaste klant/jaar · 6–8 knipcycli × €50', tekst: 'Eén nieuwe vaste klant brengt de jaarkosten van een Buurt-abonnement ruimschoots terug -- zelfs in de eerste maand.' },
                 { branche: 'Installatiebedrijf', waarde: '€8.000', sub: 'eerste jaar · gem. verbouwbudget nieuwe eigenaar', tekst: 'Nieuwe huiseigenaren besteden gemiddeld €4.000–12.000 aan installatie- en verbouwwerk in het eerste jaar.' },
                 { branche: 'Restaurant', waarde: '€840', sub: 'per vaste gast/jaar · 2× p/mnd × €35', tekst: 'Nieuwe bewoners zonder stamkroeg zijn de meest ontvankelijke doelgroep. Bereik ze in week één.' },
-                { branche: 'Bakkerij', waarde: '€520', sub: 'per vaste klant/jaar · dagelijkse terugkeer', tekst: 'Dagelijkse gewoontes vormen zich in de eerste weken. Wees er als eerste — voor de concurrent.' },
+                { branche: 'Bakkerij', waarde: '€520', sub: 'per vaste klant/jaar · dagelijkse terugkeer', tekst: 'Dagelijkse gewoontes vormen zich in de eerste weken. Wees er als eerste -- voor de concurrent.' },
               ].map((b, i) => (
                 <div key={i} style={{
                   background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
@@ -407,9 +407,9 @@ export default function FlyersNieuweBewoners() {
           <div style={{ maxWidth: '760px', margin: '0 auto' }}>
             {[
               { q: 'Is het legaal om verhuisdata te gebruiken voor marketingdoeleinden?', a: 'Ja. Eigendomsoverdrachten zijn openbare informatie. LokaalKabaal gebruikt uitsluitend adresgegevens die publiek beschikbaar zijn voor postbezorging. Persoonsgegevens worden verwerkt conform de AVG; de bezorging verloopt via geautoriseerde kanalen.' },
-              { q: 'Hoe snel na een verhuizing ontvangen nieuwe bewoners mijn flyer?', a: 'Maandelijks verwerkt LokaalKabaal alle nieuwe eigendomsoverdrachten en verstuurt op de 25e een bulkprintorder. Nieuwe bewoners ontvangen jouw flyer gemiddeld 2–3 weken na hun verhuizing — ruimschoots binnen het 30-dagen venster.' },
+              { q: 'Hoe snel na een verhuizing ontvangen nieuwe bewoners mijn flyer?', a: 'Maandelijks verwerkt LokaalKabaal alle nieuwe eigendomsoverdrachten en verstuurt op de 25e een bulkprintorder. Nieuwe bewoners ontvangen jouw flyer gemiddeld 2–3 weken na hun verhuizing -- ruimschoots binnen het 30-dagen venster.' },
               { q: 'Kan ik zelf bepalen welke postcodes ik wil targeten?', a: 'Ja, volledig. Je kiest zelf welke postcodes je wilt activeren. Je kunt zo nauwkeurig zijn als één specifieke wijk, of zo breed als een heel stadsdeel. Er is geen minimum aantal postcodes.' },
-              { q: 'Wat als er een maand geen eigendomsoverdrachten zijn in mijn postcodes?', a: 'In stedelijk Nederland is dat vrijwel nooit het geval — gemiddeld zijn er 3–8 overdrachten per PC4-postcode per maand. Als er een maand geen overdrachten zijn, verstuurt je die maand geen flyers en betaal je alleen het serviceabonnement.' },
+              { q: 'Wat als er een maand geen eigendomsoverdrachten zijn in mijn postcodes?', a: 'In stedelijk Nederland is dat vrijwel nooit het geval -- gemiddeld zijn er 3–8 overdrachten per PC4-postcode per maand. Als er een maand geen overdrachten zijn, verstuurt je die maand geen flyers en betaal je alleen het serviceabonnement.' },
               { q: 'Kan ik meerdere flyer-templates instellen voor verschillende doelgroepen?', a: 'Ja. Je kunt meerdere templates aanmaken voor verschillende typen panden (appartement vs. gezinswoning), verschillende seizoenen, of specifieke aanbiedingen. Het systeem selecteert automatisch de juiste template op basis van regels die je zelf instelt.' },
             ].map((f, i) => (
               <div key={i} style={{ borderBottom: '1px solid var(--line)', padding: '22px 0' }}>

@@ -23,7 +23,7 @@ export default function BlogEersteKennismaking() {
             kop: 'Het onbeschreven blad',
             tekst: `Stel je voor: je pakt de sleutel van je nieuwe woning op. Je kent de buurt niet. Je weet niet waar de dichtstbijzijnde supermarkt is, welke kapper goed is, of er een gezellig terras om de hoek zit.
 
-De eerste weken verken je. Je loopt, je kijkt, je zoekt online. En in die fase — die eerste 30 dagen — worden de meeste van je toekomstige gewoonten gevormd. De winkel waar je je boodschappen haalt. De kapper die je kiest. Het café waar je op zaterdagochtend je eerste koffie drinkt.
+De eerste weken verken je. Je loopt, je kijkt, je zoekt online. En in die fase -- die eerste 30 dagen -- worden de meeste van je toekomstige gewoonten gevormd. De winkel waar je je boodschappen haalt. De kapper die je kiest. Het café waar je op zaterdagochtend je eerste koffie drinkt.
 
 Als jij er dan als eerste bent, heb je een enorm voordeel.`,
           },
@@ -37,7 +37,7 @@ Na die 30 dagen vormt zich een routine. En routine is moeilijk te doorbreken. De
             kop: 'De flyer als eerste handdruk',
             tekst: `Een flyer is geen reclame. Het is een introductie. Het verschil is cruciaal.
 
-Reclame probeert iemand te overtuigen. Een introductie laat iemand kennis maken. En kennismaken doe je niet met een banner of een gesponsorde post — dat doe je met een stuk papier dat aanvoelt, dat je kunt vasthouden, dat je op de keukentafel kunt leggen en de dag erna nog kunt opzoeken.
+Reclame probeert iemand te overtuigen. Een introductie laat iemand kennis maken. En kennismaken doe je niet met een banner of een gesponsorde post -- dat doe je met een stuk papier dat aanvoelt, dat je kunt vasthouden, dat je op de keukentafel kunt leggen en de dag erna nog kunt opzoeken.
 
 De kwaliteit van dat papier zegt iets over jou. Een mooie, goed ontworpen flyer communiceert: wij zijn professioneel, wij nemen dit serieus, wij zijn het waard om te bezoeken.`,
           },
@@ -45,13 +45,13 @@ De kwaliteit van dat papier zegt iets over jou. Een mooie, goed ontworpen flyer 
             kop: 'Van flyer naar vaste klant',
             tekst: `De klantreis begint bij de flyer, maar eindigt bij de relatie. De flyer is de trigger die iemand de deur in doet stappen. Wat er daarna gebeurt, is aan jou: de service, de sfeer, het vak.
 
-Maar die eerste stap — ervoor zorgen dat iemand jouw naam kent op het moment dat ze nog geen keuze hebben gemaakt — dat is wat LokaalKabaal voor je regelt. Automatisch, elke maand, voor alle nieuwe bewoners in jouw werkgebied.`,
+Maar die eerste stap -- ervoor zorgen dat iemand jouw naam kent op het moment dat ze nog geen keuze hebben gemaakt -- dat is wat LokaalKabaal voor je regelt. Automatisch, elke maand, voor alle nieuwe bewoners in jouw werkgebied.`,
           },
           {
             kop: 'Maak die eerste indruk onvergetelijk',
             tekst: `Een flyer die er slecht uitziet, is erger dan geen flyer. Het is een slechte eerste indruk die moeilijk te herstellen valt. Investeer daarom in de kwaliteit van je ontwerp en je drukwerk.
 
-Via onze flyer-editor kun je in een paar klikken een professioneel ontwerp maken — of upload je eigen drukklare bestand. De AI schrijft een wervende tekst op maat. En dan zorgen wij voor de rest: drukken, adresseren, bezorgen.
+Via onze flyer-editor kun je in een paar klikken een professioneel ontwerp maken -- of upload je eigen drukklare bestand. De AI schrijft een wervende tekst op maat. En dan zorgen wij voor de rest: drukken, adresseren, bezorgen.
 
 Jij focust op je vak. Wij zorgen dat je nieuwe buren je kennen.`,
           },

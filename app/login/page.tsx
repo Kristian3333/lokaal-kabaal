@@ -1,8 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { TEST_ACCOUNTS, getTestAccount } from '../../lib/tiers';
+import { TEST_ACCOUNTS } from '../../lib/tiers';
 
 export default function Login() {
   const router = useRouter();
@@ -11,28 +11,76 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  function loginAs(accountEmail: string, naam: string, tier: string, isJaarcontract: boolean) {
-    localStorage.setItem('lk_user', JSON.stringify({ email: accountEmail, naam, tier, isJaarcontract }));
-    router.push('/app');
-  }
+  /** On page load, redirect to /app if already authenticated */
+  useEffect(() => {
+    async function checkSession(): Promise<void> {
+      try {
+        const res = await fetch('/api/auth/session');
+        const data = await res.json() as { authenticated: boolean };
+        if (data.authenticated) {
+          router.push('/app');
+        }
+      } catch {
+        // Session check failed -- stay on login page
+      }
+    }
+    void checkSession();
+  }, [router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !ww) { setError('Vul je e-mail en wachtwoord in.'); return; }
+  /**
+   * Calls POST /api/auth/login and stores user data in localStorage
+   * for backwards compatibility with the dashboard.
+   */
+  async function loginWithApi(loginEmail: string): Promise<void> {
     setLoading(true);
     setError('');
-    await new Promise(r => setTimeout(r, 400));
-    const naam = email.split('@')[0].replace(/[^a-zA-Z]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()).trim() || 'Gebruiker';
-    // Detecteer testaccount voor automatische tier-instelling
-    const testAccount = getTestAccount(email);
-    localStorage.setItem('lk_user', JSON.stringify({
-      email,
-      naam: testAccount?.naam ?? naam,
-      tier: testAccount?.tier ?? 'starter',
-      isJaarcontract: testAccount?.isJaarcontract ?? false,
-    }));
-    setLoading(false);
-    router.push('/app');
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginEmail }),
+      });
+
+      if (res.ok) {
+        const data = await res.json() as {
+          id: string;
+          email: string;
+          tier: string;
+          bedrijfsnaam: string;
+        };
+        // Store in localStorage for backwards compat with dashboard
+        localStorage.setItem('lk_user', JSON.stringify({
+          email: data.email,
+          naam: data.bedrijfsnaam || data.email.split('@')[0],
+          tier: data.tier,
+          isJaarcontract: false,
+        }));
+        router.push('/app');
+        return;
+      }
+
+      if (res.status === 404) {
+        setError('Geen account gevonden met dit e-mailadres');
+      } else {
+        setError('Inloggen mislukt, probeer opnieuw');
+      }
+    } catch {
+      setError('Inloggen mislukt, probeer opnieuw');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /** Handle test account quick-select button click */
+  function loginAs(accountEmail: string): void {
+    void loginWithApi(accountEmail);
+  }
+
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
+    e.preventDefault();
+    if (!email || !ww) { setError('Vul je e-mail en wachtwoord in.'); return; }
+    await loginWithApi(email);
   };
 
   const tierColors: Record<string, string> = {
@@ -72,7 +120,7 @@ export default function Login() {
           Welkom terug
         </h1>
         <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '28px', lineHeight: 1.6 }}>
-          Log in met je e-mailadres. Elk wachtwoord werkt.
+          Log in met je e-mailadres en wachtwoord.
         </p>
 
         <form onSubmit={handleSubmit}>
@@ -167,7 +215,7 @@ export default function Login() {
           {TEST_ACCOUNTS.map(account => (
             <button
               key={account.email}
-              onClick={() => loginAs(account.email, account.naam, account.tier, account.isJaarcontract)}
+              onClick={() => loginAs(account.email)}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 width: '100%', padding: '8px 12px',

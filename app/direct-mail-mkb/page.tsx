@@ -3,11 +3,11 @@ import Link from 'next/link';
 import Nav from '@/components/Nav';
 
 export const metadata: Metadata = {
-  title: 'Direct Mail voor MKB — Automatisch, Lokaal, Meetbaar',
+  title: 'Direct Mail voor MKB - Automatisch, Lokaal, Meetbaar',
   description: 'Direct mail voor MKB op basis van Kadaster-data. Gerichter dan Google Ads, geen campagnebeheer. Druk en bezorging automatisch geregeld.',
   alternates: { canonical: 'https://lokaalkabaal.agency/direct-mail-mkb' },
   openGraph: {
-    title: 'Direct Mail voor MKB — Automatisch, Lokaal, Meetbaar | LokaalKabaal',
+    title: 'Direct Mail voor MKB - Automatisch, Lokaal, Meetbaar | LokaalKabaal',
     description: 'Direct mail voor lokaal MKB op basis van Kadaster-data. Gerichter dan Google Ads, geen campagnebeheer.',
     url: 'https://lokaalkabaal.agency/direct-mail-mkb',
   },
@@ -22,7 +22,7 @@ const faqSchema = {
       name: 'Wat is het verschil tussen LokaalKabaal en een gewone huis-aan-huisfolder?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Een huis-aan-huisfolder gaat naar alle adressen in een gebied, ongeacht of de bewoner al klant is bij een concurrent. LokaalKabaal verstuurt uitsluitend naar nieuwe eigendomsoverdrachten — mensen die net zijn aangekomen en nog geen vaste voorkeursleverancier hebben. De doelgroep is fundamenteel anders, en daarmee de conversieratio.',
+        text: 'Een huis-aan-huisfolder gaat naar alle adressen in een gebied, ongeacht of de bewoner al klant is bij een concurrent. LokaalKabaal verstuurt uitsluitend naar nieuwe eigendomsoverdrachten -- mensen die net zijn aangekomen en nog geen vaste voorkeursleverancier hebben. De doelgroep is fundamenteel anders, en daarmee de conversieratio.',
       },
     },
     {
@@ -30,7 +30,7 @@ const faqSchema = {
       name: 'Moet ik stopzetten met Google Ads als ik LokaalKabaal gebruik?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'LokaalKabaal is geen vervanging voor alle marketing — het is een toevoeging voor één specifiek, zeer waardevol klantsegment: nieuwe bewoners. Veel klanten combineren LokaalKabaal met een beperkt Google-advertentiebudget voor brede zichtbaarheid.',
+        text: 'LokaalKabaal is geen vervanging voor alle marketing -- het is een toevoeging voor één specifiek, zeer waardevol klantsegment: nieuwe bewoners. Veel klanten combineren LokaalKabaal met een beperkt Google-advertentiebudget voor brede zichtbaarheid.',
       },
     },
     {
@@ -46,7 +46,7 @@ const faqSchema = {
       name: 'Is direct mail duurder dan online adverteren?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Per contact is direct mail duurder dan een advertentie-impressie. Maar de relevante metriek is kosten per acquisitie (CPA). Op die metriek presteert direct mail aan nieuwe bewoners structureel beter dan generieke online advertenties voor lokale MKB — omdat de doelgroep voorgeselecteerd is op verhuisbehoefte en geografische nabijheid.',
+        text: 'Per contact is direct mail duurder dan een advertentie-impressie. Maar de relevante metriek is kosten per acquisitie (CPA). Op die metriek presteert direct mail aan nieuwe bewoners structureel beter dan generieke online advertenties voor lokale MKB -- omdat de doelgroep voorgeselecteerd is op verhuisbehoefte en geografische nabijheid.',
       },
     },
     {
@@ -74,10 +74,10 @@ export default function DirectMailMKB() {
             Direct mail · MKB · Kadaster-trigger
           </div>
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '48px', fontWeight: 400, lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: '20px' }}>
-            Direct mail voor MKB —<br /><em style={{ color: 'var(--green-dim)' }}>gerichter dan adverteren,</em><br />volledig geautomatiseerd
+            Direct mail voor MKB -- <br /><em style={{ color: 'var(--green-dim)' }}>gerichter dan adverteren,</em><br />volledig geautomatiseerd
           </h1>
           <p style={{ fontSize: '16px', color: 'var(--muted)', lineHeight: 1.7, maxWidth: '620px', marginBottom: '32px' }}>
-            U heeft een lokaal bedrijf. Uw klanten wonen in een straal van 2 kilometer. Toch betaalt u voor Google Ads die vertoond worden aan mensen in heel Nederland, in een veiling waar u concurreert met budgetten van landelijke ketens. Er is een betere manier. LokaalKabaal maakt direct mail voor MKB automatisch, betaalbaar en meetbaar — gericht op de doelgroep die het meest ontvankelijk is: nieuwe bewoners.
+            U heeft een lokaal bedrijf. Uw klanten wonen in een straal van 2 kilometer. Toch betaalt u voor Google Ads die vertoond worden aan mensen in heel Nederland, in een veiling waar u concurreert met budgetten van landelijke ketens. Er is een betere manier. LokaalKabaal maakt direct mail voor MKB automatisch, betaalbaar en meetbaar -- gericht op de doelgroep die het meest ontvankelijk is: nieuwe bewoners.
           </p>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <Link href="/login" style={{ padding: '12px 24px', background: 'var(--ink)', color: 'var(--paper)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px' }}>
@@ -142,13 +142,13 @@ export default function DirectMailMKB() {
           {/* Blok 2 */}
           <section style={{ marginBottom: '60px', background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '32px' }}>
             <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', fontWeight: 400, marginBottom: '16px', letterSpacing: '-0.01em' }}>
-              Wat automatisering verandert — van campagne naar infrastructuur
+              Wat automatisering verandert -- van campagne naar infrastructuur
             </h2>
             <div style={{ width: '32px', height: '2px', background: 'var(--green)', marginBottom: '24px' }} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
               <div>
                 <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', marginBottom: '10px', letterSpacing: '0.08em' }}>VROEGER</div>
-                {['1. Besluiten een flyercampagne te doen', '2. Adressenlijst samenstellen of kopen', '3. Ontwerper inhuren', '4. Drukkerij offerte opvragen', '5. Bezorging regelen', '6. Resultaten proberen te meten', '7. Herhalen — of niet'].map((s, i) => (
+                {['1. Besluiten een flyercampagne te doen', '2. Adressenlijst samenstellen of kopen', '3. Ontwerper inhuren', '4. Drukkerij offerte opvragen', '5. Bezorging regelen', '6. Resultaten proberen te meten', '7. Herhalen -- of niet'].map((s, i) => (
                   <div key={i} style={{ fontSize: '12px', color: '#888', padding: '5px 0', borderBottom: '1px solid var(--line)', display: 'flex', gap: '8px' }}>
                     <span style={{ color: '#ccc', flexShrink: 0 }}>{i + 1}.</span>{s.replace(`${i + 1}. `, '')}
                   </div>
@@ -169,7 +169,7 @@ export default function DirectMailMKB() {
               </div>
             </div>
             <p style={{ fontSize: '13px', color: '#555', lineHeight: 1.7 }}>
-              Dit verandert de economie van direct mail voor MKB fundamenteel. Waar een traditionele flyercampagne een incidentele investering was, wordt direct mail via LokaalKabaal een vaste lage kostenpost met een constante instroom van potentiële klanten. Het is geen marketingactie meer — het is acquisitie-infrastructuur.
+              Dit verandert de economie van direct mail voor MKB fundamenteel. Waar een traditionele flyercampagne een incidentele investering was, wordt direct mail via LokaalKabaal een vaste lage kostenpost met een constante instroom van potentiële klanten. Het is geen marketingactie meer -- het is acquisitie-infrastructuur.
             </p>
           </section>
 
@@ -199,10 +199,10 @@ export default function DirectMailMKB() {
               Veelgestelde vragen over direct mail voor MKB
             </h2>
             {[
-              { q: 'Wat is het verschil tussen LokaalKabaal en een gewone huis-aan-huisfolder?', a: 'Een huis-aan-huisfolder gaat naar alle adressen in een gebied, ongeacht of de bewoner al klant is bij een concurrent, of al jaren op hetzelfde adres woont. LokaalKabaal verstuurt uitsluitend naar nieuwe eigendomsoverdrachten — mensen die net zijn aangekomen en nog geen vaste voorkeursleverancier hebben. De doelgroep is fundamenteel anders, en daarmee de conversieratio.' },
-              { q: 'Moet ik stopzetten met Google Ads als ik LokaalKabaal gebruik?', a: 'Dat is uw keuze. LokaalKabaal is geen vervanging voor alle marketing — het is een toevoeging aan uw mix voor één specifiek, zeer waardevol klantsegment: nieuwe bewoners. Veel klanten combineren LokaalKabaal met een beperkt Google-advertentiebudget voor de brede zichtbaarheid, en zien LokaalKabaal als het meest rendabele kanaal voor klantacquisitie.' },
+              { q: 'Wat is het verschil tussen LokaalKabaal en een gewone huis-aan-huisfolder?', a: 'Een huis-aan-huisfolder gaat naar alle adressen in een gebied, ongeacht of de bewoner al klant is bij een concurrent, of al jaren op hetzelfde adres woont. LokaalKabaal verstuurt uitsluitend naar nieuwe eigendomsoverdrachten -- mensen die net zijn aangekomen en nog geen vaste voorkeursleverancier hebben. De doelgroep is fundamenteel anders, en daarmee de conversieratio.' },
+              { q: 'Moet ik stopzetten met Google Ads als ik LokaalKabaal gebruik?', a: 'Dat is uw keuze. LokaalKabaal is geen vervanging voor alle marketing -- het is een toevoeging aan uw mix voor één specifiek, zeer waardevol klantsegment: nieuwe bewoners. Veel klanten combineren LokaalKabaal met een beperkt Google-advertentiebudget voor de brede zichtbaarheid, en zien LokaalKabaal als het meest rendabele kanaal voor klantacquisitie.' },
               { q: 'Hoe meet ik of de flyers werken?', a: 'De meest directe methode: zet een unieke aanbieding of kortingscode op uw flyer die alleen geldt voor nieuwe bewoners. Zo kunt u precies tracken hoeveel mensen via de flyer zijn binnengekomen. LokaalKabaal biedt ook een dashboard met verzendoverzichten per adres en periode, zodat u uitspraken kunt doen over bereik en conversie.' },
-              { q: 'Is direct mail duurder dan online adverteren?', a: 'Per contact is direct mail duurder dan een advertentie-impressie. Maar vergelijkingen op basis van impressies zijn misleidend. De relevante metriek is kosten per acquisitie (CPA). Op die metriek presteert direct mail aan nieuwe bewoners structureel beter dan generieke online advertenties voor lokale MKB — omdat de doelgroep voorgeselecteerd is op verhuisbehoefte en geografische nabijheid.' },
+              { q: 'Is direct mail duurder dan online adverteren?', a: 'Per contact is direct mail duurder dan een advertentie-impressie. Maar vergelijkingen op basis van impressies zijn misleidend. De relevante metriek is kosten per acquisitie (CPA). Op die metriek presteert direct mail aan nieuwe bewoners structureel beter dan generieke online advertenties voor lokale MKB -- omdat de doelgroep voorgeselecteerd is op verhuisbehoefte en geografische nabijheid.' },
               { q: 'Wat als ik in een regio woon met weinig eigendomsoverdrachten?', a: 'In stedelijk Nederland (de vier grote steden plus de G40) zijn er voldoende overdrachten voor een constant volume. LokaalKabaal toont u vooraf hoeveel overdrachten er gemiddeld per maand zijn in uw gekozen postcodes, zodat u een realistisch beeld heeft van het verwachte volume.' },
             ].map((f, i) => (
               <div key={i} style={{ borderBottom: '1px solid var(--line)', padding: '18px 0' }}>

@@ -3,11 +3,11 @@ import Link from 'next/link';
 import Nav from '@/components/Nav';
 
 export const metadata: Metadata = {
-  title: 'Flyers Versturen voor Makelaars — Bereik Nieuwe Bewoners',
+  title: 'Flyers Versturen voor Makelaars - Bereik Nieuwe Bewoners',
   description: 'Bereik nieuwe bewoners als makelaar op het moment dat ze nadenken over hun volgende stap. Automatische flyers via Kadaster. Gemiddelde opdracht €8.500. Geen contract.',
   alternates: { canonical: 'https://lokaalkabaal.agency/flyers-versturen-makelaar' },
   openGraph: {
-    title: 'Flyers Versturen voor Makelaars — Bereik Nieuwe Bewoners | LokaalKabaal',
+    title: 'Flyers Versturen voor Makelaars - Bereik Nieuwe Bewoners | LokaalKabaal',
     description: 'Bereik nieuwe bewoners als makelaar op het moment dat ze nadenken over hun volgende stap. Automatische flyers via Kadaster. Gemiddelde opdracht €8.500.',
     url: 'https://lokaalkabaal.agency/flyers-versturen-makelaar',
   },
@@ -22,7 +22,7 @@ const faqSchema = {
       name: 'Hoeveel nieuwe bewoners zijn er gemiddeld per maand in mijn postcodes als makelaar?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'In een stedelijke wijk zijn er gemiddeld 3–8 eigendomsoverdrachten per postcode per maand. Elke overdracht is een potentieel contact voor uw kantoor — iemand die net gekocht heeft, kent anderen die willen kopen of verkopen. LokaalKabaal toont u vooraf het historische overdrachtsvolume voor uw gekozen postcodes.',
+        text: 'In een stedelijke wijk zijn er gemiddeld 3–8 eigendomsoverdrachten per postcode per maand. Elke overdracht is een potentieel contact voor uw kantoor -- iemand die net gekocht heeft, kent anderen die willen kopen of verkopen. LokaalKabaal toont u vooraf het historische overdrachtsvolume voor uw gekozen postcodes.',
       },
     },
     {
@@ -30,7 +30,7 @@ const faqSchema = {
       name: 'Wat is de beste boodschap voor op een makelaarsflyer voor nieuwe bewoners?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Voor makelaars werkt een informatieve, niet-verkopende boodschap het beste: "Welkom in de wijk — wij kennen elke straat hier." Geef waarde mee: een gratis waardebepaling van hun nieuwe woning, of een lokale marktupdate. Nieuwe bewoners zijn al in de makelaarswereld — ze staan open voor iemand die lokale expertise uitstraalt.',
+        text: 'Voor makelaars werkt een informatieve, niet-verkopende boodschap het beste: "Welkom in de wijk -- wij kennen elke straat hier." Geef waarde mee: een gratis waardebepaling van hun nieuwe woning, of een lokale marktupdate. Nieuwe bewoners zijn al in de makelaarswereld -- ze staan open voor iemand die lokale expertise uitstraalt.',
       },
     },
     {
@@ -38,7 +38,7 @@ const faqSchema = {
       name: 'Wanneer is de beste periode om te starten als makelaar?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Voor makelaars is er eigenlijk altijd een goed moment — eigendomsoverdrachten zijn het hele jaar actief. De verhuispiek van april–september genereert het meeste volume. Maar de contacten die u nu legt, resulteren in opdrachten 12–24 maanden later. Hoe eerder u start, hoe eerder u de pipeline vult.',
+        text: 'Voor makelaars is er eigenlijk altijd een goed moment -- eigendomsoverdrachten zijn het hele jaar actief. De verhuispiek van april–september genereert het meeste volume. Maar de contacten die u nu legt, resulteren in opdrachten 12–24 maanden later. Hoe eerder u start, hoe eerder u de pipeline vult.',
       },
     },
   ],
@@ -64,13 +64,13 @@ export default function FlyersMakelaar() {
         {/* Hero */}
         <section style={{ maxWidth: '800px', margin: '0 auto', padding: '60px 40px 48px' }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--green-dim)', letterSpacing: '0.12em', marginBottom: '16px', textTransform: 'uppercase' }}>
-            Branche — Makelaars & vastgoed
+            Branche -- Makelaars & vastgoed
           </div>
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '44px', fontWeight: 400, lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: '20px' }}>
-            Flyers versturen voor makelaars —<br /><em style={{ color: 'var(--green-dim)' }}>wees de eerste makelaar</em><br />die nieuwe bewoners kennen
+            Flyers versturen voor makelaars --<br /><em style={{ color: 'var(--green-dim)' }}>wees de eerste makelaar</em><br />die nieuwe bewoners kennen
           </h1>
           <p style={{ fontSize: '16px', color: 'var(--muted)', lineHeight: 1.7, maxWidth: '600px', marginBottom: '32px' }}>
-            Iemand die net een huis heeft gekocht, is binnen 3–5 jaar vaak weer klaar voor de volgende stap. En ze kennen tientallen anderen die ook kopen of verkopen. Wie die relatie als eerste legt — direct na de verhuizing — heeft een structureel voordeel. LokaalKabaal verstuurt automatisch uw welkomstflyer zodra er een nieuwe eigenaar is geregistreerd in uw postcodes. Gemiddelde makelaarsprovisie: <strong>€8.500</strong>. De flyer: minder dan €3.
+            Iemand die net een huis heeft gekocht, is binnen 3–5 jaar vaak weer klaar voor de volgende stap. En ze kennen tientallen anderen die ook kopen of verkopen. Wie die relatie als eerste legt -- direct na de verhuizing -- heeft een structureel voordeel. LokaalKabaal verstuurt automatisch uw welkomstflyer zodra er een nieuwe eigenaar is geregistreerd in uw postcodes. Gemiddelde makelaarsprovisie: <strong>€8.500</strong>. De flyer: minder dan €3.
           </p>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <Link href="/login" style={{ padding: '12px 24px', background: 'var(--ink)', color: 'var(--paper)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px' }}>
@@ -94,13 +94,13 @@ export default function FlyersMakelaar() {
               Makelaarswerk draait op relaties en timing. En er is geen beter moment om een relatie te leggen dan precies wanneer iemand net heeft verhuisd.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444', marginBottom: '16px' }}>
-              Iemand die net een woning heeft gekocht, is actief in de vastgoedwereld. Ze kennen het proces. Ze praten erover met vrienden en familie. Ze horen wie ook wil kopen, wie wil verkopen. <strong>Elke nieuwe bewoner is een potentieel netwerkknooppunt</strong> — niet alleen een toekomstige opdrachtgever zelf, maar ook een bron van doorverwijzingen.
+              Iemand die net een woning heeft gekocht, is actief in de vastgoedwereld. Ze kennen het proces. Ze praten erover met vrienden en familie. Ze horen wie ook wil kopen, wie wil verkopen. <strong>Elke nieuwe bewoner is een potentieel netwerkknooppunt</strong> -- niet alleen een toekomstige opdrachtgever zelf, maar ook een bron van doorverwijzingen.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444', marginBottom: '16px' }}>
               De gemiddelde huizenbezitter verhuist elke 7–10 jaar. Wie die relatie nu legt, plukt daar over een aantal jaar de vruchten van. En in de tussentijd: elk gesprek, elke aanbeveling, elke doorverwijzing begint ermee dat ze uw naam kennen.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444' }}>
-              De meeste makelaars investeren in dure online advertenties die breed gericht zijn en kort leven. Een fysieke flyer bij een nieuwe bewoner thuis — op het moment dat ze nog vol in de verhuissfeer zitten en openstaan voor lokale contacten — is gerichter, goedkoper en blijvender.
+              De meeste makelaars investeren in dure online advertenties die breed gericht zijn en kort leven. Een fysieke flyer bij een nieuwe bewoner thuis -- op het moment dat ze nog vol in de verhuissfeer zitten en openstaan voor lokale contacten -- is gerichter, goedkoper en blijvender.
             </p>
           </section>
 
@@ -114,7 +114,7 @@ export default function FlyersMakelaar() {
               U bent bezig met bezichtigingen, onderhandelingen en papierwerk. LokaalKabaal bouwt ondertussen uw lokale naamsbekendheid op.
             </p>
             <div style={{ marginBottom: '20px' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '10px', letterSpacing: '0.08em' }}>DE SETUP (EENMALIG — 20 MINUTEN)</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '10px', letterSpacing: '0.08em' }}>DE SETUP (EENMALIG -- 20 MINUTEN)</div>
               {[
                 'Maak een account aan en stel uw makelaarskantoor in',
                 'Selecteer de postcodes in uw werkgebied',
@@ -133,7 +133,7 @@ export default function FlyersMakelaar() {
             </p>
             <div style={{ background: 'var(--paper2)', borderRadius: 'var(--radius)', padding: '14px 16px' }}>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.08em' }}>WAT STAAT ER OP EEN GOEDE MAKELAARSFLYER?</div>
-              {['Uw naam, kantoor en telefoonnummer — professioneel uitgestraald', 'Lokale marktkennis benadrukken: "Al X jaar actief in deze wijk"', 'Gratis waardebepaling als drempelverlagend aanbod', 'Recente verkoopresultaten in de buurt (optioneel maar overtuigend)', 'QR-code naar uw website of directe contactpagina'].map((s, i) => (
+              {['Uw naam, kantoor en telefoonnummer -- professioneel uitgestraald', 'Lokale marktkennis benadrukken: "Al X jaar actief in deze wijk"', 'Gratis waardebepaling als drempelverlagend aanbod', 'Recente verkoopresultaten in de buurt (optioneel maar overtuigend)', 'QR-code naar uw website of directe contactpagina'].map((s, i) => (
                 <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '12px', color: '#555', padding: '3px 0' }}>
                   <span style={{ color: 'var(--green)', flexShrink: 0 }}>✓</span>{s}
                 </div>
@@ -163,7 +163,7 @@ export default function FlyersMakelaar() {
               ))}
             </div>
             <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.25)', borderRadius: 'var(--radius)', padding: '16px 20px' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.08em' }}>REKENVOORBEELD — 20 NIEUWE BEWONERS/MND · 2% CONVERSIE</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.08em' }}>REKENVOORBEELD -- 20 NIEUWE BEWONERS/MND · 2% CONVERSIE</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 {[
                   { label: 'Nieuwe opdrachten/jaar', val: '~5' },
@@ -186,8 +186,8 @@ export default function FlyersMakelaar() {
             </h2>
             {[
               { q: 'Hoeveel nieuwe bewoners zijn er gemiddeld per maand in mijn postcodes?', a: 'In een stedelijke wijk in Nederland zijn er gemiddeld 3–8 eigendomsoverdrachten per postcode per maand. Elke overdracht is een potentieel contact voor uw kantoor. LokaalKabaal toont u vooraf het historische overdrachtsvolume voor uw gekozen postcodes.' },
-              { q: 'Wat is de beste boodschap voor op mijn makelaarsflyer?', a: 'Voor makelaars werkt een informatieve, niet-verkopende boodschap het beste: "Welkom in de wijk — wij kennen elke straat hier." Geef waarde mee: een gratis waardebepaling van hun nieuwe woning, of een lokale marktupdate. Nieuwe bewoners zijn al in de makelaarswereld — ze staan open voor iemand die lokale expertise uitstraalt.' },
-              { q: 'Wanneer is de beste periode om te starten als makelaar?', a: 'Voor makelaars is er eigenlijk altijd een goed moment — eigendomsoverdrachten zijn het hele jaar actief. De verhuispiek van april–september genereert het meeste volume. Maar de contacten die u nu legt, resulteren in opdrachten 12–24 maanden later. Hoe eerder u start, hoe eerder u de pipeline vult.' },
+              { q: 'Wat is de beste boodschap voor op mijn makelaarsflyer?', a: 'Voor makelaars werkt een informatieve, niet-verkopende boodschap het beste: "Welkom in de wijk -- wij kennen elke straat hier." Geef waarde mee: een gratis waardebepaling van hun nieuwe woning, of een lokale marktupdate. Nieuwe bewoners zijn al in de makelaarswereld -- ze staan open voor iemand die lokale expertise uitstraalt.' },
+              { q: 'Wanneer is de beste periode om te starten als makelaar?', a: 'Voor makelaars is er eigenlijk altijd een goed moment -- eigendomsoverdrachten zijn het hele jaar actief. De verhuispiek van april–september genereert het meeste volume. Maar de contacten die u nu legt, resulteren in opdrachten 12–24 maanden later. Hoe eerder u start, hoe eerder u de pipeline vult.' },
             ].map((f, i) => (
               <div key={i} style={{ borderBottom: '1px solid var(--line)', padding: '18px 0' }}>
                 <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '8px' }}>{f.q}</div>

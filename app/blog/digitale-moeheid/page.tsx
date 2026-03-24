@@ -21,7 +21,7 @@ export default function BlogDigitaleMoeheid() {
         {[
           {
             kop: '4.000 advertenties per dag',
-            tekst: `De gemiddelde Nederlander ziet dagelijks meer dan 4.000 advertentieboodschappen. Banners, gesponsorde posts, pre-rolls, pop-ups. Het brein heeft geleerd ze te negeren — automatisch, onbewust. Onderzoekers noemen dit bannerimmuunheid: de hersenen filteren digitale reclame weg alsof het ruis is.
+            tekst: `De gemiddelde Nederlander ziet dagelijks meer dan 4.000 advertentieboodschappen. Banners, gesponsorde posts, pre-rolls, pop-ups. Het brein heeft geleerd ze te negeren -- automatisch, onbewust. Onderzoekers noemen dit bannerimmuunheid: de hersenen filteren digitale reclame weg alsof het ruis is.
 
 Het resultaat? Een gemiddelde klikratio op display-advertenties van 0,1%. Dat betekent dat 999 van de 1.000 mensen jouw advertentie zien zonder er iets mee te doen.`,
           },
@@ -35,7 +35,7 @@ Jouw advertentie concurreert met kattenfilmpjes, politiek nieuws en de foto's va
             kop: 'De koelkasttest',
             tekst: `Hier is een simpele test: hoeveel papieren materialen hangen er op of bij jouw koelkast? Waarschijnlijk een paar. Een uitnodiging. Een bon. Misschien een flyer van de pizzeria om de hoek.
 
-Die flyer is er al weken. Je kijkt er elke dag naar. Je hebt de naam van het restaurant onbewust al tientallen keren gelezen. Dat is passieve merkbekendheid — en het kost niets meer na de eerste bezorging.
+Die flyer is er al weken. Je kijkt er elke dag naar. Je hebt de naam van het restaurant onbewust al tientallen keren gelezen. Dat is passieve merkbekendheid -- en het kost niets meer na de eerste bezorging.
 
 Dat is de echte houdbaarheid van fysiek: niet de kwaliteit van het papier, maar het feit dat het niet wegscrollt.`,
           },

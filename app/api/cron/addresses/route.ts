@@ -5,6 +5,7 @@ import {
 } from '../../../../lib/schema';
 import { eq, and, lte, gte } from 'drizzle-orm';
 import { generateVerificationCode, buildQRUrl } from '../../../../lib/verification';
+import { sendFlyerDispatchNotification } from '@/lib/email';
 
 export const maxDuration = 300;
 
@@ -373,6 +374,14 @@ export async function GET(req: NextRequest) {
           toelichting:  `Batch ${maand}: ${werkelijkeAantal}/${campagne.verwachtAantalPerMaand} adressen gevonden`,
         });
         result.credits = surplusFlyers;
+      }
+
+      // ── 6b. Verzendbevestiging per e-mail (fire-and-forget) ────────────────
+      if (result.verzonden > 0 && retailer.email) {
+        const maandLabel = new Date(maand).toLocaleDateString('nl-NL', { month: 'long', year: 'numeric' });
+        sendFlyerDispatchNotification(retailer.email, retailer.bedrijfsnaam, result.verzonden, maandLabel).catch((err) => {
+          console.error(`[cron] dispatch email failed for campaign ${campagne.id}:`, err);
+        });
       }
 
       // ── 7. Laatste batch: campagne afronden + dashboard verlengen ─────────

@@ -3,11 +3,11 @@ import Link from 'next/link';
 import Nav from '@/components/Nav';
 
 export const metadata: Metadata = {
-  title: 'Flyers Versturen voor Installateurs — Bereik Nieuwe Bewoners',
+  title: 'Flyers Versturen voor Installateurs - Bereik Nieuwe Bewoners',
   description: 'Bereik nieuwe bewoners als installateur voordat ze een andere vakman kiezen. Automatische flyers via Kadaster. Eerste opdracht gemiddeld €450. Geen contract.',
   alternates: { canonical: 'https://lokaalkabaal.agency/flyers-versturen-installateur' },
   openGraph: {
-    title: 'Flyers Versturen voor Installateurs — Bereik Nieuwe Bewoners | LokaalKabaal',
+    title: 'Flyers Versturen voor Installateurs - Bereik Nieuwe Bewoners | LokaalKabaal',
     description: 'Bereik nieuwe bewoners als installateur voordat ze een andere vakman kiezen. Automatische flyers via Kadaster. Eerste opdracht gemiddeld €450.',
     url: 'https://lokaalkabaal.agency/flyers-versturen-installateur',
   },
@@ -30,7 +30,7 @@ const faqSchema = {
       name: 'Wat is de beste aanbieding voor op een installatieflyer voor nieuwe bewoners?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Voor installateurs werkt een gratis inspectie of vrijblijvend adviesgesprek goed als drempelverlagend aanbod. Nieuwe bewoners hebben vaak een checklist van klusjes — een cv-ketel keuring, nieuwe stopcontacten, warmtepomp advies. Positioneer uzelf als de "vaste vakman in de buurt" die ze kunnen bellen voor alles. Vermeld uw specialisaties en certificeringen.',
+        text: 'Voor installateurs werkt een gratis inspectie of vrijblijvend adviesgesprek goed als drempelverlagend aanbod. Nieuwe bewoners hebben vaak een checklist van klusjes -- een cv-ketel keuring, nieuwe stopcontacten, warmtepomp advies. Positioneer uzelf als de "vaste vakman in de buurt" die ze kunnen bellen voor alles. Vermeld uw specialisaties en certificeringen.',
       },
     },
     {
@@ -38,7 +38,7 @@ const faqSchema = {
       name: 'Wanneer is de beste periode om te starten als installateur?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Voor installateurs zijn de maanden september–november ideaal: nieuwe bewoners die in het voorjaar of zomer zijn verhuisd staan op het punt de winter in te gaan en denken aan cv-ketels, isolatie en verwarming. Maar ook in het voorjaar — na de verhuispiek in april–mei — zijn er direct kansen. Er is geen slechte maand om te starten.',
+        text: 'Voor installateurs zijn de maanden september–november ideaal: nieuwe bewoners die in het voorjaar of zomer zijn verhuisd staan op het punt de winter in te gaan en denken aan cv-ketels, isolatie en verwarming. Maar ook in het voorjaar -- na de verhuispiek in april–mei -- zijn er direct kansen. Er is geen slechte maand om te starten.',
       },
     },
   ],
@@ -64,13 +64,13 @@ export default function FlyersInstallateur() {
         {/* Hero */}
         <section style={{ maxWidth: '800px', margin: '0 auto', padding: '60px 40px 48px' }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--green-dim)', letterSpacing: '0.12em', marginBottom: '16px', textTransform: 'uppercase' }}>
-            Branche — Installateurs & vakmensen
+            Branche -- Installateurs & vakmensen
           </div>
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '44px', fontWeight: 400, lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: '20px' }}>
-            Flyers versturen voor installateurs —<br /><em style={{ color: 'var(--green-dim)' }}>wees de eerste vakman</em><br />die nieuwe bewoners kennen
+            Flyers versturen voor installateurs --<br /><em style={{ color: 'var(--green-dim)' }}>wees de eerste vakman</em><br />die nieuwe bewoners kennen
           </h1>
           <p style={{ fontSize: '16px', color: 'var(--muted)', lineHeight: 1.7, maxWidth: '600px', marginBottom: '32px' }}>
-            Nieuwe bewoners kopen een huis en hebben direct een lijst klussen: cv-ketel, stopcontacten, douche, isolatie. Ze zoeken een betrouwbare vakman in de buurt — en degene die al in de brievenbus lag, die bellen ze als eerste. LokaalKabaal verstuurt automatisch uw flyer zodra er een nieuwe eigenaar is geregistreerd in uw postcodes. Eerste opdracht gemiddeld <strong>€450</strong>. De flyer: minder dan €3.
+            Nieuwe bewoners kopen een huis en hebben direct een lijst klussen: cv-ketel, stopcontacten, douche, isolatie. Ze zoeken een betrouwbare vakman in de buurt -- en degene die al in de brievenbus lag, die bellen ze als eerste. LokaalKabaal verstuurt automatisch uw flyer zodra er een nieuwe eigenaar is geregistreerd in uw postcodes. Eerste opdracht gemiddeld <strong>€450</strong>. De flyer: minder dan €3.
           </p>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <Link href="/login" style={{ padding: '12px 24px', background: 'var(--ink)', color: 'var(--paper)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px' }}>
@@ -94,10 +94,10 @@ export default function FlyersInstallateur() {
               Een verhuizing is voor installateurs het perfecte moment. Een nieuw huis betekent nieuwe apparatuur, nieuwe storingen, nieuwe wensen. En de nieuwe bewoner heeft nog geen vaste loodgieter, geen vertrouwde elektricien, geen cv-monteur die ze al jaren kennen.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444', marginBottom: '16px' }}>
-              Gemiddeld heeft een nieuwe bewoner in het eerste jaar na de verhuizing <strong>2–4 installatievragen</strong>. Van een lekkende kraan tot het installeren van een laadpaal, van cv-ketel onderhoud tot het aanleggen van extra stopcontacten. Ze zoeken iemand die ze kunnen vertrouwen — en die ze snel kunnen bereiken.
+              Gemiddeld heeft een nieuwe bewoner in het eerste jaar na de verhuizing <strong>2–4 installatievragen</strong>. Van een lekkende kraan tot het installeren van een laadpaal, van cv-ketel onderhoud tot het aanleggen van extra stopcontacten. Ze zoeken iemand die ze kunnen vertrouwen -- en die ze snel kunnen bereiken.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444', marginBottom: '16px' }}>
-              De beslissing wie ze bellen wordt vaak genomen in de eerste weken. Ze vragen buren om een aanbeveling, zoeken op Google, of — als er een flyer op de mat lag van een bedrijf dat professioneel overkomt — die bellen ze. Nabijheid en bekendheid zijn doorslaggevend. Advertenties op Google zijn duur en vluchtig. Een flyer op de mat is tastbaar en blijft.
+              De beslissing wie ze bellen wordt vaak genomen in de eerste weken. Ze vragen buren om een aanbeveling, zoeken op Google, of -- als er een flyer op de mat lag van een bedrijf dat professioneel overkomt -- die bellen ze. Nabijheid en bekendheid zijn doorslaggevend. Advertenties op Google zijn duur en vluchtig. Een flyer op de mat is tastbaar en blijft.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444' }}>
               Een klant die u eenmaal goed heeft geholpen, <strong>belt u voor alle volgende klussen</strong>. De lifetime value van een tevreden klant loopt voor een installatiebedrijf snel op naar €2.000–5.000 over meerdere jaren. De acquisitiekosten: één flyer van €3.
@@ -114,7 +114,7 @@ export default function FlyersInstallateur() {
               U bent de hele dag op locatie. U heeft geen tijd voor marketing. LokaalKabaal doet het voor u.
             </p>
             <div style={{ marginBottom: '20px' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '10px', letterSpacing: '0.08em' }}>DE SETUP (EENMALIG — 20 MINUTEN)</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '10px', letterSpacing: '0.08em' }}>DE SETUP (EENMALIG -- 20 MINUTEN)</div>
               {[
                 'Maak een account aan en stel uw installatiebedrijf in',
                 'Selecteer de postcodes in uw werkgebied',
@@ -129,11 +129,11 @@ export default function FlyersInstallateur() {
               <div style={{ padding: '10px 0', fontSize: '14px', fontWeight: 700, color: 'var(--green-dim)' }}>Daarna? Niets. Het systeem werkt.</div>
             </div>
             <p style={{ fontSize: '13px', color: '#555', lineHeight: 1.7, marginBottom: '16px' }}>
-              Elke dag monitort LokaalKabaal het Kadaster op nieuwe eigendomsoverdrachten in uw gekozen postcodes. Zodra er een nieuwe eigenaar is geregistreerd, start automatisch het drukproces. Binnen 2 werkdagen ligt uw flyer op de mat — terwijl de verhuisdozen nog in de gang staan.
+              Elke dag monitort LokaalKabaal het Kadaster op nieuwe eigendomsoverdrachten in uw gekozen postcodes. Zodra er een nieuwe eigenaar is geregistreerd, start automatisch het drukproces. Binnen 2 werkdagen ligt uw flyer op de mat -- terwijl de verhuisdozen nog in de gang staan.
             </p>
             <div style={{ background: 'var(--paper2)', borderRadius: 'var(--radius)', padding: '14px 16px' }}>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.08em' }}>WAT STAAT ER OP EEN GOEDE INSTALLATEURFLYER?</div>
-              {['Uw naam, logo en telefoonnummer — groot en leesbaar', 'Uw specialisaties: loodgieter / elektricien / cv / warmtepomp', 'Certificeringen en erkenningen (ISSO, VCA, e.d.)', 'Korte boodschap: "De vakman in uw wijk — bel voor een vrijblijvende offerte"', 'Eventueel: gratis inspectie of eerste adviesgesprek als aanbieding'].map((s, i) => (
+              {['Uw naam, logo en telefoonnummer -- groot en leesbaar', 'Uw specialisaties: loodgieter / elektricien / cv / warmtepomp', 'Certificeringen en erkenningen (ISSO, VCA, e.d.)', 'Korte boodschap: "De vakman in uw wijk -- bel voor een vrijblijvende offerte"', 'Eventueel: gratis inspectie of eerste adviesgesprek als aanbieding'].map((s, i) => (
                 <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '12px', color: '#555', padding: '3px 0' }}>
                   <span style={{ color: 'var(--green)', flexShrink: 0 }}>✓</span>{s}
                 </div>
@@ -164,7 +164,7 @@ export default function FlyersInstallateur() {
               ))}
             </div>
             <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.25)', borderRadius: 'var(--radius)', padding: '16px 20px' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.08em' }}>REKENVOORBEELD — 15 NIEUWE BEWONERS/MND · 5% CONVERSIE</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.08em' }}>REKENVOORBEELD -- 15 NIEUWE BEWONERS/MND · 5% CONVERSIE</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 {[
                   { label: 'Nieuwe klanten/jaar', val: '~9' },
@@ -187,8 +187,8 @@ export default function FlyersInstallateur() {
             </h2>
             {[
               { q: 'Hoeveel nieuwe bewoners zijn er gemiddeld per maand in mijn postcodes?', a: 'In een stedelijke wijk in Nederland zijn er gemiddeld 3–8 eigendomsoverdrachten per postcode per maand. Voor een installateur die 5–10 postcodes activeert, zijn dat 15–80 potentiële nieuwe klanten per maand. Met name koopwoningen genereren direct na overdracht installatievragen. LokaalKabaal toont u vooraf het historische overdrachtsvolume voor uw gekozen postcodes.' },
-              { q: 'Wat is de beste aanbieding voor op mijn installateurflyer?', a: 'Voor installateurs werkt een gratis inspectie of vrijblijvend adviesgesprek goed als drempelverlagend aanbod. Nieuwe bewoners hebben vaak een checklist van klusjes — een cv-ketel keuring, nieuwe stopcontacten, warmtepomp advies. Positioneer uzelf als de "vaste vakman in de buurt" die ze kunnen bellen voor alles. Vermeld uw specialisaties en certificeringen duidelijk.' },
-              { q: 'Wanneer is de beste periode om te starten als installateur?', a: 'Voor installateurs zijn de maanden september–november ideaal: nieuwe bewoners die in het voorjaar of zomer zijn verhuisd staan op het punt de winter in te gaan en denken aan cv-ketels, isolatie en verwarming. Maar ook in het voorjaar — na de verhuispiek in april–mei — zijn er direct kansen. Er is geen slechte maand om te starten.' },
+              { q: 'Wat is de beste aanbieding voor op mijn installateurflyer?', a: 'Voor installateurs werkt een gratis inspectie of vrijblijvend adviesgesprek goed als drempelverlagend aanbod. Nieuwe bewoners hebben vaak een checklist van klusjes -- een cv-ketel keuring, nieuwe stopcontacten, warmtepomp advies. Positioneer uzelf als de "vaste vakman in de buurt" die ze kunnen bellen voor alles. Vermeld uw specialisaties en certificeringen duidelijk.' },
+              { q: 'Wanneer is de beste periode om te starten als installateur?', a: 'Voor installateurs zijn de maanden september–november ideaal: nieuwe bewoners die in het voorjaar of zomer zijn verhuisd staan op het punt de winter in te gaan en denken aan cv-ketels, isolatie en verwarming. Maar ook in het voorjaar -- na de verhuispiek in april–mei -- zijn er direct kansen. Er is geen slechte maand om te starten.' },
             ].map((f, i) => (
               <div key={i} style={{ borderBottom: '1px solid var(--line)', padding: '18px 0' }}>
                 <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '8px' }}>{f.q}</div>

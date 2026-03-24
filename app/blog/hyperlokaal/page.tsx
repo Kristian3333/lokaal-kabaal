@@ -15,7 +15,7 @@ export default function BlogHyperlokaal() {
           Hyperlokaal: Vertrouwen via Fysieke Aanwezigheid
         </h1>
         <p style={{ fontSize: '18px', color: 'var(--muted)', lineHeight: 1.65, marginBottom: '40px', fontStyle: 'italic', borderLeft: '3px solid var(--green)', paddingLeft: '20px' }}>
-          &ldquo;De kapper om de hoek heeft geen Facebook-advertenties nodig. Hij hoeft alleen maar aanwezig te zijn — op het juiste moment, op de juiste plek.&rdquo;
+          &ldquo;De kapper om de hoek heeft geen Facebook-advertenties nodig. Hij hoeft alleen maar aanwezig te zijn -- op het juiste moment, op de juiste plek.&rdquo;
         </p>
 
         {[
@@ -33,19 +33,19 @@ Dat is het principe achter hyper-lokale marketing: vertrouwen door nabijheid. Me
           },
           {
             kop: 'Het verschil met online adverteren',
-            tekst: `Online kun je targeten op leeftijd, interesse en zelfs locatie. Maar je targert naar mensen die al ergens zijn. Bij hyper-lokale flyerdistributie target je naar mensen die net ergens naartoe zijn gegaan — een nieuw adres, een nieuw leven, nieuwe gewoonten die gevormd moeten worden.
+            tekst: `Online kun je targeten op leeftijd, interesse en zelfs locatie. Maar je targert naar mensen die al ergens zijn. Bij hyper-lokale flyerdistributie target je naar mensen die net ergens naartoe zijn gegaan -- een nieuw adres, een nieuw leven, nieuwe gewoonten die gevormd moeten worden.
 
 Dat is het gouden moment. En het is een moment dat Google Ads en Meta simpelweg niet kunnen pakken, want die weten wel waar iemand is, maar niet dat die persoon net is ingetrokken en nóg geen vaste leveranciers heeft.`,
           },
           {
             kop: 'De kapper, de bakker, het restaurant',
-            tekst: `De lokale kapper met een flyercampagne via LokaalKabaal bereikt gemiddeld 400–600 nieuwe bewoners per maand in een straal van 10 kilometer. Bij een conversieratio van 4–6% levert dat 16–36 nieuwe klanten op — klanten die, als ze tevreden zijn, jarenlang terugkomen.
+            tekst: `De lokale kapper met een flyercampagne via LokaalKabaal bereikt gemiddeld 400–600 nieuwe bewoners per maand in een straal van 10 kilometer. Bij een conversieratio van 4–6% levert dat 16–36 nieuwe klanten op -- klanten die, als ze tevreden zijn, jarenlang terugkomen.
 
 De lifetime value van een vaste klant bij een kapper is makkelijk €1.000–€2.000 over vijf jaar. Reken zelf maar uit wat die flyer van €0,59 waard is.`,
           },
           {
             kop: 'Begin klein, win groot',
-            tekst: `Je hoeft geen multinational te zijn om hyperlokaal te winnen. Sterker nog: de schaal werkt in je voordeel. De lokale snackbar kan met 250 flyers beginnen. Dat is €147,50. Voor dat bedrag kun je ook een week lang advertenties draaien op Instagram — die 3 seconden worden bekeken en direct worden weggezwaafd.
+            tekst: `Je hoeft geen multinational te zijn om hyperlokaal te winnen. Sterker nog: de schaal werkt in je voordeel. De lokale snackbar kan met 250 flyers beginnen. Dat is €147,50. Voor dat bedrag kun je ook een week lang advertenties draaien op Instagram -- die 3 seconden worden bekeken en direct worden weggezwaafd.
 
 Of je kiest voor iets dat blijft hangen. Letterlijk.`,
           },

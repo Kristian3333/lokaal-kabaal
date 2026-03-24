@@ -3,11 +3,11 @@ import Link from 'next/link';
 import Nav from '@/components/Nav';
 
 export const metadata: Metadata = {
-  title: 'Flyers Versturen voor Kapper — Bereik Nieuwe Bewoners',
+  title: 'Flyers Versturen voor Kapper - Bereik Nieuwe Bewoners',
   description: 'Bereik nieuwe bewoners als kapper voordat ze een andere salon kiezen. Automatische flyers via Kadaster. Nieuwe klant = €360/jaar gemiddeld. Geen contract.',
   alternates: { canonical: 'https://lokaalkabaal.agency/flyers-versturen-kapper' },
   openGraph: {
-    title: 'Flyers Versturen voor Kapper — Bereik Nieuwe Bewoners | LokaalKabaal',
+    title: 'Flyers Versturen voor Kapper - Bereik Nieuwe Bewoners | LokaalKabaal',
     description: 'Bereik nieuwe bewoners als kapper voordat ze een andere salon kiezen. Automatische flyers via Kadaster. Nieuwe klant = €360/jaar.',
     url: 'https://lokaalkabaal.agency/flyers-versturen-kapper',
   },
@@ -38,7 +38,7 @@ const faqSchema = {
       name: 'Wanneer is de beste periode om te starten als kapsalon?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Verhuisbewegingen zijn het hele jaar door actief, met een piek van april tot september. Er is geen slechte maand — elke maand dat u niet actief bent, zijn er nieuwe bewoners in uw wijk die een kapper kiezen zonder uw flyer te hebben ontvangen.',
+        text: 'Verhuisbewegingen zijn het hele jaar door actief, met een piek van april tot september. Er is geen slechte maand -- elke maand dat u niet actief bent, zijn er nieuwe bewoners in uw wijk die een kapper kiezen zonder uw flyer te hebben ontvangen.',
       },
     },
   ],
@@ -64,10 +64,10 @@ export default function FlyersKapper() {
         {/* Hero */}
         <section style={{ maxWidth: '800px', margin: '0 auto', padding: '60px 40px 48px' }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--green-dim)', letterSpacing: '0.12em', marginBottom: '16px', textTransform: 'uppercase' }}>
-            Branche — Kappers & kapsalons
+            Branche -- Kappers & kapsalons
           </div>
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '44px', fontWeight: 400, lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: '20px' }}>
-            Flyers versturen voor kappers —<br /><em style={{ color: 'var(--green-dim)' }}>wees de eerste kapsalon</em><br />die nieuwe bewoners zien
+            Flyers versturen voor kappers --<br /><em style={{ color: 'var(--green-dim)' }}>wees de eerste kapsalon</em><br />die nieuwe bewoners zien
           </h1>
           <p style={{ fontSize: '16px', color: 'var(--muted)', lineHeight: 1.7, maxWidth: '600px', marginBottom: '32px' }}>
             Elke maand verhuizen er in Nederland tienduizenden mensen. Ze komen in een nieuwe wijk, een nieuwe straat. En binnen twee weken hebben ze één dringende praktische vraag: waar is hier een fatsoenlijke kapper? LokaalKabaal koppelt automatisch aan het Kadaster. Zodra er een nieuwe eigenaar is geregistreerd in de postcodes rondom uw kapsalon, verstuurt het systeem uw welkomstflyer naar dat adres. Gemiddelde klantwaarde: <strong>€360 per jaar</strong>. De flyer: minder dan €3.
@@ -91,16 +91,16 @@ export default function FlyersKapper() {
             </h2>
             <div style={{ width: '32px', height: '2px', background: 'var(--green)', marginBottom: '20px' }} />
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444', marginBottom: '16px' }}>
-              Een nieuwe bewoner is een kapper&apos;s ideale nieuwe klant — niet ondanks het feit dat ze vreemd zijn in de buurt, maar precies dáároor.
+              Een nieuwe bewoner is een kapper&apos;s ideale nieuwe klant -- niet ondanks het feit dat ze vreemd zijn in de buurt, maar precies dáároor.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444', marginBottom: '16px' }}>
               Wanneer iemand verhuist, valt het kapperspreferentiesysteem volledig weg. De vaste kapper van tien jaar zit misschien aan de andere kant van de stad. Het is niet prettig om een uur te reizen voor een knipbeurt. De meeste nieuwe bewoners besluiten bewust of onbewust: ik ga een nieuwe, dichterbije kapper zoeken.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444', marginBottom: '16px' }}>
-              Die zoekopdracht begint gemiddeld <strong>binnen 10–14 dagen na de verhuizing</strong>. Ze googlen &quot;kapper [buurt]&quot;, vragen het aan de nieuwe buren, of stappen gewoon ergens binnen. Maar wie er als eerste een fysieke aanwijzing heeft gegeven dat ze bestaan — een flyer op de mat, een aanbieding voor de eerste knipbeurt — die staat al op de shortlist.
+              Die zoekopdracht begint gemiddeld <strong>binnen 10–14 dagen na de verhuizing</strong>. Ze googlen &quot;kapper [buurt]&quot;, vragen het aan de nieuwe buren, of stappen gewoon ergens binnen. Maar wie er als eerste een fysieke aanwijzing heeft gegeven dat ze bestaan -- een flyer op de mat, een aanbieding voor de eerste knipbeurt -- die staat al op de shortlist.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444' }}>
-              Het koopgedrag is ook anders dan bij gewone nieuwe klanten. Nieuwe bewoners zijn niet selectief op prijs — ze zijn selectief op <strong>nabijheid en vertrouwen</strong>. Ze willen weten dat u er bent, dat u professioneel bent, en dat er een goede reden is om eens langs te komen. Een welkomstaanbieding (eerste knipbeurt met korting, of gratis wassen bij eerste bezoek) verlaagt de drempel tot nul.
+              Het koopgedrag is ook anders dan bij gewone nieuwe klanten. Nieuwe bewoners zijn niet selectief op prijs -- ze zijn selectief op <strong>nabijheid en vertrouwen</strong>. Ze willen weten dat u er bent, dat u professioneel bent, en dat er een goede reden is om eens langs te komen. Een welkomstaanbieding (eerste knipbeurt met korting, of gratis wassen bij eerste bezoek) verlaagt de drempel tot nul.
             </p>
           </section>
 
@@ -114,10 +114,10 @@ export default function FlyersKapper() {
               U heeft geen tijd om een marketingcampagne te runnen. U staat de hele dag achter de stoel. LokaalKabaal is gebouwd voor mensen zoals u.
             </p>
             <div style={{ marginBottom: '20px' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '10px', letterSpacing: '0.08em' }}>DE SETUP (EENMALIG — 20 MINUTEN)</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '10px', letterSpacing: '0.08em' }}>DE SETUP (EENMALIG -- 20 MINUTEN)</div>
               {[
                 'Maak een account aan en stel uw kapsalon in',
-                'Selecteer de postcodes rondom uw salon — zo precies als u wilt, tot op wijkniveau',
+                'Selecteer de postcodes rondom uw salon -- zo precies als u wilt, tot op wijkniveau',
                 'Upload uw logo en de tekst voor uw welkomstflyer (of gebruik ons kapperstemplate)',
                 'Betaal het maandabonnement en activeer',
               ].map((s, i) => (
@@ -133,7 +133,7 @@ export default function FlyersKapper() {
             </p>
             <div style={{ background: 'var(--paper2)', borderRadius: 'var(--radius)', padding: '14px 16px' }}>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.08em' }}>WAT STAAT ER OP EEN GOEDE KAPPERSFLYER?</div>
-              {['Uw naam, logo en adres — duidelijk zichtbaar', 'Warme welkomstboodschap: "Welkom in de wijk"', 'Concrete aanbieding: bijv. 20% korting op eerste knipbeurt of gratis wassen', 'Telefoonnummer + QR-code naar uw boekingssysteem', 'Openingstijden'].map((s, i) => (
+              {['Uw naam, logo en adres -- duidelijk zichtbaar', 'Warme welkomstboodschap: "Welkom in de wijk"', 'Concrete aanbieding: bijv. 20% korting op eerste knipbeurt of gratis wassen', 'Telefoonnummer + QR-code naar uw boekingssysteem', 'Openingstijden'].map((s, i) => (
                 <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '12px', color: '#555', padding: '3px 0' }}>
                   <span style={{ color: 'var(--green)', flexShrink: 0 }}>✓</span>{s}
                 </div>
@@ -164,7 +164,7 @@ export default function FlyersKapper() {
               ))}
             </div>
             <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.25)', borderRadius: 'var(--radius)', padding: '16px 20px' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.08em' }}>REKENVOORBEELD — 10 NIEUWE BEWONERS/MND · 6% CONVERSIE</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.08em' }}>REKENVOORBEELD -- 10 NIEUWE BEWONERS/MND · 6% CONVERSIE</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 {[
                   { label: 'Nieuwe klanten/jaar', val: '~8' },
@@ -187,8 +187,8 @@ export default function FlyersKapper() {
             </h2>
             {[
               { q: 'Hoeveel nieuwe bewoners zijn er gemiddeld per maand in mijn postcodes?', a: 'In een stedelijke wijk in Nederland zijn er gemiddeld 3–8 eigendomsoverdrachten per postcode per maand. Voor een kapsalon die 3–5 postcodes rondom zich activeert, betekent dat 9–40 potentiële nieuwe klanten per maand. In grotere steden of actieve verhuiswijken (bijv. nieuwbouwgebieden) kan dit hoger liggen. LokaalKabaal toont u vooraf het historische overdrachtsvolume voor uw gekozen postcodes.' },
-              { q: 'Wat is de beste aanbieding voor op mijn kappersflyer?', a: 'Het beste aanbod voor nieuwe bewoners is een lagedrempel kennismakingsaanbieding: 15–20% korting op de eerste knipbeurt, of een gratis behandeling (wassen, masker) bij het eerste bezoek. Vermijd te complexe voorwaarden. De boodschap moet in één oogopslag duidelijk zijn: "Welkom in de wijk — kom kennismaken." Voeg altijd uw telefoonnummer en eventueel een QR-code naar uw boekingspagina toe.' },
-              { q: 'Wanneer is de beste periode om te starten als kapsalon?', a: 'Eerlijk antwoord: nu. Verhuisbewegingen zijn het hele jaar door actief, met een piek van april tot september. Als u in februari start, profiteert u optimaal van de voorjaarspiek. Maar ook in oktober–maart zijn er wekelijks nieuwe bewoners in elke stedelijke wijk. Er is geen "slechte" maand voor LokaalKabaal — er zijn alleen maanden waarop u nog niet actief bent terwijl uw buren dat wel zijn.' },
+              { q: 'Wat is de beste aanbieding voor op mijn kappersflyer?', a: 'Het beste aanbod voor nieuwe bewoners is een lagedrempel kennismakingsaanbieding: 15–20% korting op de eerste knipbeurt, of een gratis behandeling (wassen, masker) bij het eerste bezoek. Vermijd te complexe voorwaarden. De boodschap moet in één oogopslag duidelijk zijn: "Welkom in de wijk -- kom kennismaken." Voeg altijd uw telefoonnummer en eventueel een QR-code naar uw boekingspagina toe.' },
+              { q: 'Wanneer is de beste periode om te starten als kapsalon?', a: 'Eerlijk antwoord: nu. Verhuisbewegingen zijn het hele jaar door actief, met een piek van april tot september. Als u in februari start, profiteert u optimaal van de voorjaarspiek. Maar ook in oktober–maart zijn er wekelijks nieuwe bewoners in elke stedelijke wijk. Er is geen "slechte" maand voor LokaalKabaal -- er zijn alleen maanden waarop u nog niet actief bent terwijl uw buren dat wel zijn.' },
             ].map((f, i) => (
               <div key={i} style={{ borderBottom: '1px solid var(--line)', padding: '18px 0' }}>
                 <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '8px' }}>{f.q}</div>

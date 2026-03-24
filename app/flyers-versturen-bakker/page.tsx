@@ -3,11 +3,11 @@ import Link from 'next/link';
 import Nav from '@/components/Nav';
 
 export const metadata: Metadata = {
-  title: 'Flyers Versturen voor Bakkers — Bereik Nieuwe Bewoners',
+  title: 'Flyers Versturen voor Bakkers - Bereik Nieuwe Bewoners',
   description: 'Bereik nieuwe bewoners als bakker voordat ze een andere bakkerij kiezen. Automatische flyers via Kadaster. Vaste klant = €520/jaar gemiddeld. Geen contract.',
   alternates: { canonical: 'https://lokaalkabaal.agency/flyers-versturen-bakker' },
   openGraph: {
-    title: 'Flyers Versturen voor Bakkers — Bereik Nieuwe Bewoners | LokaalKabaal',
+    title: 'Flyers Versturen voor Bakkers - Bereik Nieuwe Bewoners | LokaalKabaal',
     description: 'Bereik nieuwe bewoners als bakker voordat ze een andere bakkerij kiezen. Automatische flyers via Kadaster. Vaste klant = €520/jaar.',
     url: 'https://lokaalkabaal.agency/flyers-versturen-bakker',
   },
@@ -30,7 +30,7 @@ const faqSchema = {
       name: 'Wat is de beste aanbieding voor op een bakkersflyer voor nieuwe bewoners?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Het beste aanbod is een lagedrempel kennismakingsaanbieding: een gratis koffiebroodje bij het eerste bezoek, of 10% korting op de eerste bestelling. Zorg dat uw brood en openingstijden duidelijk staan. De boodschap: "Welkom in de wijk — uw verse bakker om de hoek." Voeg een QR-code naar uw assortiment toe als u die heeft.',
+        text: 'Het beste aanbod is een lagedrempel kennismakingsaanbieding: een gratis koffiebroodje bij het eerste bezoek, of 10% korting op de eerste bestelling. Zorg dat uw brood en openingstijden duidelijk staan. De boodschap: "Welkom in de wijk -- uw verse bakker om de hoek." Voeg een QR-code naar uw assortiment toe als u die heeft.',
       },
     },
     {
@@ -38,7 +38,7 @@ const faqSchema = {
       name: 'Wanneer is de beste periode om te starten als bakker?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Verhuisbewegingen zijn het hele jaar actief, met een piek van april tot september. Voor bakkers is er ook een voordeel in de herfst: nieuwe bewoners die in de zomer zijn verhuisd zoeken dan naar hun vaste routine — inclusief een bakker voor het weekend. Er is geen slechte maand om te starten.',
+        text: 'Verhuisbewegingen zijn het hele jaar actief, met een piek van april tot september. Voor bakkers is er ook een voordeel in de herfst: nieuwe bewoners die in de zomer zijn verhuisd zoeken dan naar hun vaste routine -- inclusief een bakker voor het weekend. Er is geen slechte maand om te starten.',
       },
     },
   ],
@@ -64,13 +64,13 @@ export default function FlyersBakker() {
         {/* Hero */}
         <section style={{ maxWidth: '800px', margin: '0 auto', padding: '60px 40px 48px' }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--green-dim)', letterSpacing: '0.12em', marginBottom: '16px', textTransform: 'uppercase' }}>
-            Branche — Bakkers & broodjeszaken
+            Branche -- Bakkers & broodjeszaken
           </div>
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '44px', fontWeight: 400, lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: '20px' }}>
-            Flyers versturen voor bakkers —<br /><em style={{ color: 'var(--green-dim)' }}>wees de eerste bakkerij</em><br />op de deurmat van nieuwe bewoners
+            Flyers versturen voor bakkers --<br /><em style={{ color: 'var(--green-dim)' }}>wees de eerste bakkerij</em><br />op de deurmat van nieuwe bewoners
           </h1>
           <p style={{ fontSize: '16px', color: 'var(--muted)', lineHeight: 1.7, maxWidth: '600px', marginBottom: '32px' }}>
-            Nieuwe bewoners zoeken een vaste bakker. Ze doen dat in de eerste weken na de verhuizing, en ze kiezen er één — voor jaren. LokaalKabaal koppelt automatisch aan het Kadaster en verstuurt uw flyer zodra er een nieuwe eigenaar is geregistreerd in uw postcodes. Gemiddelde klantwaarde van een vaste klant: <strong>€520 per jaar</strong>. De flyer: minder dan €3.
+            Nieuwe bewoners zoeken een vaste bakker. Ze doen dat in de eerste weken na de verhuizing, en ze kiezen er één -- voor jaren. LokaalKabaal koppelt automatisch aan het Kadaster en verstuurt uw flyer zodra er een nieuwe eigenaar is geregistreerd in uw postcodes. Gemiddelde klantwaarde van een vaste klant: <strong>€520 per jaar</strong>. De flyer: minder dan €3.
           </p>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <Link href="/login" style={{ padding: '12px 24px', background: 'var(--ink)', color: 'var(--paper)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px' }}>
@@ -91,10 +91,10 @@ export default function FlyersBakker() {
             </h2>
             <div style={{ width: '32px', height: '2px', background: 'var(--green)', marginBottom: '20px' }} />
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444', marginBottom: '16px' }}>
-              Een bakker verkoopt geen producten — een bakker verkoopt een gewoonte. Het zaterdag-brood, het croissantje op weg naar het werk, de taart voor verjaardagen. Die gewoontes zijn sterk, maar ze zijn locatiegebonden. En bij een verhuizing vallen ze weg.
+              Een bakker verkoopt geen producten -- een bakker verkoopt een gewoonte. Het zaterdag-brood, het croissantje op weg naar het werk, de taart voor verjaardagen. Die gewoontes zijn sterk, maar ze zijn locatiegebonden. En bij een verhuizing vallen ze weg.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444', marginBottom: '16px' }}>
-              Nieuwe bewoners staan open voor een nieuwe vaste bakker. Ze kijken om zich heen in de buurt, lopen de straat door en vragen buren om tips. De eerste bakkerij die op hun mat ligt — concreet, met een gezicht en een aanbieding — heeft een enorm voordeel. Er is geen Google-advertentie die dat verslaat.
+              Nieuwe bewoners staan open voor een nieuwe vaste bakker. Ze kijken om zich heen in de buurt, lopen de straat door en vragen buren om tips. De eerste bakkerij die op hun mat ligt -- concreet, met een gezicht en een aanbieding -- heeft een enorm voordeel. Er is geen Google-advertentie die dat verslaat.
             </p>
             <p style={{ fontSize: '14px', lineHeight: 1.8, color: '#444', marginBottom: '16px' }}>
               De zoekopdracht begint <strong>binnen 1–2 weken na de verhuizing</strong>. En het beslissingsproces is eenvoudig: ze gaan naar de dichtstbijzijnde bakker die ze kennen. Wie er al bij ze in de bus lag, die kennen ze al.
@@ -114,10 +114,10 @@ export default function FlyersBakker() {
               U begint om 4 uur &apos;s ochtends. Marketing heeft u geen tijd voor. LokaalKabaal draait zonder dat u er naar omkijkt.
             </p>
             <div style={{ marginBottom: '20px' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '10px', letterSpacing: '0.08em' }}>DE SETUP (EENMALIG — 20 MINUTEN)</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '10px', letterSpacing: '0.08em' }}>DE SETUP (EENMALIG -- 20 MINUTEN)</div>
               {[
                 'Maak een account aan en stel uw bakkerij in',
-                'Selecteer de postcodes rondom uw winkel — wijk voor wijk',
+                'Selecteer de postcodes rondom uw winkel -- wijk voor wijk',
                 'Upload uw logo en welkomstboodschap (of gebruik ons bakkerstemplate)',
                 'Activeer het abonnement',
               ].map((s, i) => (
@@ -133,7 +133,7 @@ export default function FlyersBakker() {
             </p>
             <div style={{ background: 'var(--paper2)', borderRadius: 'var(--radius)', padding: '14px 16px' }}>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.08em' }}>WAT STAAT ER OP EEN GOEDE BAKKERSFLYER?</div>
-              {['Uw naam, logo en adres — groot en duidelijk', 'Warme welkomstboodschap: "Vers gebakken brood om de hoek"', 'Concrete aanbieding: bijv. gratis koffiebroodje bij eerste bezoek', 'Openingstijden (incl. weekend)', 'QR-code naar uw assortiment of webshop (optioneel)'].map((s, i) => (
+              {['Uw naam, logo en adres -- groot en duidelijk', 'Warme welkomstboodschap: "Vers gebakken brood om de hoek"', 'Concrete aanbieding: bijv. gratis koffiebroodje bij eerste bezoek', 'Openingstijden (incl. weekend)', 'QR-code naar uw assortiment of webshop (optioneel)'].map((s, i) => (
                 <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '12px', color: '#555', padding: '3px 0' }}>
                   <span style={{ color: 'var(--green)', flexShrink: 0 }}>✓</span>{s}
                 </div>
@@ -164,7 +164,7 @@ export default function FlyersBakker() {
               ))}
             </div>
             <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.25)', borderRadius: 'var(--radius)', padding: '16px 20px' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.08em' }}>REKENVOORBEELD — 10 NIEUWE BEWONERS/MND · 5% CONVERSIE</div>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '8px', letterSpacing: '0.08em' }}>REKENVOORBEELD -- 10 NIEUWE BEWONERS/MND · 5% CONVERSIE</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 {[
                   { label: 'Nieuwe klanten/jaar', val: '~6' },
@@ -187,8 +187,8 @@ export default function FlyersBakker() {
             </h2>
             {[
               { q: 'Hoeveel nieuwe bewoners zijn er gemiddeld per maand in mijn postcodes?', a: 'In een stedelijke wijk in Nederland zijn er gemiddeld 3–8 eigendomsoverdrachten per postcode per maand. Voor een bakker die 3–5 postcodes rondom zich activeert, betekent dat 9–40 potentiële nieuwe klanten per maand. LokaalKabaal toont u vooraf het historische overdrachtsvolume voor uw gekozen postcodes, zodat u weet wat u kunt verwachten.' },
-              { q: 'Wat is de beste aanbieding voor op mijn bakkersflyer?', a: 'Het beste aanbod voor nieuwe bewoners is een lagedrempel kennismakingsaanbieding: een gratis koffiebroodje bij het eerste bezoek, of 10% korting op de eerste aankoop. Zorg dat uw broodassortiment herkenbaar is op de flyer en vermeld uw openingstijden duidelijk. De boodschap: "Uw verse bakker om de hoek — kom kennismaken."' },
-              { q: 'Wanneer is de beste periode om te starten als bakker?', a: 'Verhuisbewegingen zijn het hele jaar actief, met een piek van april tot september. Voor bakkers is er ook een voordeel in de herfst: nieuwe bewoners die in de zomer zijn verhuisd zoeken in september–oktober hun vaste routine — inclusief een bakker voor het weekend. Er is geen slechte maand om te starten.' },
+              { q: 'Wat is de beste aanbieding voor op mijn bakkersflyer?', a: 'Het beste aanbod voor nieuwe bewoners is een lagedrempel kennismakingsaanbieding: een gratis koffiebroodje bij het eerste bezoek, of 10% korting op de eerste aankoop. Zorg dat uw broodassortiment herkenbaar is op de flyer en vermeld uw openingstijden duidelijk. De boodschap: "Uw verse bakker om de hoek -- kom kennismaken."' },
+              { q: 'Wanneer is de beste periode om te starten als bakker?', a: 'Verhuisbewegingen zijn het hele jaar actief, met een piek van april tot september. Voor bakkers is er ook een voordeel in de herfst: nieuwe bewoners die in de zomer zijn verhuisd zoeken in september–oktober hun vaste routine -- inclusief een bakker voor het weekend. Er is geen slechte maand om te starten.' },
             ].map((f, i) => (
               <div key={i} style={{ borderBottom: '1px solid var(--line)', padding: '18px 0' }}>
                 <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '8px' }}>{f.q}</div>

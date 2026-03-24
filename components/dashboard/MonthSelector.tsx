@@ -27,7 +27,7 @@ export default function MonthSelector({
     <div>
       <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '8px' }}>Wanneer wil je starten?</h2>
       <p style={{ color: 'var(--muted)', marginBottom: '20px' }}>
-        Flyers worden elke maand op de <strong>25e</strong> verstuurd naar nieuwe bewoners van die maand. Kies je startmaand — tot 12 maanden vooruit.
+        Flyers worden elke maand op de <strong>25e</strong> verstuurd naar nieuwe bewoners van die maand. Kies je startmaand -- tot 12 maanden vooruit.
       </p>
       <div className="datum-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
         {availableMonths.map(m => (

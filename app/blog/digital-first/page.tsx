@@ -29,7 +29,7 @@ Dat is precies de kracht van het model. We gebruiken de meest geavanceerde data-
             kop: 'Kadaster als marketing-engine',
             tekst: `Het Kadaster registreert elke eigendomsoverdracht in Nederland. Via Altum AI ontsluiten we deze data: elke maand op de 25e trekken we de transacties van de voorgaande maand voor elk actief werkgebied. Dat geeft ons een lijst van adressen waar recent nieuwe eigenaren zijn ingetrokken.
 
-Eén API-call per klant per maand. Geen privacy-gevoelige persoonsgegevens — alleen adressen. Precies genoeg om de flyers naar de juiste brievenbussen te sturen.`,
+Eén API-call per klant per maand. Geen privacy-gevoelige persoonsgegevens -- alleen adressen. Precies genoeg om de flyers naar de juiste brievenbussen te sturen.`,
           },
           {
             kop: 'Automatisering die écht helpt',
@@ -39,9 +39,9 @@ Dat is het verschil met traditionele flyerdistributie: geen gedoe met folders vo
           },
           {
             kop: 'AI voor de tekst, menselijk oordeel voor de rest',
-            tekst: `Via de flyer-editor genereert Claude — Anthropic's taalmodel — automatisch een wervende flyertekst op basis van de branche en de bedrijfsnaam. Inclusief USPs, call-to-action en een welkomstboodschap die is afgestemd op de situatie van een nieuwe bewoner.
+            tekst: `Via de flyer-editor genereert Claude -- Anthropic's taalmodel -- automatisch een wervende flyertekst op basis van de branche en de bedrijfsnaam. Inclusief USPs, call-to-action en een welkomstboodschap die is afgestemd op de situatie van een nieuwe bewoner.
 
-Maar AI is een startpunt, geen eindpunt. De ondernemer past de tekst aan. Hij voegt zijn eigen karakter toe. Want een flyer is geen generieke reclame — het is een introductie. En die moet kloppen.`,
+Maar AI is een startpunt, geen eindpunt. De ondernemer past de tekst aan. Hij voegt zijn eigen karakter toe. Want een flyer is geen generieke reclame -- het is een introductie. En die moet kloppen.`,
           },
           {
             kop: 'De toekomst van het papieren kanaal',

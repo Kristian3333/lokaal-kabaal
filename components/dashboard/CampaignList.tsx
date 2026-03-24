@@ -41,7 +41,7 @@ export default function CampaignList({
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', marginBottom: '16px', color: 'var(--line)' }}>◈</div>
         <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', marginBottom: '10px' }}>Nog geen campagnes</div>
         <p style={{ color: 'var(--muted)', fontSize: '13px', lineHeight: 1.65, maxWidth: '380px', margin: '0 auto 24px' }}>
-          Maak je eerste campagne en bereik nieuwe bewoners in jouw werkgebied — automatisch elke maand.
+          Maak je eerste campagne en bereik nieuwe bewoners in jouw werkgebied -- automatisch elke maand.
         </p>
         <button onClick={onStartCampaign} style={{ padding: '12px 28px', background: 'var(--ink)', color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}>
           + Eerste campagne starten
@@ -79,7 +79,7 @@ export default function CampaignList({
               <div>
                 <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '2px' }}>{c.spec}</div>
                 <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                  {c.centrum} · max {c.aantalFlyers.toLocaleString('nl')} flyers/mnd · {c.formaat.toUpperCase()}{c.dubbelzijdig ? ' dubbelzijdig' : ''} · start {c.datum ? new Date(c.datum).toLocaleDateString('nl', { month: 'long', year: 'numeric' }) : '—'}
+                  {c.centrum} · max {c.aantalFlyers.toLocaleString('nl')} flyers/mnd · {c.formaat.toUpperCase()}{c.dubbelzijdig ? ' dubbelzijdig' : ''} · start {c.datum ? new Date(c.datum).toLocaleDateString('nl', { month: 'long', year: 'numeric' }) : '-'}
                 </div>
               </div>
             </div>

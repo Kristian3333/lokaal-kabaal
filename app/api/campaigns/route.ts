@@ -4,6 +4,7 @@ import { campaigns, retailers } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 import { getAuthEmail } from '@/lib/auth';
 import { isValidFormaat, isValidDuration, isValidPc4List, isValidBranche } from '@/lib/validation';
+import { sendCampaignActivation } from '@/lib/email';
 
 // ─── POST /api/campaigns ────────────────────────────────────────────────────
 // Slaat een nieuwe campagne op in de database en maakt een Print.one template aan.
@@ -110,6 +111,12 @@ export async function POST(req: NextRequest) {
       status: 'actief',
     }).returning();
 
+    // Fire-and-forget: email failure must not break campaign creation
+    const campagneNaam = naam || `${branche} campagne`;
+    const pc4Array = Array.isArray(pc4Lijst) ? pc4Lijst : (pc4Lijst || '').split(',').filter(Boolean);
+    sendCampaignActivation(email, retailer.bedrijfsnaam, campagneNaam, pc4Array.length).catch((err) => {
+      console.error('[campaigns] activation email failed:', err);
+    });
 
     return NextResponse.json({
       id: campagne.id,

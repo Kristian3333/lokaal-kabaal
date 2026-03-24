@@ -65,7 +65,7 @@ function estimeerDekkingsgebied(straalKm: number): {
   return { pc4Count, estAdressenMaand, referentieVorigjaar, suggestieFlyers };
 }
 
-// Toeslag bovenop A6-basisprijs (€0,69) per formaat — via printone-pricing.ts
+// Toeslag bovenop A6-basisprijs (€0,69) per formaat -- via printone-pricing.ts
 function berekenPrijs(aantalFlyers: number, formaat: FlyerFormaat, dubbelzijdig: boolean): number {
   // Alleen toeslag t.o.v. A6 enkelvoudig; basisprijs zit in printkosten
   const pps = prijsPerStuk(formaat, dubbelzijdig);
@@ -73,7 +73,7 @@ function berekenPrijs(aantalFlyers: number, formaat: FlyerFormaat, dubbelzijdig:
   return parseFloat(((pps - a6Base) * aantalFlyers).toFixed(2));
 }
 
-// Abonnementsmodel — nieuwe tiers Starter/Pro/Agency (prijzen per maand)
+// Abonnementsmodel -- nieuwe tiers Starter/Pro/Agency (prijzen per maand)
 const ABONNEMENT_TIERS = [
   { name: 'Starter', monthly: 99 },
   { name: 'Pro',     monthly: 199 },
@@ -177,7 +177,7 @@ interface FlyerState {
 
 type Page = 'dashboard' | 'wizard' | 'flyer' | 'credits' | 'profiel' | 'conversies';
 
-// ─── AdaptiveLogo — past breedte en hoogte aan op het aspect van het logo ─────
+// ─── AdaptiveLogo -- past breedte en hoogte aan op het aspect van het logo ─────
 
 function AdaptiveLogo({ src, baseSize, style }: {
   src: string;
@@ -211,7 +211,7 @@ function AdaptiveLogo({ src, baseSize, style }: {
   );
 }
 
-// ─── Flyer Preview — 3 premium designs ───────────────────────────────────────
+// ─── Flyer Preview -- 3 premium designs ───────────────────────────────────────
 
 function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
   flyer: FlyerState;
@@ -251,7 +251,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
   };
 
   // h = base height string (e.g. '100px'). heroScale zooms into the image without
-  // changing the box — we use a larger objectFit area via negative inset instead of
+  // changing the box -- we use a larger objectFit area via negative inset instead of
   // transform:scale to avoid distortion when CSS zoom is active (A6 preview).
   const heroImgStyle = (h: string): React.CSSProperties => {
     // hs = 50–200 (default 100). We expand the image by scaling its visual area.
@@ -275,7 +275,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
 
   const pxDims = PREVIEW_PX[formaat] ?? PREVIEW_PX['a5'];
   const a5Dims = PREVIEW_PX['a5'];
-  // A6 renders at A5 internal layout then uses CSS zoom to shrink — zoom affects layout size
+  // A6 renders at A5 internal layout then uses CSS zoom to shrink -- zoom affects layout size
   const isA6 = formaat === 'a6';
   const zoomRatio = isA6 ? pxDims.w / a5Dims.w : 1;
   const base: React.CSSProperties = {
@@ -291,7 +291,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
     overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: lines, WebkitBoxOrient: 'vertical' as const,
   });
   const ellipsisStyle: React.CSSProperties = { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-  // Small drag hint — top-right corner chip, non-intrusive. data-html2canvas-ignore hides it from PDF export.
+  // Small drag hint -- top-right corner chip, non-intrusive. data-html2canvas-ignore hides it from PDF export.
   const dragOverlay = onHeroOffsetChange ? (
     <div data-html2canvas-ignore="true" style={{ position: 'absolute', top: '5px', right: '5px', background: 'rgba(0,0,0,0.52)', borderRadius: '3px', padding: '2px 5px', pointerEvents: 'none', zIndex: 2 }}>
       <span style={{ fontSize: '7px', color: 'rgba(255,255,255,0.85)', fontFamily: 'var(--font-mono)' }}>↕ sleep</span>
@@ -303,9 +303,9 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
     const headline = flyer.headline || 'Welkom in de buurt.';
     return (
       <div style={{ ...base, background: flyer.kleur, display: 'flex', flexDirection: 'column' }}>
-        {/* Left color stripe — bold accent bar */}
+        {/* Left color stripe -- bold accent bar */}
         <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '10px', background: flyer.accent, zIndex: 1 }} />
-        {/* Top section — flex:1 fills available space, overflow hidden prevents footer overlap */}
+        {/* Top section -- flex:1 fills available space, overflow hidden prevents footer overlap */}
         <div style={{ flex: 1, padding: '18px 16px 0 22px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {/* Category label */}
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', letterSpacing: '0.18em', color: flyer.accent, textTransform: 'uppercase', marginBottom: '10px', opacity: 0.9, flexShrink: 0 }}>
@@ -331,7 +331,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
           )}
           {/* Divider */}
           <div style={{ width: '28px', height: '2px', background: flyer.accent, marginBottom: '8px', flexShrink: 0 }} />
-          {/* Body — fills remaining space */}
+          {/* Body -- fills remaining space */}
           <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.68)', lineHeight: 1.7, marginBottom: '8px', ...clampStyle(4), flexShrink: 1, minHeight: 0 }}>{tekst}</div>
           {/* USPs */}
           {usps.length > 0 && (
@@ -349,7 +349,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
             <span style={{ fontSize: '8px', fontWeight: 800, color: flyer.kleur, fontFamily: 'var(--font-mono)', letterSpacing: '0.04em' }}>{ctaText}</span>
           </div>
         </div>
-        {/* Footer bar — fixed height, no overlap */}
+        {/* Footer bar -- fixed height, no overlap */}
         <div style={{ borderTop: `1px solid rgba(255,255,255,0.08)`, padding: '9px 16px 9px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.2)', flexShrink: 0 }}>
           <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
             <div style={{ fontWeight: 800, fontSize: '9px', color: '#fff', letterSpacing: '0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{naam}</div>
@@ -373,7 +373,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
         {/* Background shapes */}
         <div style={{ position: 'absolute', bottom: '40px', left: '-50px', width: '180px', height: '180px', borderRadius: '50%', background: flyer.kleur, opacity: 0.06 }} />
         <div style={{ position: 'absolute', bottom: '20px', left: '-20px', width: '100px', height: '100px', borderRadius: '50%', background: flyer.accent, opacity: 0.10 }} />
-        {/* Hero image — full width strip at top */}
+        {/* Hero image -- full width strip at top */}
         {flyer.heroImageUrl ? (
           <div style={{ position: 'relative', height: '100px', overflow: 'hidden', flexShrink: 0 }}>
             <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('100px') }} onMouseDown={handleHeroDrag} />
@@ -404,7 +404,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
             <div style={{ fontWeight: 700, fontSize: '9px', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{naam}</div>
           </div>
         )}
-        {/* Content — flex:1 fills remaining space */}
+        {/* Content -- flex:1 fills remaining space */}
         <div style={{ padding: '10px 14px', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontSize: '8px', color: '#444', lineHeight: 1.65, marginBottom: '10px', ...clampStyle(4), flexShrink: 1, minHeight: 0 }}>{tekst}</div>
           {/* USP pills */}
@@ -421,7 +421,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
             </div>
           )}
         </div>
-        {/* Bottom CTA strip — in flow, not absolute */}
+        {/* Bottom CTA strip -- in flow, not absolute */}
         <div style={{ background: flyer.accent, padding: '8px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           <span style={{ fontSize: '8px', fontWeight: 800, color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>{ctaText}</span>
           {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.kleur} bg="transparent" />}
@@ -436,7 +436,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
     const headline = flyer.headline || 'Welkom in de buurt.';
     return (
     <div style={{ ...base, background: '#faf9f7', display: 'flex', flexDirection: 'column' }}>
-      {/* Hero image — full width, tall strip */}
+      {/* Hero image -- full width, tall strip */}
       {flyer.heroImageUrl ? (
         <div style={{ position: 'relative', height: '110px', overflow: 'hidden', flexShrink: 0 }}>
           <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('110px') }} onMouseDown={handleHeroDrag} />
@@ -470,7 +470,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
         <div style={{ width: '20px', height: '2px', background: flyer.accent, marginBottom: '10px', flexShrink: 0 }} />
         {/* Body */}
         <div style={{ fontSize: '8px', color: '#666', lineHeight: 1.65, marginBottom: '10px', ...clampStyle(4), flexShrink: 1, minHeight: 0 }}>{tekst}</div>
-        {/* USPs — minimal list */}
+        {/* USPs -- minimal list */}
         {usps.length > 0 && (
           <div style={{ borderTop: '1px solid #ede9e3', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '8px', flexShrink: 0 }}>
             {usps.map((u, i) => (
@@ -481,13 +481,13 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
             ))}
           </div>
         )}
-        {/* CTA — elegant underlined */}
+        {/* CTA -- elegant underlined */}
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', borderBottom: `1.5px solid ${flyer.accent}`, paddingBottom: '1px', flexShrink: 0 }}>
           <span style={{ fontSize: '8px', fontWeight: 700, color: flyer.kleur, letterSpacing: '0.04em' }}>{ctaText}</span>
           <span style={{ fontSize: '8px', color: flyer.accent, fontWeight: 700 }}>→</span>
         </div>
       </div>
-      {/* Bottom contact — in flow */}
+      {/* Bottom contact -- in flow */}
       <div style={{ padding: '7px 20px', borderTop: '1px solid #e8e6e0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
         {flyer.website && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
         {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.kleur} bg="transparent" />}
@@ -522,7 +522,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
             <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', fontWeight: 700, color: flyer.kleur, lineHeight: 1.0, letterSpacing: '-0.02em', ...clampStyle(3) }}>{headline}</div>
           </div>
         )}
-        {/* Content — flex:1 */}
+        {/* Content -- flex:1 */}
         <div style={{ padding: '12px 16px', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <div style={{ width: '36px', height: '3px', background: flyer.accent, marginBottom: '8px', borderRadius: '2px', flexShrink: 0 }} />
           <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.72)', lineHeight: 1.65, marginBottom: '8px', ...clampStyle(3), flexShrink: 1, minHeight: 0 }}>{tekst}</div>
@@ -539,7 +539,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
             </div>
           )}
         </div>
-        {/* CTA + Footer — in flow */}
+        {/* CTA + Footer -- in flow */}
         <div style={{ flexShrink: 0 }}>
           <div style={{ background: flyer.accent, padding: '7px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '8px', fontWeight: 800, color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>{ctaText}</span>
@@ -580,7 +580,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
               {dragOverlay}
             </div>
           ) : null}
-          {/* Headline — big serif centered */}
+          {/* Headline -- big serif centered */}
           <div style={{ fontFamily: 'var(--font-serif)', fontSize: flyer.heroImageUrl ? '18px' : '24px', fontWeight: 700, color: flyer.kleur, lineHeight: 1.0, textAlign: 'center', letterSpacing: '-0.01em', marginBottom: '4px', flexShrink: 0, width: '100%', ...clampStyle(2) }}>{headline}</div>
           {/* Decorative ornamental rule */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', margin: '7px 0', flexShrink: 0, width: '100%' }}>
@@ -598,14 +598,14 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
               ))}
             </div>
           )}
-          {/* CTA — vintage badge style */}
+          {/* CTA -- vintage badge style */}
           <div style={{ display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
             <div style={{ background: flyer.accent, borderRadius: '2px', padding: '4px 12px' }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: '7.5px', fontWeight: 800, color: flyer.kleur, letterSpacing: '0.06em' }}>{ctaText}</span>
             </div>
           </div>
         </div>
-        {/* Bottom border — in flow */}
+        {/* Bottom border -- in flow */}
         <div style={{ flexShrink: 0 }}>
           <div style={{ padding: '6px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `2px solid ${flyer.kleur}` }}>
             <div style={{ fontFamily: 'var(--font-serif)', fontSize: '9px', fontWeight: 700, color: flyer.kleur }}>{naam}</div>
@@ -641,7 +641,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', color: flyer.accent, letterSpacing: '0.16em', marginBottom: '5px', textTransform: 'uppercase' }}>Hoi nieuwe buur!</div>
           <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: '#fff', lineHeight: 1.05, letterSpacing: '-0.01em', fontWeight: 400, ...clampStyle(2) }}>{headline}</div>
         </div>
-        {/* Content — flex:1 */}
+        {/* Content -- flex:1 */}
         <div style={{ padding: '12px 16px', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {/* Business name */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '7px', overflow: 'hidden', flexShrink: 0 }}>
@@ -667,7 +667,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
             <span style={{ fontSize: '8px', fontWeight: 800, color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>{ctaText}</span>
           </div>
         </div>
-        {/* Footer — in flow */}
+        {/* Footer -- in flow */}
         <div style={{ padding: '6px 16px', borderTop: `1px solid ${flyer.accent}40`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           {flyer.website && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
           {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.kleur} bg="transparent" />}
@@ -722,7 +722,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '8px', fontWeight: 700, color: flyer.accent, textShadow: `0 0 8px ${flyer.accent}` }}>{ctaText}</span>
           </div>
         </div>
-        {/* Footer — in flow */}
+        {/* Footer -- in flow */}
         <div style={{ borderTop: `1px solid ${flyer.accent}25`, padding: '7px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: `${bg}f0`, flexShrink: 0 }}>
           <div>
             <div style={{ fontWeight: 700, fontSize: '8px', color: flyer.accent, fontFamily: 'var(--font-mono)', textShadow: `0 0 6px ${flyer.accent}70` }}>{naam}</div>
@@ -782,12 +782,12 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
               ))}
             </div>
           )}
-          {/* CTA — corporate style */}
+          {/* CTA -- corporate style */}
           <div style={{ background: flyer.kleur, borderRadius: '2px', padding: '5px 10px', display: 'inline-block', flexShrink: 0 }}>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '7.5px', fontWeight: 700, color: '#fff', letterSpacing: '0.06em' }}>{ctaText}</span>
           </div>
         </div>
-        {/* Footer — in flow */}
+        {/* Footer -- in flow */}
         <div style={{ background: '#f4f4f4', borderTop: `2px solid ${flyer.accent}`, padding: '6px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           {flyer.website && <span style={{ fontSize: '7px', color: '#777', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
           {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.kleur} bg="transparent" />}
@@ -810,7 +810,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.75)', marginBottom: '5px', textTransform: 'uppercase' }}>Nieuw in de buurt?</div>
           <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: '#fff', lineHeight: 1.05, fontWeight: 700, letterSpacing: '-0.01em', ...clampStyle(2) }}>{headline}</div>
         </div>
-        {/* Content — flex:1 */}
+        {/* Content -- flex:1 */}
         <div style={{ padding: '12px 16px', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {/* Business name badge */}
           <div style={{ display: 'inline-block', background: flyer.kleur, borderRadius: '20px', padding: '4px 11px', marginBottom: '8px', maxWidth: '100%', flexShrink: 0 }}>
@@ -833,12 +833,12 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
               ))}
             </div>
           )}
-          {/* CTA — rounded pill */}
+          {/* CTA -- rounded pill */}
           <div style={{ background: `linear-gradient(90deg, ${flyer.kleur}, ${flyer.accent})`, borderRadius: '20px', padding: '6px 14px', display: 'inline-block', flexShrink: 0 }}>
             <span style={{ fontSize: '8px', fontWeight: 800, color: '#fff', fontFamily: 'var(--font-mono)' }}>{ctaText}</span>
           </div>
         </div>
-        {/* Footer — in flow */}
+        {/* Footer -- in flow */}
         <div style={{ padding: '6px 16px', background: `${flyer.kleur}08`, borderTop: '1px solid rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           {flyer.website && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
           {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.kleur} bg="transparent" />}
@@ -851,7 +851,7 @@ function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
     );
   }
 
-  // Fallback — should not reach here
+  // Fallback -- should not reach here
   return null;
 }
 
@@ -1387,7 +1387,7 @@ function CoverageVisual({ centrum, straalKm, onPc4sChange, onEstChange }: {
         borderRadius: 'var(--radius)', padding: '10px 12px',
         fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)',
       }}>
-        💡 Verwachte verhuizingen in dit gebied: ~{estAdressenMaand} huishoudens/mnd — dit wordt je startaantal in de volgende stap
+        💡 Verwachte verhuizingen in dit gebied: ~{estAdressenMaand} huishoudens/mnd -- dit wordt je startaantal in de volgende stap
       </div>
     </div>
   );
@@ -1419,12 +1419,12 @@ function MiniChart() {
 
 function Ticker() {
   const items = [
-    "🟢 Koffiehuis Utrecht — 380 flyers bezorgd",
-    "🟢 StucPro Amsterdam — 12 offertes aangevraagd",
-    "🟢 Meubelwinkel Haarlem — campagne verlengd",
-    "🟢 Fietsenwinkel Leiden — 520 flyers verstuurd",
-    "🟢 Kapper Rotterdam — 8 nieuwe vaste klanten",
-    "🟢 Bakkerij Eindhoven — 3e maand actief",
+    "🟢 Koffiehuis Utrecht -- 380 flyers bezorgd",
+    "🟢 StucPro Amsterdam -- 12 offertes aangevraagd",
+    "🟢 Meubelwinkel Haarlem -- campagne verlengd",
+    "🟢 Fietsenwinkel Leiden -- 520 flyers verstuurd",
+    "🟢 Kapper Rotterdam -- 8 nieuwe vaste klanten",
+    "🟢 Bakkerij Eindhoven -- 3e maand actief",
   ];
   const doubled = [...items, ...items];
   return (
@@ -1571,7 +1571,7 @@ function ConversiesDashboard({ campaigns, onStartCampagne }: {
       });
       const data = await res.json();
       if (res.ok && data.status === 'conversie') {
-        setVerzilverResult({ ok: true, message: `Conversie geregistreerd — ${data.adres}` });
+        setVerzilverResult({ ok: true, message: `Conversie geregistreerd -- ${data.adres}` });
         setVerzilverCode('');
         // Herlaad conversiedata
         const id = selectedCampagne || activeCampagnes[0]?.id?.toString();
@@ -1580,7 +1580,7 @@ function ConversiesDashboard({ campaigns, onStartCampagne }: {
         setVerzilverResult({ ok: false, message: data.message || 'Onbekende fout' });
       }
     } catch {
-      setVerzilverResult({ ok: false, message: 'Netwerkfout — probeer opnieuw' });
+      setVerzilverResult({ ok: false, message: 'Netwerkfout -- probeer opnieuw' });
     } finally {
       setVerzilverLoading(false);
     }
@@ -1679,7 +1679,7 @@ function ConversiesDashboard({ campaigns, onStartCampagne }: {
         >
           {activeCampagnes.map(c => (
             <option key={c.id} value={c.id.toString()}>
-              {c.centrum} — {new Date(c.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}
+              {c.centrum} -- {new Date(c.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}
             </option>
           ))}
         </select>
@@ -1774,10 +1774,10 @@ function ConversiesDashboard({ campaigns, onStartCampagne }: {
                       </span>
                     </td>
                     <td style={{ padding: '10px 14px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--muted)' }}>
-                      {r.interesseOp ? new Date(r.interesseOp).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }) : '—'}
+                      {r.interesseOp ? new Date(r.interesseOp).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }) : '-'}
                     </td>
                     <td style={{ padding: '10px 14px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: r.conversieOp ? '#00875A' : 'var(--muted)' }}>
-                      {r.conversieOp ? new Date(r.conversieOp).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}
+                      {r.conversieOp ? new Date(r.conversieOp).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-'}
                     </td>
                     <td style={{ padding: '10px 14px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: expired ? '#CC7700' : 'var(--muted)' }}>
                       {new Date(r.geldigTot).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' })}
@@ -1837,7 +1837,7 @@ function getTourSteps(): Array<{
     {
       page: 'wizard',
       targetId: 'tour-wizard-branche',
-      titel: 'Stap 1 — Kies je branche',
+      titel: 'Stap 1 -- Kies je branche',
       tekst: 'Kies je type bedrijf. De AI gebruikt dit om de tone-of-voice van je flyertekst te bepalen.',
     },
     {
@@ -1856,7 +1856,7 @@ function getTourSteps(): Array<{
       page: 'dashboard',
       targetId: null,
       titel: 'Klaar om te beginnen 🚀',
-      tekst: 'Dat was de rondleiding. Start je eerste campagne — je eerste flyer is live binnen 24 uur.',
+      tekst: 'Dat was de rondleiding. Start je eerste campagne -- je eerste flyer is live binnen 24 uur.',
     },
   ];
 }
@@ -1870,13 +1870,9 @@ export default function LokaalKabaal() {
     spec: string; datum: string; centrum: string; aantalFlyers: number;
     formaat: string; dubbelzijdig: boolean; maxBudget: number; proefAdres: string;
   } | null>(null);
-  const [campaigns, setCampaigns] = useState<Campaign[]>(() => {
-    if (typeof window === 'undefined') return [];
-    try { const s = localStorage.getItem('lk_campaigns'); return s ? JSON.parse(s) : []; } catch { return []; }
-  });
-  useEffect(() => {
-    if (typeof window !== 'undefined') localStorage.setItem('lk_campaigns', JSON.stringify(campaigns));
-  }, [campaigns]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [campaignsLoading, setCampaignsLoading] = useState(true);
+  const [campaignsError, setCampaignsError] = useState<string | null>(null);
   const [user, setUser] = useState<{ email: string; naam: string; tier?: Tier; isJaarcontract?: boolean } | null>(null);
   const [subStatus, setSubStatus] = useState<{
     subscriptionStatus: string;
@@ -1902,36 +1898,104 @@ export default function LokaalKabaal() {
   const [brandMsg, setBrandMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [brandLoaded, setBrandLoaded] = useState(false);
 
-  useEffect(() => {
+  /** Fetch campaigns from the database API for the given email. */
+  const fetchCampaigns = useCallback(async (email: string) => {
+    setCampaignsLoading(true);
+    setCampaignsError(null);
     try {
-      const raw = localStorage.getItem('lk_user');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setUser(parsed);
-        // Haal actuele subscription status op vanuit de DB
-        if (parsed.email) {
-          fetch(`/api/subscription/status?email=${encodeURIComponent(parsed.email)}`)
-            .then(r => r.json())
-            .then(data => {
-              if (data.found) {
-                setSubStatus({
-                  subscriptionStatus: data.subscriptionStatus,
-                  dashboardActiefTot: data.dashboardActiefTot,
-                  dagenResterend: data.dagenResterend,
-                });
-                // Sync tier uit DB als die afwijkt van localStorage
-                if (data.tier && data.tier !== parsed.tier) {
-                  const updated = { ...parsed, tier: data.tier, isJaarcontract: data.isJaarcontract };
-                  localStorage.setItem('lk_user', JSON.stringify(updated));
-                  setUser(updated);
-                }
-              }
-            })
-            .catch(() => {}); // stil falen — DB misschien niet beschikbaar in dev
-        }
+      const res = await fetch(`/api/campaigns?email=${encodeURIComponent(email)}`);
+      if (!res.ok) {
+        throw new Error(`Campagnes ophalen mislukt (${res.status})`);
       }
-    } catch {}
+      const rows = await res.json();
+      // Map API rows to the Campaign interface used by the dashboard
+      const mapped: Campaign[] = (rows as Array<Record<string, unknown>>).map((r) => ({
+        id: r.id as number,
+        spec: (r.branche as string) || '',
+        datum: (r.startMaand as string) || '',
+        centrum: (r.centrum as string) || '',
+        aantalFlyers: (r.verwachtAantalPerMaand as number) || 0,
+        formaat: (r.formaat as string) || 'a6',
+        dubbelzijdig: (r.dubbelzijdig as boolean) || false,
+        maxBudget: 0,
+        status: (r.status as Campaign['status']) || 'actief',
+        createdAt: (r.createdAt as string) || new Date().toISOString(),
+      }));
+      setCampaigns(mapped);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Campagnes laden mislukt';
+      setCampaignsError(msg);
+      showToast(msg, 'error');
+    } finally {
+      setCampaignsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    /** Identify the user via session cookie, falling back to localStorage. */
+    async function initUser() {
+      let identified: { email: string; naam: string; tier?: Tier; isJaarcontract?: boolean } | null = null;
+
+      // 1. Try cookie-based session first
+      try {
+        const sessionRes = await fetch('/api/auth/session');
+        if (sessionRes.ok) {
+          const session = await sessionRes.json();
+          if (session.authenticated && session.email) {
+            identified = { email: session.email, naam: '', tier: session.tier ?? undefined };
+          }
+        }
+      } catch {
+        // Session endpoint unavailable, fall through to localStorage
+      }
+
+      // 2. Fall back to localStorage lk_user for backwards compatibility
+      if (!identified) {
+        try {
+          const raw = localStorage.getItem('lk_user');
+          if (raw) {
+            identified = JSON.parse(raw);
+          }
+        } catch {}
+      }
+
+      if (!identified) {
+        setCampaignsLoading(false);
+        return;
+      }
+
+      setUser(identified);
+
+      // Fetch subscription status from DB
+      if (identified.email) {
+        try {
+          const subRes = await fetch(`/api/subscription/status?email=${encodeURIComponent(identified.email)}`);
+          const data = await subRes.json();
+          if (data.found) {
+            setSubStatus({
+              subscriptionStatus: data.subscriptionStatus,
+              dashboardActiefTot: data.dashboardActiefTot,
+              dagenResterend: data.dagenResterend,
+            });
+            // Sync tier from DB if it differs
+            if (data.tier && data.tier !== identified.tier) {
+              const updated = { ...identified, tier: data.tier, isJaarcontract: data.isJaarcontract };
+              localStorage.setItem('lk_user', JSON.stringify(updated));
+              setUser(updated);
+              identified = updated;
+            }
+          }
+        } catch {
+          // Subscription status unavailable, continue silently
+        }
+
+        // Fetch campaigns from database
+        fetchCampaigns(identified.email);
+      }
+    }
+
+    initUser();
+  }, [fetchCampaigns]);
 
   useEffect(() => {
     try {
@@ -1972,25 +2036,18 @@ export default function LokaalKabaal() {
           const storedFlyer = sessionStorage.getItem('lk_pending_flyer');
           const flyerDesign = storedFlyer ? JSON.parse(storedFlyer) : null;
 
-          const newCampaign: Campaign = {
-            id: Date.now(),
-            spec: pc.spec,
-            datum: pc.datum,
-            centrum: pc.centrum,
-            aantalFlyers: pc.aantalFlyers,
-            formaat: pc.formaat,
-            dubbelzijdig: pc.dubbelzijdig,
-            maxBudget: pc.maxBudget,
-            status: 'actief',
-            stripeSessionId: params.get('session_id') ?? undefined,
-            createdAt: new Date().toISOString(),
-            proefAdres: pc.proefAdres || undefined,
-          };
-          setCampaigns(prev => [...prev, newCampaign]);
+          // Save campaign to database via API, then refetch all campaigns
+          let userEmail: string | null = null;
+          try {
+            userEmail = user?.email || null;
+            if (!userEmail) {
+              const raw = localStorage.getItem('lk_user');
+              if (raw) userEmail = JSON.parse(raw).email ?? null;
+            }
+          } catch {}
 
-          // Sla campagne op in database + maak Print.one template aan
-          const userEmail = user?.email || localStorage.getItem('lk_user') && JSON.parse(localStorage.getItem('lk_user')!).email;
           if (userEmail) {
+            const emailForRefetch = userEmail;
             fetch('/api/campaigns', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -2007,9 +2064,18 @@ export default function LokaalKabaal() {
                 stripeSessionId: params.get('session_id'),
                 flyerDesign,
               }),
-            }).then(res => res.json()).catch(() => {
-              // Campaign save failed silently
-            });
+            })
+              .then(res => {
+                if (!res.ok) throw new Error('Campaign save failed');
+                return res.json();
+              })
+              .then(() => {
+                // Refetch campaigns from DB to get the server-authoritative list
+                fetchCampaigns(emailForRefetch);
+              })
+              .catch(() => {
+                showToast('Campagne opslaan mislukt. Neem contact op met support.', 'error');
+              });
           }
 
           sessionStorage.removeItem('lk_pending_campaign');
@@ -2025,7 +2091,12 @@ export default function LokaalKabaal() {
     }
   }, []);
 
-  const uitloggen = () => {
+  const uitloggen = async (): Promise<void> => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // Logout API call failed -- clear local state anyway
+    }
     localStorage.removeItem('lk_user');
     router.push('/login');
   };
@@ -2155,9 +2226,9 @@ export default function LokaalKabaal() {
       if (data.tekst?.cta) patch.cta = data.tekst.cta;
 
       updateFlyer(patch);
-      setScanMsg(data.pdfUrl ? 'Flyer gegenereerd — PDF klaar!' : 'Kleuren en tekst overgenomen!');
+      setScanMsg(data.pdfUrl ? 'Flyer gegenereerd -- PDF klaar!' : 'Kleuren en tekst overgenomen!');
     } catch (e) {
-      setScanMsg('Generatie mislukt — controleer de URL en probeer opnieuw.');
+      setScanMsg('Generatie mislukt -- controleer de URL en probeer opnieuw.');
       console.error(e);
     } finally {
       setScanLoading(false);
@@ -2287,7 +2358,7 @@ export default function LokaalKabaal() {
             <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: '#e8a020', fontWeight: 700, letterSpacing: '0.06em' }}>DASHBOARD VERLOOPT OVER {dagenResterend} DAG{dagenResterend !== 1 ? 'EN' : ''}</span>
           </div>
           <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '6px' }}>
-            Je campagne is afgelopen — vernieuw om door te gaan
+            Je campagne is afgelopen -- vernieuw om door te gaan
           </div>
           <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '16px', lineHeight: 1.6 }}>
             Na {dagenResterend} dag{dagenResterend !== 1 ? 'en' : ''} vervalt de toegang tot je dashboard en campagnedata. Vernieuw nu en behoud je geschiedenis.
@@ -2314,7 +2385,7 @@ export default function LokaalKabaal() {
         }}>
           <div>
             <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: '#e8a020', fontWeight: 700, marginBottom: '3px' }}>ABONNEMENT GEPAUZEERD</div>
-            <div style={{ fontSize: '13px', color: 'var(--ink)' }}>Betaling mislukt — update je betaalgegevens om flyers te blijven versturen.</div>
+            <div style={{ fontSize: '13px', color: 'var(--ink)' }}>Betaling mislukt -- update je betaalgegevens om flyers te blijven versturen.</div>
           </div>
           <a href="/api/stripe/portal" style={{ display: 'inline-block', padding: '9px 18px', background: '#e8a020', color: '#0A0A0A', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '12px', textDecoration: 'none', whiteSpace: 'nowrap' }}>
             Betaalgegevens bijwerken →
@@ -2343,7 +2414,7 @@ export default function LokaalKabaal() {
           }}>+ Nieuwe campagne</button>
         </div>
 
-        {/* Proef flyer — wacht op goedkeuring */}
+        {/* Proef flyer -- wacht op goedkeuring */}
         {pendingCampaign && (
           <div style={{
             background: '#fff', border: '2px solid var(--green)', borderRadius: 'var(--radius)',
@@ -2359,7 +2430,7 @@ export default function LokaalKabaal() {
                 Proef flyer onderweg naar {pendingCampaign.proefAdres.split(',')[0]}
               </div>
               <div style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                {pendingCampaign.spec} · {pendingCampaign.aantalFlyers.toLocaleString('nl')} flyers/mnd · {pendingCampaign.formaat.toUpperCase()} · start {pendingCampaign.datum ? new Date(pendingCampaign.datum).toLocaleDateString('nl', { month: 'long', year: 'numeric' }) : '—'}
+                {pendingCampaign.spec} · {pendingCampaign.aantalFlyers.toLocaleString('nl')} flyers/mnd · {pendingCampaign.formaat.toUpperCase()} · start {pendingCampaign.datum ? new Date(pendingCampaign.datum).toLocaleDateString('nl', { month: 'long', year: 'numeric' }) : '-'}
               </div>
             </div>
             <div style={{ display: 'flex', gap: '10px', flexShrink: 0 }}>
@@ -2415,7 +2486,7 @@ export default function LokaalKabaal() {
           {[
             { label: 'Actieve campagnes', val: String(campaigns.filter(c => c.status === 'actief').length), delta: campaigns.length === 0 ? 'Start je eerste' : 'lopend' },
             { label: 'Max flyers/mnd', val: campaigns.length ? campaigns.filter(c=>c.status==='actief').reduce((s,c)=>s+c.aantalFlyers,0).toLocaleString('nl') : '0', delta: 'afgerond naar boven' },
-            { label: 'Max budget/mnd', val: campaigns.length ? formatPrijs(campaigns.filter(c=>c.status==='actief').reduce((s,c)=>s+c.maxBudget,0)) : '—', delta: 'betaal alleen actual' },
+            { label: 'Max budget/mnd', val: campaigns.length ? formatPrijs(campaigns.filter(c=>c.status==='actief').reduce((s,c)=>s+c.maxBudget,0)) : '-', delta: 'betaal alleen actual' },
             { label: 'Rollover', val: '0', delta: 'flyers volgende mnd' },
           ].map(s => (
             <div key={s.label} style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px' }}>
@@ -2427,12 +2498,28 @@ export default function LokaalKabaal() {
         </div>
 
         {/* Campaigns list or empty state */}
-        <CampaignList
-          campaigns={campaigns}
-          onStartCampaign={startNieuweCampagne}
-          onToggleStatus={id => setCampaigns(prev => prev.map(x => x.id === id ? { ...x, status: x.status === 'actief' ? 'gepauzeerd' : 'actief' } : x))}
-          formatPrijs={formatPrijs}
-        />
+        {campaignsLoading ? (
+          <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '60px 40px', textAlign: 'center', marginBottom: '20px' }}>
+            <div style={{ fontSize: '13px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>Campagnes laden...</div>
+          </div>
+        ) : campaignsError ? (
+          <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '60px 40px', textAlign: 'center', marginBottom: '20px' }}>
+            <div style={{ fontSize: '13px', color: '#ef4444', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>{campaignsError}</div>
+            <button
+              onClick={() => { if (user?.email) fetchCampaigns(user.email); }}
+              style={{ fontSize: '12px', color: 'var(--accent)', background: 'none', border: '1px solid var(--accent)', borderRadius: '4px', padding: '6px 16px', cursor: 'pointer', fontFamily: 'var(--font-mono)' }}
+            >
+              Opnieuw proberen
+            </button>
+          </div>
+        ) : (
+          <CampaignList
+            campaigns={campaigns}
+            onStartCampaign={startNieuweCampagne}
+            onToggleStatus={id => setCampaigns(prev => prev.map(x => x.id === id ? { ...x, status: x.status === 'actief' ? 'gepauzeerd' : 'actief' } : x))}
+            formatPrijs={formatPrijs}
+          />
+        )}
 
         <Ticker />
       </div>
@@ -2466,7 +2553,7 @@ export default function LokaalKabaal() {
 
     return (
       <div className="fade-in wizard-container" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - var(--topbar))', overflow: 'hidden' }}>
-        {/* Progress bar — fixed top */}
+        {/* Progress bar -- fixed top */}
         <div style={{ flexShrink: 0, background: 'var(--paper)', padding: '12px 24px 10px', borderBottom: '1px solid var(--line)' }}>
           <div style={{ display: 'flex', gap: '4px', marginBottom: '6px', maxWidth: '680px' }}>
             {Array.from({ length: 8 }, (_, i) => (
@@ -2474,7 +2561,7 @@ export default function LokaalKabaal() {
             ))}
           </div>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)' }}>
-            Stap {step} van 8 — {['Akkoord', 'Branche', 'Startdatum', 'Werkgebied', 'Formaat & aantallen', 'Duur & filters', 'Controleer', 'Bevestiging'][step - 1]}
+            Stap {step} van 8 -- {['Akkoord', 'Branche', 'Startdatum', 'Werkgebied', 'Formaat & aantallen', 'Duur & filters', 'Controleer', 'Bevestiging'][step - 1]}
           </div>
         </div>
 
@@ -2603,7 +2690,7 @@ export default function LokaalKabaal() {
               {wiz.pc4Lijst.length > 0 && (
                 <div style={{ marginTop: '16px' }}>
                   <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
-                    GESELECTEERDE POSTCODES ({wiz.pc4Lijst.length}{TIERS[userTier].maxPc4s !== null ? `/${TIERS[userTier].maxPc4s}` : ''}) — klik × om te verwijderen
+                    GESELECTEERDE POSTCODES ({wiz.pc4Lijst.length}{TIERS[userTier].maxPc4s !== null ? `/${TIERS[userTier].maxPc4s}` : ''}) -- klik × om te verwijderen
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
                     {wiz.pc4Lijst.map(pc4 => (
@@ -2620,7 +2707,7 @@ export default function LokaalKabaal() {
                       </span>
                     ))}
                   </div>
-                  {/* Handmatig postcode toevoegen — geblokkeerd bij limiet */}
+                  {/* Handmatig postcode toevoegen -- geblokkeerd bij limiet */}
                   {(() => {
                     const maxPc4s = TIERS[userTier].maxPc4s;
                     const atLimit = maxPc4s !== null && wiz.pc4Lijst.length >= maxPc4s;
@@ -2868,9 +2955,9 @@ export default function LokaalKabaal() {
               {/* Samenvatting */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
                 {[
-                  { l: 'Branche', v: spec || '—' },
-                  { l: 'Startdatum', v: datum ? new Date(datum).toLocaleDateString('nl', { month: 'long', year: 'numeric' }) : '—' },
-                  { l: 'Werkgebied', v: centrum ? `${centrum} · ${straal} km` : '—' },
+                  { l: 'Branche', v: spec || '-' },
+                  { l: 'Startdatum', v: datum ? new Date(datum).toLocaleDateString('nl', { month: 'long', year: 'numeric' }) : '-' },
+                  { l: 'Werkgebied', v: centrum ? `${centrum} · ${straal} km` : '-' },
                   { l: 'PC4-gebieden', v: wiz.pc4Lijst.length > 0 ? wiz.pc4Lijst.join(', ') : `~${stats.pc4Count} gebieden` },
                   { l: 'Formaat', v: `${formaat.toUpperCase()}${dubbelzijdig ? ' dubbelzijdig' : ' enkelvoudig'}` },
                   { l: 'Abonnement', v: `${abonnement.tier} · ${formatPrijs(abonnement.total)}/mnd` },
@@ -2891,7 +2978,7 @@ export default function LokaalKabaal() {
                   <div>
                     <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '3px' }}>Proef flyer thuis ontvangen (+€4,95 eenmalig)</div>
                     <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.6 }}>
-                      Wij sturen 1 proef flyer naar jouw eigen adres. Zodra je hem hebt ontvangen, log je in op het dashboard en keur je de campagne goed — of pas je de flyer nog aan. Pas na jouw goedkeuring gaat de eerste echte verzending de deur uit.
+                      Wij sturen 1 proef flyer naar jouw eigen adres. Zodra je hem hebt ontvangen, log je in op het dashboard en keur je de campagne goed -- of pas je de flyer nog aan. Pas na jouw goedkeuring gaat de eerste echte verzending de deur uit.
                     </div>
                   </div>
                 </label>
@@ -3021,7 +3108,7 @@ export default function LokaalKabaal() {
                     {[
                       { step: '1', text: 'Ontvang je proef flyer thuis in de bus' },
                       { step: '2', text: 'Log in op het dashboard en keur de flyer goed (of pas hem nog aan)' },
-                      { step: '3', text: 'Na jouw goedkeuring gaat de echte campagne van start — flyers naar alle nieuwe bewoners in jouw werkgebied' },
+                      { step: '3', text: 'Na jouw goedkeuring gaat de echte campagne van start -- flyers naar alle nieuwe bewoners in jouw werkgebied' },
                     ].map(s => (
                       <div key={s.step} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '8px' }}>
                         <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--green)', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, flexShrink: 0 }}>{s.step}</div>
@@ -3051,7 +3138,7 @@ export default function LokaalKabaal() {
                     Je flyers gaan elke maand op de <strong>25e</strong> de deur uit naar nieuwe bewoners in <strong>{centrum || 'jouw werkgebied'}</strong>. Op de 20e zie je hoeveel dat worden.
                   </p>
                   <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '20px', fontFamily: 'var(--font-mono)' }}>
-                    Eerste bezorging: {datum ? new Date(datum).toLocaleDateString('nl', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'} · Betaling via Stripe
+                    Eerste bezorging: {datum ? new Date(datum).toLocaleDateString('nl', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'} · Betaling via Stripe
                   </p>
                   <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px', maxWidth: '420px', margin: '0 auto 20px', textAlign: 'left' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
@@ -3059,7 +3146,7 @@ export default function LokaalKabaal() {
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{formatPrijs(prijs)}/mnd</span>
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                      Vaste maandprijs — geen verassingen. Factuur op de 1e v/d maand.
+                      Vaste maandprijs -- geen verassingen. Factuur op de 1e v/d maand.
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -3107,7 +3194,7 @@ export default function LokaalKabaal() {
                             setOrderError(data.error || 'Stripe checkout mislukt');
                           }
                         } catch {
-                          setOrderError('Verbindingsfout — probeer opnieuw');
+                          setOrderError('Verbindingsfout -- probeer opnieuw');
                         } finally {
                           setOrderLoading(false);
                         }
@@ -3144,7 +3231,7 @@ export default function LokaalKabaal() {
 
         </div>{/* end scrollable content */}
 
-        {/* Nav knoppen — pinned to bottom */}
+        {/* Nav knoppen -- pinned to bottom */}
         {step < 8 && (
           <div style={{ flexShrink: 0, borderTop: '1px solid var(--line)', background: 'var(--paper)', padding: '12px 24px' }}>
           {orderError && (
@@ -3208,7 +3295,7 @@ export default function LokaalKabaal() {
                     setPendingCampaign({ spec, datum, centrum, aantalFlyers, formaat, dubbelzijdig, maxBudget: berekenPrijs(aantalFlyers, formaat, dubbelzijdig), proefAdres });
                     updateWiz({ step: step + 1 });
                   } catch {
-                    setOrderError('Verbindingsfout — probeer opnieuw');
+                    setOrderError('Verbindingsfout -- probeer opnieuw');
                   } finally {
                     setOrderLoading(false);
                   }
@@ -3222,7 +3309,7 @@ export default function LokaalKabaal() {
                 borderRadius: 'var(--radius)', cursor: (canNext && !orderLoading) ? 'pointer' : 'not-allowed',
                 fontWeight: 700, fontSize: '13px', transition: 'all 0.15s'
               }}>
-              {orderLoading ? 'Bestelling plaatsen…' : step === 7 ? (proefFlyer ? 'Proef bestellen — €4,95 →' : 'Campagne activeren →') : 'Volgende →'}
+              {orderLoading ? 'Bestelling plaatsen…' : step === 7 ? (proefFlyer ? 'Proef bestellen -- €4,95 →' : 'Campagne activeren →') : 'Volgende →'}
             </button>
           </div>
           </div>
@@ -3246,7 +3333,7 @@ export default function LokaalKabaal() {
                 CAMPAGNE WACHT OP JOUW GOEDKEURING
               </div>
               <div style={{ fontSize: '13px', color: 'var(--ink)' }}>
-                {pendingCampaign.spec} · {pendingCampaign.aantalFlyers.toLocaleString('nl')} flyers/mnd · start {pendingCampaign.datum ? new Date(pendingCampaign.datum).toLocaleDateString('nl', { month: 'long', year: 'numeric' }) : '—'}
+                {pendingCampaign.spec} · {pendingCampaign.aantalFlyers.toLocaleString('nl')} flyers/mnd · start {pendingCampaign.datum ? new Date(pendingCampaign.datum).toLocaleDateString('nl', { month: 'long', year: 'numeric' }) : '-'}
               </div>
             </div>
             <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
@@ -3309,7 +3396,7 @@ export default function LokaalKabaal() {
             {/* Design kiezen */}
             <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
               <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Design</div>
-              <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>9 professionele stijlen — kies wat bij jou past</div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>9 professionele stijlen -- kies wat bij jou past</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                 {([
                   { id: 'editorial' as const, label: 'Editorial', sub: 'Magazine-stijl' },
@@ -3340,7 +3427,7 @@ export default function LokaalKabaal() {
             {/* Website scan */}
             <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
               <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Website scan</div>
-              <div style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>Voer je website in — wij halen automatisch je merkstijl op</div>
+              <div style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>Voer je website in -- wij halen automatisch je merkstijl op</div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input
                   type="text"
@@ -3489,7 +3576,7 @@ export default function LokaalKabaal() {
               </div>
               {!flyer.dubbelzijdig ? (
                 <div style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', padding: '12px 0' }}>
-                  Zet dubbelzijdig aan om de achterkant te ontwerpen — perfect voor openingstijden, contact en een QR-code.
+                  Zet dubbelzijdig aan om de achterkant te ontwerpen -- perfect voor openingstijden, contact en een QR-code.
                 </div>
               ) : (
                 <>
@@ -3534,7 +3621,7 @@ export default function LokaalKabaal() {
             {/* Foto */}
             <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
               <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Foto</div>
-              <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>Hoofdafbeelding op je flyer — sleep in de preview om te herpositioneren</div>
+              <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>Hoofdafbeelding op je flyer -- sleep in de preview om te herpositioneren</div>
               <input ref={heroRef} type="file" accept="image/*" onChange={handleHeroUpload} style={{ display: 'none' }} />
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
                 {flyer.heroImageUrl ? (
@@ -3624,7 +3711,7 @@ export default function LokaalKabaal() {
           {/* Preview */}
           <div style={{ position: 'sticky', top: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px' }}>Preview</div>
-            {/* Voor/Achter tabs — only when dubbelzijdig */}
+            {/* Voor/Achter tabs -- only when dubbelzijdig */}
             {flyer.dubbelzijdig && (
               <div style={{ display: 'flex', gap: '4px' }}>
                 {(['voor', 'achter'] as const).map(side => (
@@ -3726,7 +3813,7 @@ export default function LokaalKabaal() {
         <div style={{ fontSize: '18px', flexShrink: 0, marginTop: '1px' }}>🔒</div>
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '4px', color: 'var(--ink)' }}>
-            {feature} — alleen beschikbaar in {cfg.label}
+            {feature} -- alleen beschikbaar in {cfg.label}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.5, marginBottom: '10px' }}>
             {description}
@@ -3824,7 +3911,7 @@ export default function LokaalKabaal() {
                 <strong style={{ color: 'var(--ink)' }}>Deel deze pincode met je personeel</strong>
                 <br />
                 Elk personeelslid dat klanten ontvangt (kassa, receptie, balie) heeft deze code nodig om flyers te verzilveren.
-                De code is voor iedereen hetzelfde — je hoeft geen aparte accounts aan te maken.
+                De code is voor iedereen hetzelfde -- je hoeft geen aparte accounts aan te maken.
               </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
@@ -3913,7 +4000,7 @@ export default function LokaalKabaal() {
                   }}
                 >
                   <span style={{ fontSize: '14px' }}>&#8615;</span>
-                  {c.centrum} — CSV
+                  {c.centrum} -- CSV
                 </button>
               ))}
             </div>
@@ -4036,7 +4123,7 @@ export default function LokaalKabaal() {
       <div className="fade-in">
         <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '4px' }}>Resterende flyers</h1>
         <p style={{ color: 'var(--muted)', marginBottom: '20px', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>
-          Credits zijn niet-verzonden flyers uit betaalde campagnes — bijvoorbeeld bij een geannuleerde of aangepaste maand.
+          Credits zijn niet-verzonden flyers uit betaalde campagnes -- bijvoorbeeld bij een geannuleerde of aangepaste maand.
         </p>
 
         <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '12px 16px', marginBottom: '20px', fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--muted)', lineHeight: 1.6 }}>
@@ -4235,7 +4322,7 @@ export default function LokaalKabaal() {
             ← Uitloggen
           </button>
 
-          {/* Testaccount switcher — alleen zichtbaar voor testaccounts */}
+          {/* Testaccount switcher -- alleen zichtbaar voor testaccounts */}
           {user?.email && isTestAccount(user.email) && (
             <div style={{ marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '8px' }}>
               <div style={{ fontSize: '9px', color: 'rgba(255,200,0,0.5)', fontFamily: 'var(--font-mono)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '5px' }}>

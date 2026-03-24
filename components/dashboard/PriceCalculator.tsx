@@ -47,7 +47,7 @@ export default function PriceCalculator({
     <div>
       <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '8px' }}>Formaat & aantallen</h2>
       <p style={{ color: 'var(--muted)', marginBottom: '16px' }}>
-        Minimum 300 flyers per batch voor een rendabele printrun. A6 is ons standaardformaat — grotere formaten hebben een toeslag.
+        Minimum 300 flyers per batch voor een rendabele printrun. A6 is ons standaardformaat -- grotere formaten hebben een toeslag.
       </p>
 
       {/* Min-300 waarschuwing */}
@@ -60,7 +60,7 @@ export default function PriceCalculator({
             Dit gebied heeft gemiddeld ~{estAdressenMaand} overdrachten/maand. Voeg aangrenzende postcodes toe om de minimumdrempel van 300 te halen.
           </div>
           <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-            Of kies bewust voor minder — dan geldt een toeslag van 3× het standaard tarief. Dit wordt bevestigd bij het afrekenen.
+            Of kies bewust voor minder -- dan geldt een toeslag van 3× het standaard tarief. Dit wordt bevestigd bij het afrekenen.
           </div>
         </div>
       )}
@@ -99,7 +99,7 @@ export default function PriceCalculator({
           <input type="checkbox" checked={dubbelzijdig} onChange={e => onDubbelzijdigChange(e.target.checked)} style={{ accentColor: 'var(--green)', width: '16px', height: '16px' }} />
           <div>
             <div style={{ fontWeight: 600, fontSize: '14px' }}>Dubbelzijdig</div>
-            <div style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>+€0,10 per flyer — achterkant voor extra info, kortingscode of kaart</div>
+            <div style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>+€0,10 per flyer -- achterkant voor extra info, kortingscode of kaart</div>
           </div>
         </label>
       </div>
@@ -122,7 +122,7 @@ export default function PriceCalculator({
       {estAdressenMaand >= 5000 && (
         <div style={{ background: 'var(--ink)', border: '1px solid rgba(0,232,122,0.3)', borderRadius: 'var(--radius)', padding: '16px', marginBottom: '16px' }}>
           <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green)', marginBottom: '8px', letterSpacing: '0.08em' }}>
-            GROOT WERKGEBIED — MAATWERKTARIEF
+            GROOT WERKGEBIED -- MAATWERKTARIEF
           </div>
           <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', marginBottom: '12px', lineHeight: 1.6 }}>
             Uw werkgebied bevat ~{estAdressenMaand.toLocaleString('nl')} nieuwe bewoners per maand. Voor grotere gebieden maken we een maatwerkaanbod.
@@ -139,7 +139,7 @@ export default function PriceCalculator({
       {/* Abonnementsoverzicht */}
       <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px', marginBottom: '16px' }}>
         <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>
-          ABONNEMENT — {actualPc4Count} PC4-POSTCODE{actualPc4Count !== 1 ? 'S' : ''} IN UW WERKGEBIED
+          ABONNEMENT -- {actualPc4Count} PC4-POSTCODE{actualPc4Count !== 1 ? 'S' : ''} IN UW WERKGEBIED
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
@@ -153,7 +153,7 @@ export default function PriceCalculator({
           </div>
         </div>
         <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.2)', borderRadius: 'var(--radius)', padding: '10px 12px', fontSize: '12px', color: 'var(--ink)', lineHeight: 1.6 }}>
-          Alle nieuwe bewoners in uw {actualPc4Count} postcode{actualPc4Count !== 1 ? 's' : ''} zijn inbegrepen — geen limiet op het aantal flyers. Jaarcontract: 25% korting.
+          Alle nieuwe bewoners in uw {actualPc4Count} postcode{actualPc4Count !== 1 ? 's' : ''} zijn inbegrepen -- geen limiet op het aantal flyers. Jaarcontract: 25% korting.
         </div>
       </div>
     </div>
