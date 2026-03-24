@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
 
 // Valideert een Nederlands adres via PDOK BAG (Basisregistraties Adressen en Gebouwen)
 // Geeft een genormaliseerd adres terug of suggesties bij geen exacte match
@@ -16,6 +17,9 @@ interface BagDoc {
 }
 
 export async function GET(req: NextRequest) {
+  const authResult = requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   const adres = req.nextUrl.searchParams.get('adres')?.trim();
   if (!adres || adres.length < 6) {
     return NextResponse.json({ valid: false, error: 'Adres te kort' });

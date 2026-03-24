@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
 
 // ─── POST /api/printone/template ────────────────────────────────────────────
 // Neemt flyer design data van de builder en maakt een Print.one template aan
@@ -234,6 +235,9 @@ async function po<T>(path: string, method = 'GET', body?: unknown): Promise<{ ok
 // ─── Handler ────────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
+  const authResult = requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   if (!PRINTONE_KEY) {
     return NextResponse.json({ error: 'PRINTONE_API_KEY niet geconfigureerd' }, { status: 503 });
   }

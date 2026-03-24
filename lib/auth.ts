@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 
 const SESSION_COOKIE = 'lk_session';
-const SESSION_SECRET = process.env.SESSION_SECRET || 'dev-secret-change-in-production';
+
+function getSessionSecret(): string {
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) throw new Error('SESSION_SECRET environment variable is not set');
+  return secret;
+}
 
 /** Session data stored in the signed cookie token */
 interface SessionData {
@@ -14,7 +19,7 @@ interface SessionData {
 
 /** Sign a payload with HMAC-SHA256 */
 function sign(payload: string): string {
-  return crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
+  return crypto.createHmac('sha256', getSessionSecret()).update(payload).digest('hex');
 }
 
 /** Create a signed session token from session data */
@@ -30,7 +35,10 @@ export function verifySessionToken(token: string): SessionData | null {
     const [payloadB64, sig] = token.split('.');
     if (!payloadB64 || !sig) return null;
     const payload = Buffer.from(payloadB64, 'base64').toString();
-    if (sign(payload) !== sig) return null;
+    const expected = sign(payload);
+    const sigBuf = Buffer.from(sig, 'hex');
+    const expectedBuf = Buffer.from(expected, 'hex');
+    if (sigBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(sigBuf, expectedBuf)) return null;
     const data: SessionData = JSON.parse(payload);
     if (data.exp < Date.now()) return null;
     return data;
@@ -77,36 +85,21 @@ export function requireAuth(req: NextRequest): SessionData | NextResponse {
 }
 
 /**
- * Helper: get authenticated email with fallback to query/body param.
- * Logs a warning when falling back to param-based email (for migration tracking).
- * Returns the email string, or null if neither source provides one.
+ * Helper: get authenticated email from session only.
+ * Returns the email string, or null if not authenticated.
  */
-export function getAuthEmail(req: NextRequest, paramEmail: string | null | undefined, source: string): string | null {
+export function getAuthEmail(req: NextRequest): string | null {
   const session = getSession(req);
-  if (session) {
-    return session.email;
-  }
-  if (paramEmail) {
-    console.warn(`[auth] ${source}: falling back to param-based email (no session cookie). email=${paramEmail}`);
-    return paramEmail;
-  }
-  return null;
+  return session?.email ?? null;
 }
 
 /**
- * Helper: get authenticated retailerId with fallback to query/body param.
- * Logs a warning when falling back to param-based retailerId.
+ * Helper: get authenticated retailerId from session only.
+ * Returns the retailerId string, or null if not authenticated.
  */
-export function getAuthRetailerId(req: NextRequest, paramRetailerId: string | null | undefined, source: string): string | null {
+export function getAuthRetailerId(req: NextRequest): string | null {
   const session = getSession(req);
-  if (session) {
-    return session.retailerId;
-  }
-  if (paramRetailerId) {
-    console.warn(`[auth] ${source}: falling back to param-based retailerId (no session cookie). retailerId=${paramRetailerId}`);
-    return paramRetailerId;
-  }
-  return null;
+  return session?.retailerId ?? null;
 }
 
 export type { SessionData };

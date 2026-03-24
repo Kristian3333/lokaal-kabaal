@@ -1,17 +1,78 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { TEST_ACCOUNTS } from '../../lib/tiers';
 
-export default function Login() {
+type TabMode = 'login' | 'register' | 'magic';
+
+const BRANCHE_OPTIES = [
+  'Restaurant / Café',
+  'Bakkerij',
+  'Supermarkt / Slijterij',
+  'Kapsalon / Schoonheid',
+  'Fysiotherapie / Gezondheid',
+  'Tandarts / Huisarts',
+  'Apotheek',
+  'Dierenwinkel / Dierenarts',
+  'Fietsenwinkel',
+  'Kleding / Mode',
+  'Sportschool / Yoga',
+  'Kinderopvang',
+  'Tuincentrum / Bloemist',
+  'Schildersbedrijf / Installateur',
+  'Makelaar',
+  'Overig',
+];
+
+const tierColors: Record<string, string> = {
+  starter: '#94a3b8',
+  pro:     '#60a5fa',
+  agency:  '#00E87A',
+};
+
+const inputStyle: React.CSSProperties = {
+  width: '100%', padding: '10px 12px',
+  border: '1px solid var(--line)',
+  borderRadius: 'var(--radius)', fontSize: '13px',
+  outline: 'none', fontFamily: 'var(--font-mono)',
+  background: '#fff', color: 'var(--ink)',
+  boxSizing: 'border-box',
+};
+
+const labelStyle: React.CSSProperties = {
+  fontSize: '10px', fontWeight: 600, color: 'var(--muted)',
+  letterSpacing: '.09em', textTransform: 'uppercase',
+  fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '5px',
+};
+
+/** Inner component that may use useSearchParams -- must be wrapped in Suspense */
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [tab, setTab] = useState<TabMode>('login');
   const [email, setEmail] = useState('');
-  const [ww, setWw] = useState('');
+  const [password, setPassword] = useState('');
+  const [bedrijfsnaam, setBedrijfsnaam] = useState('');
+  const [branche, setBranche] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  /** On page load, redirect to /app if already authenticated */
+  // Show token error messages from magic link redirects
+  useEffect(() => {
+    const tokenError = searchParams.get('error');
+    if (tokenError === 'token_expired') {
+      setError('De inloglink is verlopen. Vraag een nieuwe link aan.');
+      setTab('magic');
+    } else if (tokenError === 'invalid_token') {
+      setError('Ongeldige inloglink. Vraag een nieuwe link aan.');
+      setTab('magic');
+    }
+  }, [searchParams]);
+
+  /** Redirect to /app if already authenticated */
   useEffect(() => {
     async function checkSession(): Promise<void> {
       try {
@@ -28,10 +89,11 @@ export default function Login() {
   }, [router]);
 
   /**
-   * Calls POST /api/auth/login and stores user data in localStorage
-   * for backwards compatibility with the dashboard.
+   * POST /api/auth/login and store user data in localStorage for dashboard compat.
    */
-  async function loginWithApi(loginEmail: string): Promise<void> {
+  async function handleLogin(e: React.FormEvent): Promise<void> {
+    e.preventDefault();
+    if (!email) { setError('Vul je e-mailadres in.'); return; }
     setLoading(true);
     setError('');
 
@@ -39,7 +101,7 @@ export default function Login() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginEmail }),
+        body: JSON.stringify({ email, password }),
       });
 
       if (res.ok) {
@@ -49,7 +111,6 @@ export default function Login() {
           tier: string;
           bedrijfsnaam: string;
         };
-        // Store in localStorage for backwards compat with dashboard
         localStorage.setItem('lk_user', JSON.stringify({
           email: data.email,
           naam: data.bedrijfsnaam || data.email.split('@')[0],
@@ -60,10 +121,11 @@ export default function Login() {
         return;
       }
 
-      if (res.status === 404) {
-        setError('Geen account gevonden met dit e-mailadres');
+      if (res.status === 401 || res.status === 404) {
+        setError('Onjuist e-mailadres of wachtwoord');
       } else {
-        setError('Inloggen mislukt, probeer opnieuw');
+        const body = await res.json() as { error?: string };
+        setError(body.error || 'Inloggen mislukt, probeer opnieuw');
       }
     } catch {
       setError('Inloggen mislukt, probeer opnieuw');
@@ -72,22 +134,126 @@ export default function Login() {
     }
   }
 
-  /** Handle test account quick-select button click */
-  function loginAs(accountEmail: string): void {
-    void loginWithApi(accountEmail);
+  /**
+   * POST /api/auth/register and redirect to /app on success.
+   */
+  async function handleRegister(e: React.FormEvent): Promise<void> {
+    e.preventDefault();
+    if (!email || !password || !bedrijfsnaam || !branche) {
+      setError('Vul alle velden in.');
+      return;
+    }
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, bedrijfsnaam, branche }),
+      });
+
+      if (res.ok) {
+        const data = await res.json() as {
+          id: string;
+          email: string;
+          tier: string;
+          bedrijfsnaam: string;
+        };
+        localStorage.setItem('lk_user', JSON.stringify({
+          email: data.email,
+          naam: data.bedrijfsnaam,
+          tier: data.tier,
+          isJaarcontract: false,
+        }));
+        router.push('/app');
+        return;
+      }
+
+      const body = await res.json() as { error?: string };
+      setError(body.error || 'Registratie mislukt, probeer opnieuw');
+    } catch {
+      setError('Registratie mislukt, probeer opnieuw');
+    } finally {
+      setLoading(false);
+    }
   }
 
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
+  /**
+   * POST /api/auth/magic-link and show confirmation.
+   */
+  async function handleMagicLink(e: React.FormEvent): Promise<void> {
     e.preventDefault();
-    if (!email || !ww) { setError('Vul je e-mail en wachtwoord in.'); return; }
-    await loginWithApi(email);
-  };
+    if (!email) { setError('Vul je e-mailadres in.'); return; }
+    setLoading(true);
+    setError('');
+    setSuccess('');
 
-  const tierColors: Record<string, string> = {
-    starter: '#94a3b8',
-    pro:     '#60a5fa',
-    agency:  '#00E87A',
-  };
+    try {
+      await fetch('/api/auth/magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      // Always show success to prevent email enumeration
+      setSuccess('Als dit e-mailadres bij ons bekend is, ontvang je een inloglink. Controleer ook je spam.');
+    } catch {
+      setError('Versturen mislukt, probeer opnieuw');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /** Quick-login for test accounts (email-only, password-less) */
+  function loginAs(accountEmail: string): void {
+    setEmail(accountEmail);
+    setPassword('');
+    setLoading(true);
+    setError('');
+
+    fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: accountEmail }),
+    }).then(async (res) => {
+      if (res.ok) {
+        const data = await res.json() as {
+          id: string; email: string; tier: string; bedrijfsnaam: string;
+        };
+        localStorage.setItem('lk_user', JSON.stringify({
+          email: data.email,
+          naam: data.bedrijfsnaam || data.email.split('@')[0],
+          tier: data.tier,
+          isJaarcontract: false,
+        }));
+        router.push('/app');
+      } else {
+        setError('Testaccount inloggen mislukt');
+      }
+    }).catch(() => {
+      setError('Inloggen mislukt, probeer opnieuw');
+    }).finally(() => {
+      setLoading(false);
+    });
+  }
+
+  const tabBtn = (mode: TabMode, label: string) => (
+    <button
+      type="button"
+      onClick={() => { setTab(mode); setError(''); setSuccess(''); }}
+      style={{
+        flex: 1, padding: '8px', border: 'none', cursor: 'pointer',
+        fontFamily: 'var(--font-mono)', fontSize: '11px', fontWeight: 600,
+        letterSpacing: '.06em', textTransform: 'uppercase',
+        background: tab === mode ? 'var(--ink)' : 'transparent',
+        color: tab === mode ? '#fff' : 'var(--muted)',
+        borderRadius: 'var(--radius)',
+        transition: 'background .15s, color .15s',
+      }}
+    >
+      {label}
+    </button>
+  );
 
   return (
     <div style={{
@@ -110,94 +276,198 @@ export default function Login() {
         </span>
       </Link>
 
-      {/* Login card */}
+      {/* Card */}
       <div style={{
         background: 'var(--paper)', border: '1px solid var(--line)',
-        borderRadius: '4px', padding: '40px', width: '100%', maxWidth: '380px',
+        borderRadius: '4px', padding: '40px', width: '100%', maxWidth: '400px',
         boxShadow: '0 24px 60px rgba(0,0,0,0.3)',
       }}>
-        <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '26px', fontWeight: 400, marginBottom: '6px', color: 'var(--ink)' }}>
-          Welkom terug
-        </h1>
-        <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '28px', lineHeight: 1.6 }}>
-          Log in met je e-mailadres en wachtwoord.
-        </p>
-
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '14px' }}>
-            <label style={{
-              fontSize: '10px', fontWeight: 600, color: 'var(--muted)',
-              letterSpacing: '.09em', textTransform: 'uppercase',
-              fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '5px',
-            }}>E-mailadres</label>
-            <input
-              type="email" placeholder="jij@bedrijf.nl" autoFocus
-              value={email} onChange={e => setEmail(e.target.value)}
-              style={{
-                width: '100%', padding: '10px 12px',
-                border: `1px solid ${error ? 'var(--red)' : 'var(--line)'}`,
-                borderRadius: 'var(--radius)', fontSize: '13px',
-                outline: 'none', fontFamily: 'var(--font-mono)',
-                background: '#fff', color: 'var(--ink)',
-                boxSizing: 'border-box',
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: '8px' }}>
-            <label style={{
-              fontSize: '10px', fontWeight: 600, color: 'var(--muted)',
-              letterSpacing: '.09em', textTransform: 'uppercase',
-              fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '5px',
-            }}>Wachtwoord</label>
-            <input
-              type="password" placeholder="••••••••"
-              value={ww} onChange={e => setWw(e.target.value)}
-              style={{
-                width: '100%', padding: '10px 12px',
-                border: `1px solid ${error ? 'var(--red)' : 'var(--line)'}`,
-                borderRadius: 'var(--radius)', fontSize: '13px',
-                outline: 'none', fontFamily: 'var(--font-mono)',
-                background: '#fff', color: 'var(--ink)',
-                boxSizing: 'border-box',
-              }}
-            />
-          </div>
-
-          {error && (
-            <p style={{ fontSize: '11px', color: 'var(--red)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>{error}</p>
-          )}
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
-            <a href="#" style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', textDecoration: 'none' }}>
-              Wachtwoord vergeten?
-            </a>
-          </div>
-
-          <button type="submit" disabled={loading} style={{
-            width: '100%', padding: '12px',
-            background: loading ? 'var(--line2)' : 'var(--ink)',
-            color: '#fff', border: 'none', borderRadius: 'var(--radius)',
-            fontWeight: 700, fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer',
-            fontFamily: 'var(--font-sans)', transition: 'background .15s',
-          }}>
-            {loading ? 'Inloggen...' : 'Inloggen →'}
-          </button>
-        </form>
-
-        <div style={{ borderTop: '1px solid var(--line)', marginTop: '24px', paddingTop: '20px', textAlign: 'center' }}>
-          <p style={{ fontSize: '12px', color: 'var(--muted)' }}>
-            Nog geen account?{' '}
-            <Link href="/#prijzen" style={{ color: 'var(--green-dim)', fontWeight: 600, textDecoration: 'none' }}>
-              Eerste batch voor €49
-            </Link>
-          </p>
+        {/* Tab switcher */}
+        <div style={{
+          display: 'flex', gap: '4px', marginBottom: '28px',
+          background: 'var(--paper2)', padding: '4px', borderRadius: 'var(--radius)',
+        }}>
+          {tabBtn('login', 'Inloggen')}
+          {tabBtn('register', 'Registreren')}
+          {tabBtn('magic', 'Link')}
         </div>
+
+        {/* ── LOGIN TAB ── */}
+        {tab === 'login' && (
+          <>
+            <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', fontWeight: 400, marginBottom: '6px', color: 'var(--ink)' }}>
+              Welkom terug
+            </h1>
+            <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '24px', lineHeight: 1.6 }}>
+              Log in met je e-mailadres en wachtwoord.
+            </p>
+            <form onSubmit={(e) => { void handleLogin(e); }}>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={labelStyle}>E-mailadres</label>
+                <input
+                  type="email" placeholder="jij@bedrijf.nl" autoFocus
+                  value={email} onChange={e => setEmail(e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+              <div style={{ marginBottom: '8px' }}>
+                <label style={labelStyle}>Wachtwoord</label>
+                <input
+                  type="password" placeholder="••••••••"
+                  value={password} onChange={e => setPassword(e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+              {error && (
+                <p style={{ fontSize: '11px', color: 'var(--red)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>{error}</p>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
+                <button
+                  type="button"
+                  onClick={() => { setTab('magic'); setError(''); }}
+                  style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                >
+                  Wachtwoord vergeten?
+                </button>
+              </div>
+              <button type="submit" disabled={loading} style={{
+                width: '100%', padding: '12px',
+                background: loading ? 'var(--line2)' : 'var(--ink)',
+                color: '#fff', border: 'none', borderRadius: 'var(--radius)',
+                fontWeight: 700, fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer',
+                fontFamily: 'var(--font-sans)', transition: 'background .15s',
+              }}>
+                {loading ? 'Inloggen...' : 'Inloggen →'}
+              </button>
+            </form>
+          </>
+        )}
+
+        {/* ── REGISTER TAB ── */}
+        {tab === 'register' && (
+          <>
+            <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', fontWeight: 400, marginBottom: '6px', color: 'var(--ink)' }}>
+              Account aanmaken
+            </h1>
+            <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '24px', lineHeight: 1.6 }}>
+              Maak een gratis account aan en start je eerste campagne.
+            </p>
+            <form onSubmit={(e) => { void handleRegister(e); }}>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={labelStyle}>E-mailadres</label>
+                <input
+                  type="email" placeholder="jij@bedrijf.nl" autoFocus
+                  value={email} onChange={e => setEmail(e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={labelStyle}>Wachtwoord</label>
+                <input
+                  type="password" placeholder="Minimaal 8 tekens"
+                  value={password} onChange={e => setPassword(e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={labelStyle}>Bedrijfsnaam</label>
+                <input
+                  type="text" placeholder="Jouw Bedrijf BV"
+                  value={bedrijfsnaam} onChange={e => setBedrijfsnaam(e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={labelStyle}>Branche</label>
+                <select
+                  value={branche} onChange={e => setBranche(e.target.value)}
+                  style={{ ...inputStyle, appearance: 'none' }}
+                >
+                  <option value="">Selecteer je branche</option>
+                  {BRANCHE_OPTIES.map(b => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
+              </div>
+              {error && (
+                <p style={{ fontSize: '11px', color: 'var(--red)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>{error}</p>
+              )}
+              <button type="submit" disabled={loading} style={{
+                width: '100%', padding: '12px',
+                background: loading ? 'var(--line2)' : 'var(--green)',
+                color: '#0A0A0A', border: 'none', borderRadius: 'var(--radius)',
+                fontWeight: 700, fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer',
+                fontFamily: 'var(--font-sans)', transition: 'background .15s',
+              }}>
+                {loading ? 'Account aanmaken...' : 'Account aanmaken →'}
+              </button>
+            </form>
+          </>
+        )}
+
+        {/* ── MAGIC LINK TAB ── */}
+        {tab === 'magic' && (
+          <>
+            <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', fontWeight: 400, marginBottom: '6px', color: 'var(--ink)' }}>
+              Inloglink aanvragen
+            </h1>
+            <p style={{ fontSize: '12px', color: 'var(--muted)', marginBottom: '24px', lineHeight: 1.6 }}>
+              Ontvang een eenmalige inloglink per e-mail, geldig voor 15 minuten.
+            </p>
+            {success ? (
+              <div style={{
+                padding: '14px 16px', background: '#f0fdf4',
+                border: '1px solid #86efac', borderRadius: 'var(--radius)',
+                fontSize: '13px', color: '#166534', lineHeight: 1.6,
+              }}>
+                {success}
+              </div>
+            ) : (
+              <form onSubmit={(e) => { void handleMagicLink(e); }}>
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={labelStyle}>E-mailadres</label>
+                  <input
+                    type="email" placeholder="jij@bedrijf.nl" autoFocus
+                    value={email} onChange={e => setEmail(e.target.value)}
+                    style={inputStyle}
+                  />
+                </div>
+                {error && (
+                  <p style={{ fontSize: '11px', color: 'var(--red)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>{error}</p>
+                )}
+                <button type="submit" disabled={loading} style={{
+                  width: '100%', padding: '12px',
+                  background: loading ? 'var(--line2)' : 'var(--ink)',
+                  color: '#fff', border: 'none', borderRadius: 'var(--radius)',
+                  fontWeight: 700, fontSize: '14px', cursor: loading ? 'not-allowed' : 'pointer',
+                  fontFamily: 'var(--font-sans)', transition: 'background .15s',
+                }}>
+                  {loading ? 'Versturen...' : 'Inloglink versturen →'}
+                </button>
+              </form>
+            )}
+          </>
+        )}
+
+        {tab !== 'register' && (
+          <div style={{ borderTop: '1px solid var(--line)', marginTop: '24px', paddingTop: '20px', textAlign: 'center' }}>
+            <p style={{ fontSize: '12px', color: 'var(--muted)' }}>
+              Nog geen account?{' '}
+              <button
+                type="button"
+                onClick={() => { setTab('register'); setError(''); }}
+                style={{ color: 'var(--green-dim)', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', padding: 0 }}
+              >
+                Account aanmaken
+              </button>
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* Testaccounts -- alleen zichtbaar in dev/test omgeving */}
+      {/* Testaccounts */}
       <div style={{
-        marginTop: '24px', width: '100%', maxWidth: '380px',
+        marginTop: '24px', width: '100%', maxWidth: '400px',
         border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px',
         overflow: 'hidden',
       }}>
@@ -233,7 +503,7 @@ export default function Login() {
                 </span>
               </div>
               <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-mono)' }}>
-                direct inloggen →
+                direct inloggen &rarr;
               </span>
             </button>
           ))}
@@ -241,8 +511,20 @@ export default function Login() {
       </div>
 
       <p style={{ marginTop: '16px', fontSize: '11px', color: 'rgba(255,255,255,0.15)', fontFamily: 'var(--font-mono)', textAlign: 'center' }}>
-        © 2026 LokaalKabaal · Demo omgeving
+        &copy; 2026 LokaalKabaal &middot; Demo omgeving
       </p>
     </div>
+  );
+}
+
+/**
+ * Login page -- wraps LoginContent in Suspense because useSearchParams()
+ * requires a Suspense boundary in Next.js 14 App Router.
+ */
+export default function Login() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
   );
 }

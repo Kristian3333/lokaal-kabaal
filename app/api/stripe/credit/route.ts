@@ -1,95 +1,97 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Stripe from 'stripe';
 import { requireAuth } from '@/lib/auth';
+import { requireDb } from '@/lib/db';
+import { retailers, creditLedger } from '@/lib/schema';
+import { eq } from 'drizzle-orm';
+import { getAvailableCredits } from '@/lib/credits';
 
-function getStripe() { return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-02-25.clover' }); }
-
-// POST /api/stripe/credit -- verwerk credit of rollover na gedeeltelijke bezorging
-// Dit endpoint wordt aangeroepen vanuit het dashboard als klant kiest voor credit of rollover.
-export async function POST(req: NextRequest) {
+/**
+ * GET /api/stripe/credit
+ *
+ * Returns the current credit balance (in flyers) for the authenticated retailer.
+ */
+export async function GET(req: NextRequest): Promise<NextResponse> {
   const authResult = requireAuth(req);
   if (authResult instanceof NextResponse) return authResult;
 
   try {
-    const {
-      customerId,
-      subscriptionId,
-      actualFlyers,       // number -- daadwerkelijk verstuurd op 25e
-      maxFlyers,          // number -- max waarvoor betaald
-      pricePerFlyerCents, // number
-      resolution,         // 'credit' | 'rollover'
-    } = await req.json();
-
-    if (!customerId || !subscriptionId || actualFlyers === undefined || !resolution) {
-      return NextResponse.json({ error: 'Verplichte velden ontbreken' }, { status: 400 });
-    }
-
-    const notSentFlyers = Math.max(0, maxFlyers - actualFlyers);
-    const surplusCents = notSentFlyers * pricePerFlyerCents;
-
-    if (notSentFlyers === 0) {
-      return NextResponse.json({ message: 'Geen surplus -- alle flyers verstuurd', surplusCents: 0 });
-    }
-
-    if (resolution === 'credit') {
-      // Voeg saldo toe aan Stripe klantbalans (negatief = credit voor klant)
-      await getStripe().customers.createBalanceTransaction(customerId, {
-        amount: -surplusCents, // negatief = credit
-        currency: 'eur',
-        description: `Credit: ${notSentFlyers} niet-verstuurde flyers (automatisch verrekend op volgende factuur)`,
-        metadata: { subscriptionId, notSentFlyers: String(notSentFlyers) },
-      });
-
-      return NextResponse.json({
-        resolution: 'credit',
-        creditCents: surplusCents,
-        message: `€${(surplusCents / 100).toFixed(2)} gecrediteerd op jouw account. Dit wordt verrekend op de volgende factuur.`,
-      });
-    }
-
-    if (resolution === 'rollover') {
-      // Sla rollover op als metadata van de subscription
-      // In productie: sla dit op in je eigen DB zodat de 25e-logica dit verwerkt
-      await getStripe().subscriptions.update(subscriptionId, {
-        metadata: {
-          rolloverFlyers: String(notSentFlyers),
-          rolloverFromPeriod: new Date().toISOString().slice(0, 7), // YYYY-MM
-        },
-      });
-
-      return NextResponse.json({
-        resolution: 'rollover',
-        rolloverFlyers: notSentFlyers,
-        message: `${notSentFlyers} flyers worden volgende maand als eerste verstuurd, bovenop de normale bezorging.`,
-      });
-    }
-
-    return NextResponse.json({ error: 'Onbekende resolution' }, { status: 400 });
+    const credits = await getAvailableCredits(authResult.retailerId);
+    return NextResponse.json({ credits });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Onbekende fout';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error('[stripe/credit GET]', err);
+    return NextResponse.json({ error: 'Tegoed ophalen mislukt' }, { status: 500 });
   }
 }
 
-// GET /api/stripe/credit?customerId=xxx -- haal klantbalans op
-export async function GET(req: NextRequest) {
+/**
+ * POST /api/stripe/credit
+ *
+ * Admin-only: manually add credits for a retailer with a reason.
+ * Body: { retailerId, campagneId?, aantalFlyers, maand, toelichting }
+ *
+ * For automated surplus crediting use addSurplusCredits() directly in the
+ * dispatch pipeline.
+ */
+export async function POST(req: NextRequest): Promise<NextResponse> {
   const authResult = requireAuth(req);
   if (authResult instanceof NextResponse) return authResult;
 
-  const customerId = req.nextUrl.searchParams.get('customerId');
-  if (!customerId) return NextResponse.json({ error: 'customerId verplicht' }, { status: 400 });
+  // Only allow admin emails to perform manual credit adjustments
+  const adminEmails = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim()).filter(Boolean);
+  if (!adminEmails.includes(authResult.email)) {
+    console.warn(`[stripe/credit POST] niet-admin probeerde credits toe te voegen: ${authResult.email}`);
+    return NextResponse.json({ error: 'Niet toegestaan' }, { status: 403 });
+  }
 
   try {
-    const customer = await getStripe().customers.retrieve(customerId) as Stripe.Customer;
-    const balanceCents = customer.balance; // negatief = credit voor klant
+    const body: unknown = await req.json();
+    if (typeof body !== 'object' || body === null) {
+      return NextResponse.json({ error: 'Ongeldig verzoek' }, { status: 400 });
+    }
 
-    return NextResponse.json({
-      customerId,
-      creditCents: Math.abs(Math.min(0, balanceCents)), // alleen positief als er credit is
-      debitCents: Math.max(0, balanceCents), // schuld
+    const {
+      retailerId,
+      campagneId,
+      aantalFlyers,
+      maand,
+      toelichting,
+    } = body as Record<string, unknown>;
+
+    if (
+      typeof retailerId !== 'string' ||
+      typeof aantalFlyers !== 'number' ||
+      typeof maand !== 'string'
+    ) {
+      return NextResponse.json(
+        { error: 'retailerId, aantalFlyers en maand zijn verplicht' },
+        { status: 400 },
+      );
+    }
+
+    // Verify the target retailer exists
+    const db = requireDb();
+    const rows = await db
+      .select({ id: retailers.id })
+      .from(retailers)
+      .where(eq(retailers.id, retailerId))
+      .limit(1);
+
+    if (rows.length === 0) {
+      return NextResponse.json({ error: 'Retailer niet gevonden' }, { status: 404 });
+    }
+
+    await db.insert(creditLedger).values({
+      retailerId,
+      campagneId: typeof campagneId === 'string' ? campagneId : null,
+      reden: 'aanpassing',
+      aantalFlyers,
+      maand,
+      toelichting: typeof toelichting === 'string' ? toelichting : `Handmatige aanpassing door beheerder`,
     });
+
+    return NextResponse.json({ success: true, aantalFlyers });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : 'Onbekende fout';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error('[stripe/credit POST]', err);
+    return NextResponse.json({ error: 'Credits toevoegen mislukt' }, { status: 500 });
   }
 }

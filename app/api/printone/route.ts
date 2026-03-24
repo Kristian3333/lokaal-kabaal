@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
 
 // ─── Print.one API v2 integration ────────────────────────────────────────────
 const PRINTONE_BASE = 'https://api.print.one/v2';
@@ -182,6 +183,9 @@ async function po<T>(path: string, method = 'GET', body?: unknown): Promise<{ ok
 
 // ─── POST /api/printone -- maak template + order aan ──────────────────────────
 export async function POST(req: NextRequest) {
+  const authResult = requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const body = await req.json();
     const {
@@ -277,6 +281,9 @@ export async function POST(req: NextRequest) {
 
 // ─── GET /api/printone?orderId=xxx -- check order status ───────────────────
 export async function GET(req: NextRequest) {
+  const authResult = requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   const orderId = req.nextUrl.searchParams.get('orderId');
   if (!orderId) return NextResponse.json({ error: 'orderId verplicht' }, { status: 400 });
 

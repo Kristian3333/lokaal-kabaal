@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { requireAuth } from '@/lib/auth';
 import { isValidExternalUrl } from '@/lib/validation';
 
 export const maxDuration = 30;
@@ -27,6 +28,9 @@ function extractText(html: string): { title: string; description: string; bodyTe
 }
 
 export async function POST(req: NextRequest) {
+  const authResult = requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const { url } = await req.json();
 

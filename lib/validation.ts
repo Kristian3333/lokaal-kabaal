@@ -33,6 +33,7 @@ export function isValidExternalUrl(url: unknown): url is string {
     if (hostname.startsWith('10.') || hostname.startsWith('192.168.')) return false;
     if (/^172\.(1[6-9]|2\d|3[01])\./.test(hostname)) return false;
     if (hostname === '[::1]') return false;
+    if (hostname.startsWith('169.254.')) return false;
     return true;
   } catch {
     return false;

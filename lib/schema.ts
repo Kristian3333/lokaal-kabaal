@@ -1,3 +1,7 @@
+// MIGRATION ADDED FIELDS (2026-03-24):
+//   retailers.wachtwoord_hash       varchar(255)  -- bcrypt-style scrypt hash
+//   retailers.magic_link_token      varchar(100)  -- one-time login token
+//   retailers.magic_link_expiry     timestamp     -- token expiry (15 min window)
 import {
   pgTable, uuid, varchar, boolean, timestamp, date, index,
   integer, pgEnum, numeric, smallint,
@@ -30,6 +34,11 @@ export const retailers = pgTable('retailers', {
   dashboardActiefTot:   timestamp('dashboard_actief_tot'),
   // 4-cijferige pincode voor conversie-verzilvering door personeel
   winkelPincode:        varchar('winkel_pincode', { length: 6 }),
+  // Password authentication (scrypt hash via Node.js crypto)
+  wachtwoordHash:       varchar('wachtwoord_hash', { length: 255 }),
+  // Magic link login tokens (expires after 15 minutes)
+  magicLinkToken:       varchar('magic_link_token', { length: 100 }),
+  magicLinkExpiry:      timestamp('magic_link_expiry'),
   // Branding voor klantgerichte verify-pagina
   logoUrl:              varchar('logo_url', { length: 500 }),
   merkKleur:            varchar('merk_kleur', { length: 7 }),   // hex bijv. '#FF6B00'
@@ -153,7 +162,7 @@ export const flyerVerifications = pgTable('flyer_verifications', {
   postcode:        varchar('postcode', { length: 10 }).notNull(),
   stad:            varchar('stad', { length: 100 }).notNull(),
   retailerId:      uuid('retailer_id').notNull(),
-  campagneId:      varchar('campagne_id', { length: 100 }).notNull(),
+  campagneId:      uuid('campagne_id').notNull().references(() => campaigns.id, { onDelete: 'cascade' }),
   overdrachtDatum: date('overdracht_datum').notNull(),
   verzondenOp:     timestamp('verzonden_op').defaultNow().notNull(),
   geldigTot:       timestamp('geldig_tot').notNull(),

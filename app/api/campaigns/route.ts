@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { campaigns, retailers } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
-import { getAuthEmail } from '@/lib/auth';
+import { requireAuth, getAuthEmail } from '@/lib/auth';
 import { isValidFormaat, isValidDuration, isValidPc4List, isValidBranche } from '@/lib/validation';
 import { sendCampaignActivation } from '@/lib/email';
 
@@ -18,6 +18,9 @@ const PRINTONE_BASE = 'https://api.print.one/v2';
 const PRINTONE_KEY = process.env.PRINTONE_API_KEY ?? '';
 
 export async function POST(req: NextRequest) {
+  const authResult = requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   if (!db) {
     return NextResponse.json({ error: 'DATABASE_URL niet geconfigureerd' }, { status: 503 });
   }
@@ -43,7 +46,7 @@ export async function POST(req: NextRequest) {
       flyerDesign,
     } = body;
 
-    const email = getAuthEmail(req, bodyEmail, 'campaigns/POST');
+    const email = getAuthEmail(req);
     if (!email || !branche || !centrum || !startMaand) {
       return NextResponse.json(
         { error: 'Verplichte velden ontbreken: email, branche, centrum, startMaand' },
@@ -274,12 +277,15 @@ function buildBackHTML(bedrijfsnaam: string): string {
 // ─── GET /api/campaigns?email=xxx ───────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
+  const authResult = requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   if (!db) {
     return NextResponse.json({ error: 'DATABASE_URL niet geconfigureerd' }, { status: 503 });
   }
 
   const paramEmail = req.nextUrl.searchParams.get('email');
-  const email = getAuthEmail(req, paramEmail, 'campaigns/GET');
+  const email = getAuthEmail(req);
   if (!email) {
     return NextResponse.json({ error: 'email query param verplicht' }, { status: 400 });
   }

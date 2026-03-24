@@ -2,17 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { retailers } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
-import { getAuthEmail } from '@/lib/auth';
+import { requireAuth, getAuthEmail } from '@/lib/auth';
 import { isValidPincode } from '@/lib/validation';
 
 // GET /api/pincode?email=xxx -- Haal huidige pincode op
 export async function GET(req: NextRequest) {
+  const authResult = requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   if (!db) {
     return NextResponse.json({ error: 'Database niet geconfigureerd' }, { status: 503 });
   }
 
-  const paramEmail = req.nextUrl.searchParams.get('email');
-  const email = getAuthEmail(req, paramEmail, 'pincode/GET');
+  const email = getAuthEmail(req);
   if (!email) {
     return NextResponse.json({ error: 'email verplicht' }, { status: 400 });
   }
@@ -32,6 +34,9 @@ export async function GET(req: NextRequest) {
 
 // POST /api/pincode -- Stel pincode in of wijzig
 export async function POST(req: NextRequest) {
+  const authResult = requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   if (!db) {
     return NextResponse.json({ error: 'Database niet geconfigureerd' }, { status: 503 });
   }
@@ -41,9 +46,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const { email: bodyEmail, pincode } = body as { email?: string; pincode?: string };
+  const { pincode } = body as { pincode?: string };
 
-  const email = getAuthEmail(req, bodyEmail, 'pincode/POST');
+  const email = getAuthEmail(req);
   if (!email) {
     return NextResponse.json({ error: 'email verplicht' }, { status: 400 });
   }

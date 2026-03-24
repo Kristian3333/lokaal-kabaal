@@ -30,8 +30,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'code verplicht' }, { status: 400 });
   }
 
-  // Authenticatie via API key (CRON_SECRET als simpele API key)
-  if (!apiKey || apiKey !== process.env.CRON_SECRET) {
+  // Authenticate via dedicated REDEEM_API_KEY (separate from CRON_SECRET)
+  const redeemKey = process.env.REDEEM_API_KEY;
+  if (!redeemKey || !apiKey || apiKey !== redeemKey) {
     return NextResponse.json({ error: 'Ongeldige apiKey' }, { status: 401 });
   }
 

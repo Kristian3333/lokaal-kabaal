@@ -2,17 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { retailers } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
-import { getAuthEmail } from '@/lib/auth';
+import { requireAuth, getAuthEmail } from '@/lib/auth';
 import { isValidEmail, isValidHexColor } from '@/lib/validation';
 
 // GET /api/branding?email=xxx -- Haal branding op
 export async function GET(req: NextRequest) {
+  const authResult = requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   if (!db) {
     return NextResponse.json({ error: 'Database niet geconfigureerd' }, { status: 503 });
   }
 
   const paramEmail = req.nextUrl.searchParams.get('email');
-  const email = getAuthEmail(req, paramEmail, 'branding/GET');
+  const email = getAuthEmail(req);
   if (!email) {
     return NextResponse.json({ error: 'email verplicht' }, { status: 400 });
   }
@@ -36,6 +39,9 @@ export async function GET(req: NextRequest) {
 
 // POST /api/branding -- Sla branding op
 export async function POST(req: NextRequest) {
+  const authResult = requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   if (!db) {
     return NextResponse.json({ error: 'Database niet geconfigureerd' }, { status: 503 });
   }
@@ -52,7 +58,7 @@ export async function POST(req: NextRequest) {
     welkomstTekst?: string;
   };
 
-  const email = getAuthEmail(req, bodyEmail, 'branding/POST');
+  const email = getAuthEmail(req);
   if (!email) {
     return NextResponse.json({ error: 'email verplicht' }, { status: 400 });
   }

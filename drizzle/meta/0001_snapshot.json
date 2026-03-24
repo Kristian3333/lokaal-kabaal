@@ -1,0 +1,1191 @@
+{
+  "id": "bc9dc552-1df9-4fae-8cd1-5a5d2b6cd416",
+  "prevId": "c4ba537c-48ff-4d76-b447-400942d13a16",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.ab_tests": {
+      "name": "ab_tests",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "retailer_id": {
+          "name": "retailer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "campagne_id": {
+          "name": "campagne_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "naam": {
+          "name": "naam",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "variant_a_naam": {
+          "name": "variant_a_naam",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "variant_b_naam": {
+          "name": "variant_b_naam",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "ab_test_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'actief'"
+        },
+        "aantal_a": {
+          "name": "aantal_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "aantal_b": {
+          "name": "aantal_b",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "scans_a": {
+          "name": "scans_a",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "scans_b": {
+          "name": "scans_b",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "start_datum": {
+          "name": "start_datum",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "eind_datum": {
+          "name": "eind_datum",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_ab_retailer": {
+          "name": "idx_ab_retailer",
+          "columns": [
+            {
+              "expression": "retailer_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "ab_tests_retailer_id_retailers_id_fk": {
+          "name": "ab_tests_retailer_id_retailers_id_fk",
+          "tableFrom": "ab_tests",
+          "tableTo": "retailers",
+          "columnsFrom": [
+            "retailer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "ab_tests_campagne_id_campaigns_id_fk": {
+          "name": "ab_tests_campagne_id_campaigns_id_fk",
+          "tableFrom": "ab_tests",
+          "tableTo": "campaigns",
+          "columnsFrom": [
+            "campagne_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.campaigns": {
+      "name": "campaigns",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "retailer_id": {
+          "name": "retailer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "naam": {
+          "name": "naam",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "branche": {
+          "name": "branche",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "campaign_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'concept'"
+        },
+        "centrum": {
+          "name": "centrum",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "straal_km": {
+          "name": "straal_km",
+          "type": "numeric(6, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pc4_lijst": {
+          "name": "pc4_lijst",
+          "type": "varchar(4000)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "formaat": {
+          "name": "formaat",
+          "type": "varchar(5)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'a6'"
+        },
+        "dubbelzijdig": {
+          "name": "dubbelzijdig",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "flyer_template_id": {
+          "name": "flyer_template_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "verwacht_aantal_per_maand": {
+          "name": "verwacht_aantal_per_maand",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "duur_maanden": {
+          "name": "duur_maanden",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "start_maand": {
+          "name": "start_maand",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "eind_maand": {
+          "name": "eind_maand",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "filter_bouwjaar_min": {
+          "name": "filter_bouwjaar_min",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "filter_bouwjaar_max": {
+          "name": "filter_bouwjaar_max",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "filter_woz_min": {
+          "name": "filter_woz_min",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "filter_woz_max": {
+          "name": "filter_woz_max",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "filter_energielabel": {
+          "name": "filter_energielabel",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "stripe_subscription_item_id": {
+          "name": "stripe_subscription_item_id",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_campaigns_retailer": {
+          "name": "idx_campaigns_retailer",
+          "columns": [
+            {
+              "expression": "retailer_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_campaigns_status": {
+          "name": "idx_campaigns_status",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "campaigns_retailer_id_retailers_id_fk": {
+          "name": "campaigns_retailer_id_retailers_id_fk",
+          "tableFrom": "campaigns",
+          "tableTo": "retailers",
+          "columnsFrom": [
+            "retailer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.credit_ledger": {
+      "name": "credit_ledger",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "retailer_id": {
+          "name": "retailer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "campagne_id": {
+          "name": "campagne_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reden": {
+          "name": "reden",
+          "type": "credit_reden",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aantal_flyers": {
+          "name": "aantal_flyers",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "maand": {
+          "name": "maand",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "toelichting": {
+          "name": "toelichting",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_credits_retailer": {
+          "name": "idx_credits_retailer",
+          "columns": [
+            {
+              "expression": "retailer_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_credits_maand": {
+          "name": "idx_credits_maand",
+          "columns": [
+            {
+              "expression": "maand",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "credit_ledger_retailer_id_retailers_id_fk": {
+          "name": "credit_ledger_retailer_id_retailers_id_fk",
+          "tableFrom": "credit_ledger",
+          "tableTo": "retailers",
+          "columnsFrom": [
+            "retailer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "credit_ledger_campagne_id_campaigns_id_fk": {
+          "name": "credit_ledger_campagne_id_campaigns_id_fk",
+          "tableFrom": "credit_ledger",
+          "tableTo": "campaigns",
+          "columnsFrom": [
+            "campagne_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.flyer_verifications": {
+      "name": "flyer_verifications",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "code": {
+          "name": "code",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "adres": {
+          "name": "adres",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "postcode": {
+          "name": "postcode",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "stad": {
+          "name": "stad",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "retailer_id": {
+          "name": "retailer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "campagne_id": {
+          "name": "campagne_id",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "overdracht_datum": {
+          "name": "overdracht_datum",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "verzonden_op": {
+          "name": "verzonden_op",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "geldig_tot": {
+          "name": "geldig_tot",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "gebruikt": {
+          "name": "gebruikt",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "gebruikt_op": {
+          "name": "gebruikt_op",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "interesse_op": {
+          "name": "interesse_op",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "conversie_op": {
+          "name": "conversie_op",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "follow_up_verzonden": {
+          "name": "follow_up_verzonden",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "follow_up_op": {
+          "name": "follow_up_op",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ab_test_id": {
+          "name": "ab_test_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ab_test_variant": {
+          "name": "ab_test_variant",
+          "type": "varchar(1)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "printone_batch_id": {
+          "name": "printone_batch_id",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "printone_order_id": {
+          "name": "printone_order_id",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_fv_code": {
+          "name": "idx_fv_code",
+          "columns": [
+            {
+              "expression": "code",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_fv_retailer": {
+          "name": "idx_fv_retailer",
+          "columns": [
+            {
+              "expression": "retailer_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_fv_campagne": {
+          "name": "idx_fv_campagne",
+          "columns": [
+            {
+              "expression": "campagne_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_fv_ab_test": {
+          "name": "idx_fv_ab_test",
+          "columns": [
+            {
+              "expression": "ab_test_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_fv_follow_up": {
+          "name": "idx_fv_follow_up",
+          "columns": [
+            {
+              "expression": "gebruikt",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "follow_up_verzonden",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "verzonden_op",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "flyer_verifications_ab_test_id_ab_tests_id_fk": {
+          "name": "flyer_verifications_ab_test_id_ab_tests_id_fk",
+          "tableFrom": "flyer_verifications",
+          "tableTo": "ab_tests",
+          "columnsFrom": [
+            "ab_test_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "flyer_verifications_code_unique": {
+          "name": "flyer_verifications_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "code"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.pc4_exclusivity": {
+      "name": "pc4_exclusivity",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "retailer_id": {
+          "name": "retailer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pc4": {
+          "name": "pc4",
+          "type": "varchar(4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "branche": {
+          "name": "branche",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "van_maand": {
+          "name": "van_maand",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tot_maand": {
+          "name": "tot_maand",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_excl_pc4": {
+          "name": "idx_excl_pc4",
+          "columns": [
+            {
+              "expression": "pc4",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_excl_branche": {
+          "name": "idx_excl_branche",
+          "columns": [
+            {
+              "expression": "branche",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "pc4_exclusivity_retailer_id_retailers_id_fk": {
+          "name": "pc4_exclusivity_retailer_id_retailers_id_fk",
+          "tableFrom": "pc4_exclusivity",
+          "tableTo": "retailers",
+          "columnsFrom": [
+            "retailer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.retailer_postcodes": {
+      "name": "retailer_postcodes",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "retailer_id": {
+          "name": "retailer_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pc4": {
+          "name": "pc4",
+          "type": "varchar(4)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "actief": {
+          "name": "actief",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_rp_retailer": {
+          "name": "idx_rp_retailer",
+          "columns": [
+            {
+              "expression": "retailer_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_rp_pc4": {
+          "name": "idx_rp_pc4",
+          "columns": [
+            {
+              "expression": "pc4",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "retailer_postcodes_retailer_id_retailers_id_fk": {
+          "name": "retailer_postcodes_retailer_id_retailers_id_fk",
+          "tableFrom": "retailer_postcodes",
+          "tableTo": "retailers",
+          "columnsFrom": [
+            "retailer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.retailers": {
+      "name": "retailers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bedrijfsnaam": {
+          "name": "bedrijfsnaam",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "branche": {
+          "name": "branche",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "stripe_customer_id": {
+          "name": "stripe_customer_id",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "stripe_subscription_id": {
+          "name": "stripe_subscription_id",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tier": {
+          "name": "tier",
+          "type": "tier",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'starter'"
+        },
+        "subscription_status": {
+          "name": "subscription_status",
+          "type": "subscription_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'proef'"
+        },
+        "is_jaarcontract": {
+          "name": "is_jaarcontract",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "periode_start": {
+          "name": "periode_start",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "periode_eind": {
+          "name": "periode_eind",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dashboard_actief_tot": {
+          "name": "dashboard_actief_tot",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "winkel_pincode": {
+          "name": "winkel_pincode",
+          "type": "varchar(6)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "wachtwoord_hash": {
+          "name": "wachtwoord_hash",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "magic_link_token": {
+          "name": "magic_link_token",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "magic_link_expiry": {
+          "name": "magic_link_expiry",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "logo_url": {
+          "name": "logo_url",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "merk_kleur": {
+          "name": "merk_kleur",
+          "type": "varchar(7)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "welkomst_tekst": {
+          "name": "welkomst_tekst",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_retailers_email": {
+          "name": "idx_retailers_email",
+          "columns": [
+            {
+              "expression": "email",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_retailers_stripe_sub": {
+          "name": "idx_retailers_stripe_sub",
+          "columns": [
+            {
+              "expression": "stripe_subscription_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "retailers_email_unique": {
+          "name": "retailers_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        },
+        "retailers_stripe_customer_id_unique": {
+          "name": "retailers_stripe_customer_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "stripe_customer_id"
+          ]
+        },
+        "retailers_stripe_subscription_id_unique": {
+          "name": "retailers_stripe_subscription_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "stripe_subscription_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.ab_test_status": {
+      "name": "ab_test_status",
+      "schema": "public",
+      "values": [
+        "actief",
+        "gestopt",
+        "afgerond"
+      ]
+    },
+    "public.campaign_status": {
+      "name": "campaign_status",
+      "schema": "public",
+      "values": [
+        "concept",
+        "actief",
+        "gepauzeerd",
+        "afgerond",
+        "geannuleerd"
+      ]
+    },
+    "public.credit_reden": {
+      "name": "credit_reden",
+      "schema": "public",
+      "values": [
+        "surplus",
+        "annulering",
+        "aanpassing",
+        "uitbetaling"
+      ]
+    },
+    "public.subscription_status": {
+      "name": "subscription_status",
+      "schema": "public",
+      "values": [
+        "actief",
+        "gepauzeerd",
+        "geannuleerd",
+        "proef"
+      ]
+    },
+    "public.tier": {
+      "name": "tier",
+      "schema": "public",
+      "values": [
+        "starter",
+        "pro",
+        "agency"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

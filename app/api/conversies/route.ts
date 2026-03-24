@@ -2,18 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { flyerVerifications } from '@/lib/schema';
 import { eq, desc } from 'drizzle-orm';
-import { getAuthRetailerId } from '@/lib/auth';
+import { requireAuth, getAuthRetailerId } from '@/lib/auth';
 
 // GET /api/conversies?campagneId=xxx  OR  ?retailerId=xxx
 export async function GET(req: NextRequest) {
+  const authResult = requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   if (!db) {
     return NextResponse.json({ error: 'Database niet geconfigureerd' }, { status: 503 });
   }
 
   const { searchParams } = req.nextUrl;
   const campagneId = searchParams.get('campagneId');
-  const paramRetailerId = searchParams.get('retailerId');
-  const retailerId = getAuthRetailerId(req, paramRetailerId, 'conversies/GET');
+  const retailerId = getAuthRetailerId(req);
 
   if (!campagneId && !retailerId) {
     return NextResponse.json({ error: 'campagneId of retailerId verplicht' }, { status: 400 });

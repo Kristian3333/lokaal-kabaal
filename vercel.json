@@ -4,12 +4,22 @@
     "app/api/scrape/route.ts": { "maxDuration": 30 },
     "app/api/ai/route.ts": { "maxDuration": 30 },
     "app/api/scan/route.ts": { "maxDuration": 30 },
-    "app/api/cron/addresses/route.ts": { "maxDuration": 300 }
+    "app/api/cron/dispatch/route.ts": { "maxDuration": 300 },
+    "app/api/cron/follow-up/route.ts": { "maxDuration": 60 },
+    "app/api/cron/monthly-report/route.ts": { "maxDuration": 120 }
   },
   "crons": [
     {
-      "path": "/api/cron/addresses",
-      "schedule": "0 5 25 * *"
+      "path": "/api/cron/dispatch",
+      "schedule": "0 8 25 * *"
+    },
+    {
+      "path": "/api/cron/follow-up",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/monthly-report",
+      "schedule": "0 8 1 * *"
     }
   ]
 }
