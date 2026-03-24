@@ -15,7 +15,7 @@ const ARTIKELEN = [
     slug: 'digital-first',
     categorie: 'Technologie',
     titel: 'Digital-First: Moderne Technologie voor een Fysiek Product',
-    samenvatting: 'Kadaster-data, automatisering en een strakke interface — allemaal in dienst van een stuk papier. De paradox van de meest analoge marketingvorm in 2026.',
+    samenvatting: 'Kadaster-data, automatisering en een strakke interface -- allemaal in dienst van een stuk papier. De paradox van de meest analoge marketingvorm in 2026.',
     leestijd: '6 min',
     datum: '24 februari 2026',
   },

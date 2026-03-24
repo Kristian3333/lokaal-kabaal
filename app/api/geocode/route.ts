@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// PDOK Locatieserver — officieel NL geocoder, stabiele overheidsapi
+// PDOK Locatieserver -- officieel NL geocoder, stabiele overheidsapi
 const PDOK_LS = 'https://api.pdok.nl/bzk/locatieserver/search/v3_1/free';
 
 // In-memory cache overleeft hergebruikte Vercel instances (warm starts)
@@ -40,7 +40,7 @@ function average(points: { lat: number; lon: number }[]): { lat: number; lon: nu
 async function geocodeViaLocatieserver(
   pc4: string,
 ): Promise<{ lat: number; lon: number } | null> {
-  // type:postcode = 6-karakter postcodes (bijv. "7761DR") — NIET postcode4
+  // type:postcode = 6-karakter postcodes (bijv. "7761DR") -- NIET postcode4
   const url =
     `${PDOK_LS}?q=${pc4}&fq=type:postcode&rows=10&fl=centroide_ll,weergavenaam`;
 
@@ -69,7 +69,7 @@ async function geocodeViaLocatieserver(
 }
 
 /**
- * Regionale fallback — alleen als PDOK volledig onbereikbaar is.
+ * Regionale fallback -- alleen als PDOK volledig onbereikbaar is.
  * Opgesplitst per ~100-stap zodat de fout nooit meer dan ~20 km is.
  */
 function regionalFallback(pc4: string): { lat: number; lon: number } | null {

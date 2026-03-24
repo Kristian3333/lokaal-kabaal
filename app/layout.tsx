@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import ToastContainer from "@/components/Toast";
 
 const siteUrl = 'https://lokaalkabaal.agency';
 
 export const metadata: Metadata = {
   title: {
-    default: "Flyers Versturen Nieuwe Bewoners — Automatisch | LokaalKabaal",
+    default: "Flyers Versturen Nieuwe Bewoners - Automatisch | LokaalKabaal",
     template: "%s | LokaalKabaal",
   },
   description: "LokaalKabaal verstuurt automatisch gepersonaliseerde flyers naar nieuwe huiseigenaren. Elke 25e bij alle nieuwe bewoners in uw postcodes op de mat. Wees er eerder dan de concurrent.",
@@ -14,13 +15,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "nl_NL",
     siteName: "LokaalKabaal",
-    title: "Flyers Versturen Nieuwe Bewoners — Automatisch | LokaalKabaal",
+    title: "Flyers Versturen Nieuwe Bewoners - Automatisch | LokaalKabaal",
     description: "LokaalKabaal verstuurt automatisch gepersonaliseerde flyers naar nieuwe huiseigenaren Elke 25e automatisch verstuurd. Wees er eerder dan de concurrent.",
     url: siteUrl,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Flyers Versturen Nieuwe Bewoners — Automatisch | LokaalKabaal",
+    title: "Flyers Versturen Nieuwe Bewoners - Automatisch | LokaalKabaal",
     description: "LokaalKabaal verstuurt automatisch gepersonaliseerde flyers naar nieuwe huiseigenaren Elke 25e automatisch verstuurd.",
   },
   robots: { index: true, follow: true },
@@ -41,7 +42,7 @@ const schemaOrg = [
     "@type": "SoftwareApplication",
     name: "LokaalKabaal",
     url: siteUrl,
-    description: "SaaS-platform dat automatisch gepersonaliseerde direct mail flyers verstuurt naar nieuwe huiseigenaren. Elke 25e automatisch verstuurd — druk en bezorging geregeld.",
+    description: "SaaS-platform dat automatisch gepersonaliseerde direct mail flyers verstuurt naar nieuwe huiseigenaren. Elke 25e automatisch verstuurd -- druk en bezorging geregeld.",
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     offers: { "@type": "Offer", priceCurrency: "EUR", price: "69.00" },
@@ -73,7 +74,10 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrg) }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <ToastContainer />
+      </body>
     </html>
   );
 }

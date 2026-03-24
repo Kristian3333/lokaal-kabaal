@@ -1,6 +1,6 @@
 import { customAlphabet } from 'nanoid';
 
-// Alleen duidelijk leesbare tekens — geen 0/O, 1/I verwarring
+// Alleen duidelijk leesbare tekens -- geen 0/O, 1/I verwarring
 const nanoid = customAlphabet('23456789ABCDEFGHJKLMNPQRSTUVWXYZ', 8);
 
 export function generateVerificationCode(): string {

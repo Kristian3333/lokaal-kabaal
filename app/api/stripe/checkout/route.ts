@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { requireAuth } from '@/lib/auth';
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-02-25.clover' });
@@ -18,6 +19,9 @@ const TIER_PRICES: Record<string, { monthly: number; yearlyTotal: number; name: 
 };
 
 export async function POST(req: NextRequest) {
+  const authResult = requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const {
       tier,           // 'starter' | 'pro' | 'agency'
@@ -70,7 +74,7 @@ export async function POST(req: NextRequest) {
           price_data: {
             currency: 'eur',
             product_data: {
-              name: `${tierConfig.name} — ${branche ?? 'Lokale retailer'}`,
+              name: `${tierConfig.name} - ${branche ?? 'Lokale retailer'}`,
               description: [
                 tierConfig.maxCampaigns !== null
                   ? `Max. ${tierConfig.maxCampaigns} gelijktijdige campagne${tierConfig.maxCampaigns !== 1 ? 's' : ''}`
@@ -117,7 +121,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: session.url, sessionId: session.id });
   } catch (err: unknown) {
     console.error('[stripe/checkout]', err);
-    const msg = err instanceof Error ? err.message : 'Onbekende fout';
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: 'Betaling starten mislukt' }, { status: 500 });
   }
 }

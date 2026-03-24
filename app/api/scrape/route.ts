@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { isValidExternalUrl } from '@/lib/validation';
 
 export const maxDuration = 30;
 
@@ -35,6 +36,11 @@ export async function POST(req: NextRequest) {
 
     const normalizedUrl = url.startsWith('http') ? url : `https://${url}`;
 
+    // SSRF protection: block internal/private IPs and non-http protocols
+    if (!isValidExternalUrl(normalizedUrl)) {
+      return NextResponse.json({ error: 'Ongeldige URL. Gebruik een publieke http/https URL.' }, { status: 400 });
+    }
+
     let pageContent = { title: '', description: '', bodyText: '' };
 
     // Attempt to fetch the actual website
@@ -56,7 +62,7 @@ export async function POST(req: NextRequest) {
       }
     } catch (err) {
       // If fetch fails, continue with URL-based analysis only
-      console.log('Website fetch failed, proceeding with URL analysis:', err);
+      // Website fetch failed; continue with URL-based analysis only
     }
 
     const hasContent = pageContent.title || pageContent.bodyText;
@@ -102,8 +108,8 @@ Return ALLEEN geldig JSON (geen markdown):
           }
         });
       }
-    } catch {
-      // fall through to default
+    } catch (e) {
+      console.error('JSON parse fallback:', e);
     }
 
     // Fallback

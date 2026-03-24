@@ -2,14 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { retailers } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
+import { getAuthEmail } from '@/lib/auth';
+import { isValidEmail, isValidHexColor } from '@/lib/validation';
 
-// GET /api/branding?email=xxx — Haal branding op
+// GET /api/branding?email=xxx -- Haal branding op
 export async function GET(req: NextRequest) {
   if (!db) {
     return NextResponse.json({ error: 'Database niet geconfigureerd' }, { status: 503 });
   }
 
-  const email = req.nextUrl.searchParams.get('email');
+  const paramEmail = req.nextUrl.searchParams.get('email');
+  const email = getAuthEmail(req, paramEmail, 'branding/GET');
   if (!email) {
     return NextResponse.json({ error: 'email verplicht' }, { status: 400 });
   }
@@ -31,7 +34,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(rows[0]);
 }
 
-// POST /api/branding — Sla branding op
+// POST /api/branding -- Sla branding op
 export async function POST(req: NextRequest) {
   if (!db) {
     return NextResponse.json({ error: 'Database niet geconfigureerd' }, { status: 503 });
@@ -42,19 +45,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const { email, logoUrl, merkKleur, welkomstTekst } = body as {
+  const { email: bodyEmail, logoUrl, merkKleur, welkomstTekst } = body as {
     email?: string;
     logoUrl?: string;
     merkKleur?: string;
     welkomstTekst?: string;
   };
 
+  const email = getAuthEmail(req, bodyEmail, 'branding/POST');
   if (!email) {
     return NextResponse.json({ error: 'email verplicht' }, { status: 400 });
   }
 
+  // Validate email format
+  if (!isValidEmail(email)) {
+    return NextResponse.json({ error: 'Ongeldig e-mailadres' }, { status: 400 });
+  }
+
   // Valideer hex kleur
-  if (merkKleur && !/^#[0-9A-Fa-f]{6}$/.test(merkKleur)) {
+  if (merkKleur && !isValidHexColor(merkKleur)) {
     return NextResponse.json({ error: 'merkKleur moet een hex kleur zijn (#RRGGBB)' }, { status: 400 });
   }
 

@@ -46,7 +46,7 @@ function buildTemplateHTML(d: {
   const tekstKleur = luminantie > 0.5 ? '#0A0A0A' : '#FFFFFF';
   const mutedKleur = luminantie > 0.5 ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)';
 
-  // QR code URL met merge variable — Print.one vervangt {{qr_url}} per order
+  // QR code URL met merge variable -- Print.one vervangt {{qr_url}} per order
   const qrImageSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{qr_url}}&bgcolor=ffffff&color=0a0a0a&margin=2`;
 
   return `<!DOCTYPE html>
@@ -299,7 +299,7 @@ export async function POST(req: NextRequest) {
 
     // Maak template aan bij Print.one
     const result = await po<{ id?: string; message?: string[] }>('/templates', 'POST', {
-      name: `${bedrijfsnaam} — LokaalKabaal — ${new Date().toISOString().slice(0, 10)}`,
+      name: `${bedrijfsnaam} - LokaalKabaal - ${new Date().toISOString().slice(0, 10)}`,
       format,
       labels: ['lokaalkabaal'],
       pages: [

@@ -34,7 +34,7 @@ const PRINT_CONFIG: Record<string, {
   sq: { mmW: 154, mmH: 154, previewW: 231, previewH: 231, scale: 559 / 231 },  // ≈ 2.420
 };
 
-// ─── CSS variabelen & fonts — zelfde als globals.css ─────────────────────────
+// ─── CSS variabelen & fonts -- zelfde als globals.css ─────────────────────────
 const BASE_CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&display=swap');
 
@@ -64,7 +64,7 @@ const BASE_CSS = `
 // print-pagina vult.
 
 function sanitizeContent(html: string): string {
-  // Verwijder <img> tags met lege, data:, of blob: src — dit veroorzaakt
+  // Verwijder <img> tags met lege, data:, of blob: src -- dit veroorzaakt
   // de "resource at data:, could not be loaded" fout in print.one
   return html
     .replace(/<img\b([^>]*?)\bsrc=(["'])(?:|data:,|blob:[^"']*)\2([^>]*?)>/gi, '')
@@ -180,7 +180,7 @@ async function po<T>(path: string, method = 'GET', body?: unknown): Promise<{ ok
   return { ok: res.ok, status: res.status, data: data as T };
 }
 
-// ─── POST /api/printone — maak template + order aan ──────────────────────────
+// ─── POST /api/printone -- maak template + order aan ──────────────────────────
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -275,7 +275,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// ─── GET /api/printone?orderId=xxx — check order status ───────────────────
+// ─── GET /api/printone?orderId=xxx -- check order status ───────────────────
 export async function GET(req: NextRequest) {
   const orderId = req.nextUrl.searchParams.get('orderId');
   if (!orderId) return NextResponse.json({ error: 'orderId verplicht' }, { status: 400 });

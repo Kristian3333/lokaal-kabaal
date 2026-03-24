@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -27,6 +27,8 @@ function ParticleNetwork() {
 
   const linePositions = useMemo(() => new Float32Array(count * count * 6), []);
   const lineColors = useMemo(() => new Float32Array(count * count * 6), []);
+  const linePosAttr = useMemo(() => new THREE.BufferAttribute(linePositions, 3), [linePositions]);
+  const lineColAttr = useMemo(() => new THREE.BufferAttribute(lineColors, 3), [lineColors]);
 
   useFrame((state) => {
     if (!meshRef.current || !lineRef.current) return;
@@ -81,12 +83,28 @@ function ParticleNetwork() {
     }
 
     const lineGeo = lineRef.current.geometry;
-    lineGeo.setAttribute('position', new THREE.BufferAttribute(linePositions.slice(0, lineIdx * 6), 3));
-    lineGeo.setAttribute('color', new THREE.BufferAttribute(lineColors.slice(0, lineIdx * 6), 3));
-    lineGeo.attributes.position.needsUpdate = true;
-    lineGeo.attributes.color.needsUpdate = true;
+    if (!lineGeo.attributes.position) {
+      lineGeo.setAttribute('position', linePosAttr);
+      lineGeo.setAttribute('color', lineColAttr);
+    }
+    linePosAttr.needsUpdate = true;
+    lineColAttr.needsUpdate = true;
     lineGeo.setDrawRange(0, lineIdx * 2);
   });
+
+  // Dispose geometries and materials on unmount
+  useEffect(() => {
+    const mesh = meshRef.current;
+    const line = lineRef.current;
+    return () => {
+      linePosAttr.array = new Float32Array(0);
+      lineColAttr.array = new Float32Array(0);
+      mesh?.geometry.dispose();
+      (mesh?.material as THREE.Material)?.dispose();
+      line?.geometry.dispose();
+      (line?.material as THREE.Material)?.dispose();
+    };
+  }, [linePosAttr, lineColAttr]);
 
   return (
     <>
@@ -156,6 +174,7 @@ function FloatingRing2() {
 export default function Hero3D() {
   return (
     <div
+      aria-hidden="true"
       style={{
         position: 'absolute',
         inset: 0,

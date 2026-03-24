@@ -52,7 +52,7 @@ export default function HeroMapAnim() {
   const n = NOTIFICATIONS[notifIdx];
 
   return (
-    <div style={{
+    <div aria-hidden="true" style={{
       position: 'relative',
       width: '340px',
       height: '400px',

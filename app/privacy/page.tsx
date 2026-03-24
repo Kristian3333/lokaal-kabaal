@@ -18,7 +18,7 @@ export default function Privacy() {
           },
           {
             titel: '2. Welke gegevens verwerken wij?',
-            tekst: `Wij verwerken de volgende categorieën persoonsgegevens:\n\n• Accountgegevens: naam, e-mailadres, bedrijfsnaam, KvK-nummer\n• Betalingsgegevens: IBAN, BTW-nummer, factuuradres\n• Campagnedata: gekozen werkgebieden (postcodes), flyerinhoud, startdatum\n• Technische gegevens: IP-adres, browsertype, sessiecookies\n• Bezorgadressen: naam en adres van nieuwe bewoners (verkregen via Kadaster via Altum AI) — deze worden uitsluitend gebruikt voor de éénmalige flyerbezorging en worden niet opgeslagen na uitvoering`,
+            tekst: `Wij verwerken de volgende categorieën persoonsgegevens:\n\n• Accountgegevens: naam, e-mailadres, bedrijfsnaam, KvK-nummer\n• Betalingsgegevens: IBAN, BTW-nummer, factuuradres\n• Campagnedata: gekozen werkgebieden (postcodes), flyerinhoud, startdatum\n• Technische gegevens: IP-adres, browsertype, sessiecookies\n• Bezorgadressen: naam en adres van nieuwe bewoners (verkregen via Kadaster via Altum AI) -- deze worden uitsluitend gebruikt voor de éénmalige flyerbezorging en worden niet opgeslagen na uitvoering`,
           },
           {
             titel: '3. Waarvoor gebruiken wij uw gegevens?',

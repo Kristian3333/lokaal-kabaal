@@ -14,8 +14,11 @@ function isValidWebhook(req: NextRequest): boolean {
   if (WEBHOOK_SECRET && urlToken === WEBHOOK_SECRET) return true;
   // Check header
   if (WEBHOOK_SECRET && req.headers.get('x-webhook-secret') === WEBHOOK_SECRET) return true;
-  // Geen secret geconfigureerd → accepteer alles (dev)
-  if (!WEBHOOK_SECRET) return true;
+  // Reject when secret is not configured
+  if (!WEBHOOK_SECRET) {
+    console.error('PRINTONE_WEBHOOK_SECRET not configured - rejecting webhook');
+    return false;
+  }
   return false;
 }
 
@@ -28,7 +31,6 @@ function isValidWebhook(req: NextRequest): boolean {
 
 export async function POST(req: NextRequest) {
   if (!isValidWebhook(req)) {
-    console.warn('[printone-webhook] ongeldig webhook secret — verworpen');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -39,8 +41,6 @@ export async function POST(req: NextRequest) {
 
   const event = body.event as string;
   const data  = body.data as Record<string, unknown>;
-
-  console.log(`[printone-webhook] event: ${event}`);
 
   switch (event) {
     case 'qr_code_scanned': {
@@ -63,7 +63,6 @@ export async function POST(req: NextRequest) {
           .update(flyerVerifications)
           .set({ interesseOp: new Date() })
           .where(eq(flyerVerifications.printoneOrderId, orderId));
-        console.log(`[printone-webhook] interesse geregistreerd voor order ${orderId}`);
       }
       break;
     }
@@ -71,14 +70,12 @@ export async function POST(req: NextRequest) {
     case 'order_status_update': {
       const orderId = data?.id as string;
       const status  = data?.friendlyStatus as string;
-      console.log(`[printone-webhook] order ${orderId} → ${status}`);
       break;
     }
 
     case 'batch_status_update': {
       const batchId = data?.id as string;
       const status  = data?.status as string;
-      console.log(`[printone-webhook] batch ${batchId} → ${status}`);
       break;
     }
   }

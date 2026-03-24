@@ -36,7 +36,7 @@ function ringBboxCenter(ring: [number, number][]): [number, number] {
   return [(minLat + maxLat) / 2, (minLon + maxLon) / 2];
 }
 
-// Ray-casting point-in-polygon — ring is [lat, lon][] (Leaflet formaat)
+// Ray-casting point-in-polygon -- ring is [lat, lon][] (Leaflet formaat)
 function pointInRing(lat: number, lon: number, ring: [number, number][]): boolean {
   let inside = false;
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
@@ -68,7 +68,7 @@ function ringsFromGeometry(geometry: { type: string; coordinates: unknown }): [n
   return rings;
 }
 
-// Haal PC4-veldnaam op uit properties — PDOK heeft dit soms hernoemd
+// Haal PC4-veldnaam op uit properties -- PDOK heeft dit soms hernoemd
 function extractPc4(props: Record<string, unknown>): string | null {
   for (const key of ['postcode', 'postcode4', 'pc4', 'PC4', 'Postcode4']) {
     const v = props[key];
@@ -93,7 +93,7 @@ async function fetchPC4Grenzen(
   const { minLon, minLat, maxLon, maxLat } = bboxFromCenter(lat, lon, searchRadius * 1.1);
   const bbox = `${minLon},${minLat},${maxLon},${maxLat}`;
 
-  // Server-side proxy — geen CORS-problemen, cached door Next.js
+  // Server-side proxy -- geen CORS-problemen, cached door Next.js
   const res = await fetch(`/api/pc4grenzen?bbox=${bbox}`, { signal });
   if (!res.ok) {
     console.error(`pc4grenzen: ${res.status} ${await res.text().catch(() => '')}`);
@@ -117,30 +117,25 @@ async function fetchPC4Grenzen(
     if (!existing || jaarNieuw >= jaarOud) byPc4.set(pc4, f);
   }
 
-  console.log('[fetchPC4Grenzen] lat:', lat, 'lon:', lon, 'radius:', radiusKm, 'centrumPc4:', centrumPc4, 'features found:', byPc4.size, Array.from(byPc4.keys()));
-
   const results: { pc4: string; rings: [number, number][][] }[] = [];
   for (const [pc4, feature] of Array.from(byPc4)) {
-    if (!feature.geometry) { console.log('[fetchPC4Grenzen] skip', pc4, '- geen geometry'); continue; }
+    if (!feature.geometry) { continue; }
     const rings = ringsFromGeometry(feature.geometry);
-    if (!rings.length) { console.log('[fetchPC4Grenzen] skip', pc4, '- geen rings'); continue; }
+    if (!rings.length) { continue; }
 
     const containsCenter = rings.some(ring => pointInRing(lat, lon, ring));
     const [cLat, cLon] = ringBboxCenter(rings[0]);
     const dist = haversineKm(lat, lon, cLat, cLon);
-    console.log(`[fetchPC4Grenzen] ${pc4}: containsCenter=${containsCenter}, bboxDist=${dist.toFixed(2)}km, threshold=${(radiusKm*1.1).toFixed(2)}km`);
 
     if (!containsCenter && dist > radiusKm * 1.1) continue;
 
     results.push({ pc4, rings });
   }
 
-  // Centrum-PC4 altijd in resultaten — ook als polygon ontbreekt in dataset
+  // Centrum-PC4 altijd in resultaten -- ook als polygon ontbreekt in dataset
   if (centrumPc4 && !results.find(r => r.pc4 === centrumPc4)) {
-    console.log('[fetchPC4Grenzen] force-add centrumPc4:', centrumPc4);
     results.push({ pc4: centrumPc4, rings: [] });
   }
-  console.log('[fetchPC4Grenzen] final results:', results.map(r => r.pc4));
 
   return results;
 }
@@ -227,8 +222,7 @@ export default function NLMap({ center, straalKm, centrumPc4, onPc4sFound }: NLM
         pc4LayersRef.current = [];
 
         const foundPc4s = gebieden.map(g => g.pc4);
-        console.log('[NLMap] fetchPC4Grenzen result:', foundPc4s, '| centrumPc4:', centrumPc4, '| ref:', centrumPc4Ref.current);
-        // Centrum-PC4 altijd in de lijst — ook als grenzen-dataset hem niet bevat
+        // Centrum-PC4 altijd in de lijst -- ook als grenzen-dataset hem niet bevat
         const cp = centrumPc4Ref.current;
         if (cp && !foundPc4s.includes(cp)) foundPc4s.push(cp);
         if (onPc4sFoundRef.current) onPc4sFoundRef.current(foundPc4s.sort());
@@ -300,7 +294,7 @@ export default function NLMap({ center, straalKm, centrumPc4, onPc4sFound }: NLM
         }}>
           <span>⚠</span>
           <span>
-            De cirkel kan over de grens vallen. LokaalKabaal bezorgt uitsluitend in Nederland —
+            De cirkel kan over de grens vallen. LokaalKabaal bezorgt uitsluitend in Nederland --
             adressen in Duitsland en België worden automatisch uitgesloten.
           </span>
         </div>

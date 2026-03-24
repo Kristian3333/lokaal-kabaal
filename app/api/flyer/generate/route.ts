@@ -4,6 +4,7 @@ import { put } from '@vercel/blob';
 import { generateVerificationCode, buildQRUrl, buildQRImageUrl } from '@/lib/verification';
 import { db } from '@/lib/db';
 import { flyerVerifications } from '@/lib/schema';
+import { requireAuth } from '@/lib/auth';
 
 export const maxDuration = 30;
 
@@ -119,7 +120,6 @@ async function scrapeSite(url: string) {
     if (!res.ok) throw new Error(`Browserless HTTP ${res.status}`);
     return await res.json();
   } catch (err) {
-    console.warn('Browserless scrape failed, falling back to basic:', err);
     return scrapeBasic(url);
   }
 }
@@ -211,7 +211,6 @@ async function selecteerBesteFoto(fotos: string[], branche: string): Promise<str
     const index = parseInt(text) - 1;
     return fotos[Math.max(0, Math.min(index, fotos.length - 1))];
   } catch (err) {
-    console.warn('Foto selectie mislukt, pak eerste:', err);
     return fotos[0];
   }
 }
@@ -240,11 +239,11 @@ function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
 
 // Standaard browser-kleuren die GEEN merkkleur zijn (link blauw, visited purple, etc.)
 const BROWSER_DEFAULTS = new Set([
-  '0,0,240',     // #0000f0 — afgerond van #0000ee (default link blue)
-  '0,0,228',     // #0000e4 — afgerond van #0000ee
+  '0,0,240',     // #0000f0 -- afgerond van #0000ee (default link blue)
+  '0,0,228',     // #0000e4 -- afgerond van #0000ee
   '0,0,252',     // #0000fc
-  '84,84,204',   // #5454cc — visited link
-  '84,0,168',    // #5400a8 — visited link purple
+  '84,84,204',   // #5454cc -- visited link
+  '84,0,168',    // #5400a8 -- visited link purple
   '96,0,168',    // #6000a8
   '0,0,0',       // puur zwart
   '252,252,252', // bijna-wit
@@ -300,7 +299,7 @@ function kleurenUitCSSArray(cssKleuren: string[]): { primair: string; accent: st
   });
 
   if (tweedeMerk) {
-    // Gebruik tweede merkkleur — donkerder maken als te licht voor achtergrond
+    // Gebruik tweede merkkleur -- donkerder maken als te licht voor achtergrond
     const [r, g, b] = tweedeMerk.rgb;
     if (tweedeMerk.lum > 0.55) {
       // Te licht als achtergrond → maak donkerder (60% intensiteit)
@@ -318,10 +317,10 @@ function kleurenUitCSSArray(cssKleuren: string[]): { primair: string; accent: st
 }
 
 // ─── Sub-functie D-extra: dominanteKleuren uit foto (fallback) ────────────────
-// Pure-JS JPEG pixel sampler — geen native binaries nodig
+// Pure-JS JPEG pixel sampler -- geen native binaries nodig
 
 function parseJpegPixels(buf: Buffer): Array<[number, number, number]> | null {
-  // Zoek Start of Scan marker (0xFFDA) — pixels staan erna als compressed data
+  // Zoek Start of Scan marker (0xFFDA) -- pixels staan erna als compressed data
   // Simpelere aanpak: sample regelmatig bytes die eruitzien als RGB waarden
   const pixels: Array<[number, number, number]> = [];
   const step = Math.max(1, Math.floor(buf.length / 800));
@@ -388,7 +387,6 @@ async function dominanteKleuren(imageUrl: string): Promise<{ primair: string; ac
     if (!pixels || pixels.length < 10) throw new Error('Te weinig pixels');
     return kleurenUitPixels(pixels);
   } catch (err) {
-    console.warn('Kleurextractie mislukt:', err);
     return { primair: '#0A0A0A', accent: '#00E87A' };
   }
 }
@@ -436,7 +434,7 @@ Geef terug als JSON met exact deze velden:
     try {
       const match = raw.match(/\{[\s\S]*\}/);
       if (match) return JSON.parse(match[0]);
-    } catch { /* val door naar fallback */ }
+    } catch (e) { console.error('Fallback triggered:', e); }
   }
 
   // Fallback: lege structuur zodat de pipeline niet crasht
@@ -602,7 +600,6 @@ async function renderPDF(html: string): Promise<Buffer | null> {
     if (!res.ok) throw new Error(`Browserless PDF HTTP ${res.status}`);
     return Buffer.from(await res.arrayBuffer());
   } catch (err) {
-    console.warn('PDF render mislukt:', err);
     return null;
   }
 }
@@ -610,11 +607,14 @@ async function renderPDF(html: string): Promise<Buffer | null> {
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
+  const authResult = requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const body = await req.json();
     const {
       url, branche, bedrijfsnaam, telefoon, email, website, slogan,
-      // Verificatie-velden (optioneel — alleen bij echte campagne-verzending)
+      // Verificatie-velden (optioneel -- alleen bij echte campagne-verzending)
       adres, postcode, stad, retailerId, campagneId, overdrachtDatum,
     } = body;
 
@@ -626,13 +626,11 @@ export async function POST(req: NextRequest) {
     }
 
     const normalizedUrl = url.startsWith('http') ? url : `https://${url}`;
-    console.log('[flyer] start pipeline voor:', normalizedUrl);
 
     // Stap 1: scrape
     const scraped = await scrapeSite(normalizedUrl);
-    console.log('[flyer] scrape klaar — ok:', scraped.scrapedOk, 'status:', scraped.httpStatus, 'fotos:', scraped.fotos?.length);
 
-    // Stap 2: foto + tekst parallel (doorgaan ook als scrape mislukte — bedrijfsnaam + branche zijn altijd aanwezig)
+    // Stap 2: foto + tekst parallel (doorgaan ook als scrape mislukte -- bedrijfsnaam + branche zijn altijd aanwezig)
     const [besteFoto, tekst] = await Promise.all([
       selecteerBesteFoto(scraped.fotos || [], branche),
       genereerTekst({
@@ -643,9 +641,8 @@ export async function POST(req: NextRequest) {
         slogan,
       }),
     ]);
-    console.log('[flyer] besteFoto:', besteFoto, '| tekst headline:', tekst?.headline);
 
-    // Stap 3: kleuren — meerdere bronnen combineren
+    // Stap 3: kleuren -- meerdere bronnen combineren
     // Voeg kleuren uit logo SVG toe (bijv. fill="#df0000")
     const extraKleuren: string[] = [];
     if (scraped.logo && scraped.logo.startsWith('data:image/svg')) {
@@ -660,15 +657,13 @@ export async function POST(req: NextRequest) {
           const b = parseInt(hex.slice(5, 7), 16);
           extraKleuren.push(`rgb(${r}, ${g}, ${b})`);
         }
-      } catch { /* SVG parse fout — negeer */ }
+      } catch (e) { console.error('SVG parse error:', e); }
     }
     const alleKleuren = [...(scraped.kleuren || []), ...extraKleuren];
-    console.log('[flyer] raw kleuren sample:', alleKleuren.slice(0, 15), '| extra SVG:', extraKleuren.length);
     const kleuren = kleurenUitCSSArray(alleKleuren)
       ?? (besteFoto ? await dominanteKleuren(besteFoto) : { primair: '#0A0A0A', accent: '#00E87A' });
-    console.log('[flyer] kleuren:', kleuren, '| raw count:', alleKleuren.length);
 
-    // Stap 3b: verificatiecode genereren + in DB opslaan (optioneel — als adres + retailer meegegeven)
+    // Stap 3b: verificatiecode genereren + in DB opslaan (optioneel -- als adres + retailer meegegeven)
     let verificationCode: string | undefined;
     let qrUrl: string | undefined;
     const geldigTot = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 dagen
@@ -689,9 +684,8 @@ export async function POST(req: NextRequest) {
             overdrachtDatum: overdrachtDatum ?? new Date().toISOString().slice(0, 10),
             geldigTot,
           });
-          console.log('[flyer] verificatiecode opgeslagen:', verificationCode);
-        } catch (dbErr) {
-          console.warn('[flyer] DB insert mislukt (code wordt toch op flyer gezet):', dbErr);
+        } catch {
+          // DB insert failed; verification code is still rendered on the flyer
         }
       }
     }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { flyerVerifications } from '@/lib/schema';
 import { eq, desc } from 'drizzle-orm';
+import { getAuthRetailerId } from '@/lib/auth';
 
 // GET /api/conversies?campagneId=xxx  OR  ?retailerId=xxx
 export async function GET(req: NextRequest) {
@@ -11,7 +12,8 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = req.nextUrl;
   const campagneId = searchParams.get('campagneId');
-  const retailerId = searchParams.get('retailerId');
+  const paramRetailerId = searchParams.get('retailerId');
+  const retailerId = getAuthRetailerId(req, paramRetailerId, 'conversies/GET');
 
   if (!campagneId && !retailerId) {
     return NextResponse.json({ error: 'campagneId of retailerId verplicht' }, { status: 400 });

@@ -26,7 +26,7 @@ export default function PinForm({ code, accentColor }: { code: string; accentCol
         setResult({ ok: false, message: data.message || 'Fout opgetreden' });
       }
     } catch {
-      setResult({ ok: false, message: 'Netwerkfout — probeer opnieuw' });
+      setResult({ ok: false, message: 'Netwerkfout -- probeer opnieuw' });
     } finally {
       setLoading(false);
     }

@@ -3,7 +3,7 @@
  * Draai met: npx tsx scripts/test-printone.ts
  *
  * Vereist: PRINTONE_API_KEY in .env.local (test key!)
- * Dit script verstuurt GEEN echte flyers — het test alleen de API-connectie,
+ * Dit script verstuurt GEEN echte flyers -- het test alleen de API-connectie,
  * template-aanmaak, en batch-flow.
  */
 
@@ -24,7 +24,7 @@ try {
     const val = trimmed.slice(eqIdx + 1).trim();
     if (!process.env[key]) process.env[key] = val;
   }
-} catch { /* .env.local niet gevonden — gebruik bestaande env */ }
+} catch { /* .env.local niet gevonden -- gebruik bestaande env */ }
 
 const BASE = 'https://api.print.one/v2';
 const KEY = process.env.PRINTONE_API_KEY ?? '';
@@ -35,7 +35,7 @@ if (!KEY) {
 }
 
 const isTestKey = KEY.startsWith('test_');
-console.log(`🔑 API key geladen (${isTestKey ? 'TEST' : '⚠️  LIVE — pas op!'})\n`);
+console.log(`🔑 API key geladen (${isTestKey ? 'TEST' : '⚠️  LIVE -- pas op!'})\n`);
 
 async function po<T>(path: string, method = 'GET', body?: unknown): Promise<{ ok: boolean; status: number; data: T }> {
   const res = await fetch(`${BASE}${path}`, {
@@ -150,8 +150,8 @@ async function testBatchFlow(templateId: string): Promise<string | null> {
     console.error(`❌ Order toevoegen mislukt (HTTP ${orderRes.status}):`, orderRes.data);
   }
 
-  // NIET finaliseren — anders wordt het daadwerkelijk verstuurd
-  console.log('\n⏸️  Batch NIET gefinaliseerd (test modus — geen echte verzending)');
+  // NIET finaliseren -- anders wordt het daadwerkelijk verstuurd
+  console.log('\n⏸️  Batch NIET gefinaliseerd (test modus -- geen echte verzending)');
   console.log(`   Batch ID: ${batchId}`);
   console.log('   Je kunt deze batch bekijken in het Print.one dashboard.\n');
 
@@ -178,7 +178,7 @@ async function testWebhookLocal() {
     if (res.ok) {
       console.log(`✅ Webhook endpoint bereikbaar op ${webhookUrl}`);
     } else {
-      console.log(`⚠️  Webhook gaf HTTP ${res.status} — ${res.statusText}`);
+      console.log(`⚠️  Webhook gaf HTTP ${res.status} -- ${res.statusText}`);
     }
   } catch {
     console.log(`ℹ️  Webhook niet bereikbaar op ${webhookUrl} (draait de dev server?)`);
@@ -189,7 +189,7 @@ async function testWebhookLocal() {
 // ─── Run ────────────────────────────────────────────────────────────────────
 async function main() {
   console.log('═══════════════════════════════════════════');
-  console.log('  LokaalKabaal — Print.one Integratie Test');
+  console.log('  LokaalKabaal -- Print.one Integratie Test');
   console.log('═══════════════════════════════════════════\n');
 
   // 1. Connectie
@@ -202,7 +202,7 @@ async function main() {
   // 2. Template
   const templateId = await testCreateTemplate();
   if (!templateId) {
-    console.error('\n🛑 Template aanmaken mislukt — controleer je API key rechten.');
+    console.error('\n🛑 Template aanmaken mislukt -- controleer je API key rechten.');
     process.exit(1);
   }
 

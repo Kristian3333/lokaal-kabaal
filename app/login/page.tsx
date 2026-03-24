@@ -147,7 +147,7 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Testaccounts — alleen zichtbaar in dev/test omgeving */}
+      {/* Testaccounts -- alleen zichtbaar in dev/test omgeving */}
       <div style={{
         marginTop: '24px', width: '100%', maxWidth: '380px',
         border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px',

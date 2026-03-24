@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isValidPc4List } from '@/lib/validation';
 
 const ALTUM_API_KEY = process.env.ALTUM_API_KEY;
 const ALTUM_BASE_URL = 'https://api.altum.ai/v1';
@@ -43,6 +44,11 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { postcodes = [], maxAantal = 500, maand } = body;
 
+    // Validate postcodes
+    if (postcodes.length > 0 && !isValidPc4List(postcodes)) {
+      return NextResponse.json({ error: 'Ongeldige postcodes (verwacht 4-cijferige postcodes)' }, { status: 400 });
+    }
+
     // Determine date filter: use provided maand or last 60 days
     let afterDate: string;
     if (maand) {
@@ -55,7 +61,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!ALTUM_API_KEY) {
-      // No API key configured — return mock data
+      // No API key configured -- return mock data
       const mock = generateMockAddresses(maxAantal, postcodes);
       return NextResponse.json({ addresses: mock, count: mock.length, mock: true });
     }

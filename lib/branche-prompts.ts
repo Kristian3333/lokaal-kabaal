@@ -1,5 +1,5 @@
 // Recraft.ai prompt map per branche
-// Style: vector_illustration — premium, print-ready, clean, no text, no people
+// Style: vector_illustration -- premium, print-ready, clean, no text, no people
 
 export const BRANCHE_PROMPTS: Record<string, string> = {
   // Persoonlijke verzorging

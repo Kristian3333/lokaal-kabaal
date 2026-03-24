@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { flyerVerifications, retailers } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 
-// ─── GET /api/verify/[code] — Interesse registreren (consument scant QR) ─────
+// ─── GET /api/verify/[code] -- Interesse registreren (consument scant QR) ─────
 
 export async function GET(
   _req: NextRequest,
@@ -58,7 +58,7 @@ export async function GET(
   });
 }
 
-// ─── POST /api/verify/[code] — Conversie registreren (bedrijf scant bij kassa) ─
+// ─── POST /api/verify/[code] -- Conversie registreren (bedrijf scant bij kassa) ─
 
 export async function POST(
   req: NextRequest,
@@ -93,7 +93,7 @@ export async function POST(
       .limit(1);
     const retailer = retailerRows[0];
     if (!retailer?.winkelPincode) {
-      return NextResponse.json({ status: 'error', message: 'Geen pincode ingesteld — stel deze in via het dashboard' }, { status: 400 });
+      return NextResponse.json({ status: 'error', message: 'Geen pincode ingesteld -- stel deze in via het dashboard' }, { status: 400 });
     }
     if (retailer.winkelPincode !== pincode) {
       return NextResponse.json({ status: 'forbidden', message: 'Onjuiste pincode' }, { status: 403 });

@@ -1,17 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { requireAuth } from '@/lib/auth';
 
 function getStripe() { return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-02-25.clover' }); }
 
-// POST /api/stripe/credit — verwerk credit of rollover na gedeeltelijke bezorging
+// POST /api/stripe/credit -- verwerk credit of rollover na gedeeltelijke bezorging
 // Dit endpoint wordt aangeroepen vanuit het dashboard als klant kiest voor credit of rollover.
 export async function POST(req: NextRequest) {
+  const authResult = requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const {
       customerId,
       subscriptionId,
-      actualFlyers,       // number — daadwerkelijk verstuurd op 25e
-      maxFlyers,          // number — max waarvoor betaald
+      actualFlyers,       // number -- daadwerkelijk verstuurd op 25e
+      maxFlyers,          // number -- max waarvoor betaald
       pricePerFlyerCents, // number
       resolution,         // 'credit' | 'rollover'
     } = await req.json();
@@ -24,7 +28,7 @@ export async function POST(req: NextRequest) {
     const surplusCents = notSentFlyers * pricePerFlyerCents;
 
     if (notSentFlyers === 0) {
-      return NextResponse.json({ message: 'Geen surplus — alle flyers verstuurd', surplusCents: 0 });
+      return NextResponse.json({ message: 'Geen surplus -- alle flyers verstuurd', surplusCents: 0 });
     }
 
     if (resolution === 'credit') {
@@ -67,8 +71,11 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET /api/stripe/credit?customerId=xxx — haal klantbalans op
+// GET /api/stripe/credit?customerId=xxx -- haal klantbalans op
 export async function GET(req: NextRequest) {
+  const authResult = requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   const customerId = req.nextUrl.searchParams.get('customerId');
   if (!customerId) return NextResponse.json({ error: 'customerId verplicht' }, { status: 400 });
 

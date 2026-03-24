@@ -10,6 +10,6 @@ export const db = dbUrl
   : null;
 
 export function requireDb() {
-  if (!db) throw new Error('DATABASE_URL niet geconfigureerd — sla verificatiecodes op in Neon/Postgres');
+  if (!db) throw new Error('DATABASE_URL niet geconfigureerd -- sla verificatiecodes op in Neon/Postgres');
   return db;
 }

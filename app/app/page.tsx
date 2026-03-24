@@ -6,6 +6,12 @@ import dynamic from 'next/dynamic';
 import { TIERS, TEST_ACCOUNTS, isTestAccount, canStartCampaign, type Tier } from '../../lib/tiers';
 import { prijsPerStuk, toeslagLabel, type FlyerFormaat } from '../../lib/printone-pricing';
 import FlyerExport, { PREVIEW_PX, PRINT_DIMS, PRINT_RENDER_PX } from '../../components/FlyerExport';
+import { showToast } from '../../components/Toast';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import BrancheSelector from '@/components/dashboard/BrancheSelector';
+import MonthSelector from '@/components/dashboard/MonthSelector';
+import CampaignList from '@/components/dashboard/CampaignList';
+import PriceCalculator from '@/components/dashboard/PriceCalculator';
 
 const NLMap = dynamic(() => import('../../components/NLMap'), { ssr: false, loading: () => (
   <div style={{ height: '280px', background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--muted)', fontSize: '12px', fontFamily: 'var(--font-mono)' }}>Kaart laden...</div>
@@ -1332,7 +1338,9 @@ function CoverageVisual({ centrum, straalKm, onPc4sChange, onEstChange }: {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <NLMap center={center} straalKm={straalKm} centrumPc4={centrum.trim().padStart(4, '0')} onPc4sFound={handlePc4sFound} />
+      <ErrorBoundary>
+        <NLMap center={center} straalKm={straalKm} centrumPc4={centrum.trim().padStart(4, '0')} onPc4sFound={handlePc4sFound} />
+      </ErrorBoundary>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
         <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '12px' }}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', marginBottom: '3px' }}>WONINGEN IN WERKGEBIED</div>
@@ -1999,9 +2007,9 @@ export default function LokaalKabaal() {
                 stripeSessionId: params.get('session_id'),
                 flyerDesign,
               }),
-            }).then(res => res.json()).then(data => {
-              if (data.id) console.log('[payment] campagne opgeslagen:', data.id, 'template:', data.flyerTemplateId);
-            }).catch(err => console.warn('[payment] campagne opslaan mislukt:', err));
+            }).then(res => res.json()).catch(() => {
+              // Campaign save failed silently
+            });
           }
 
           sessionStorage.removeItem('lk_pending_campaign');
@@ -2048,7 +2056,7 @@ export default function LokaalKabaal() {
     const activeCampaigns = campaigns.filter(c => c.status === 'actief').length;
     if (!canStartCampaign(userTier, activeCampaigns)) {
       const cfg = TIERS[userTier];
-      alert(`Je ${cfg.label}-abonnement staat max. ${cfg.maxCampaigns} gelijktijdige campagne${cfg.maxCampaigns !== 1 ? 's' : ''} toe. Upgrade naar Pro of Agency voor meer campagnes.`);
+      showToast(`Je ${cfg.label}-abonnement staat max. ${cfg.maxCampaigns} gelijktijdige campagne${cfg.maxCampaigns !== 1 ? 's' : ''} toe. Upgrade naar Pro of Agency voor meer campagnes.`, 'warning');
       return;
     }
     setWiz(INIT_WIZ);
@@ -2559,29 +2567,13 @@ export default function LokaalKabaal() {
 
           {/* STAP 2: Branche */}
           {step === 2 && (
-            <div data-tour="tour-wizard-branche">
-              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '8px' }}>Wat voor bedrijf heb je?</h2>
-              <p style={{ color: 'var(--muted)', marginBottom: '16px' }}>Kies je branche voor de juiste copy en targeting.</p>
-              <input
-                type="text"
-                placeholder="Zoek branche..."
-                value={specQ}
-                onChange={e => updateWiz({ specQ: e.target.value })}
-                style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', marginBottom: '12px', background: 'var(--paper2)', boxSizing: 'border-box' }}
-              />
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '8px', maxHeight: '360px', overflowY: 'auto' }}>
-                {specFiltered.map(s => (
-                  <button key={s} onClick={() => updateWiz({ spec: s })}
-                    style={{
-                      padding: '10px 12px', textAlign: 'left',
-                      border: `1px solid ${spec === s ? 'var(--green)' : 'var(--line)'}`,
-                      borderRadius: 'var(--radius)', background: spec === s ? 'var(--green-bg)' : 'var(--paper)',
-                      cursor: 'pointer', fontSize: '13px', fontWeight: spec === s ? 600 : 400,
-                      color: spec === s ? 'var(--green-dim)' : 'var(--ink)', transition: 'all 0.15s'
-                    }}>{s}</button>
-                ))}
-              </div>
-            </div>
+            <BrancheSelector
+              specs={SPECS}
+              selected={spec}
+              searchQuery={specQ}
+              onSearchChange={q => updateWiz({ specQ: q })}
+              onSelect={s => updateWiz({ spec: s })}
+            />
           )}
 
           {/* STAP 3: Datum */}

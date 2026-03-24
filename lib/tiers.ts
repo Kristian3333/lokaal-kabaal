@@ -72,7 +72,7 @@ export const TIERS: Record<Tier, TierConfig> = {
   },
 };
 
-// Testaccounts — voorgedefinieerde accounts voor het testen van de pakketten
+// Testaccounts -- voorgedefinieerde accounts voor het testen van de pakketten
 export const TEST_ACCOUNTS: { email: string; naam: string; tier: Tier; isJaarcontract: boolean; label: string }[] = [
   {
     email: 'test-starter@lokaalkabaal.nl',

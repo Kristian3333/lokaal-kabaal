@@ -5,8 +5,11 @@ import dynamic from 'next/dynamic';
 import Nav from '@/components/Nav';
 import PricingSection from '@/components/PricingSection';
 import HeroMapAnim from '@/components/HeroMapAnim';
-import { motion, useInView, useScroll, useTransform } from 'framer-motion';
-import { useRef, useEffect, useState } from 'react';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import FadeUp from '@/components/landing/FadeUp';
+import CountUp from '@/components/landing/CountUp';
+import StaggerText from '@/components/landing/StaggerText';
+import { motion } from 'framer-motion';
 
 const Hero3D = dynamic(() => import('@/components/Hero3D'), { ssr: false });
 
@@ -14,86 +17,6 @@ const Hero3D = dynamic(() => import('@/components/Hero3D'), { ssr: false });
 
 const SPRING = { type: 'spring' as const, stiffness: 60, damping: 18, mass: 0.8 };
 const SPRING_FAST = { type: 'spring' as const, stiffness: 90, damping: 16, mass: 0.6 };
-
-// ─── Scroll-reveal wrapper ────────────────────────────────────────────────────
-
-function FadeUp({
-  children, delay = 0, className, style,
-}: {
-  children: React.ReactNode;
-  delay?: number;
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  const ref  = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: '-60px' });
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 40 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ ...SPRING, delay }}
-      className={className}
-      style={style}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-// ─── Stagger text reveal (split by word) ──────────────────────────────────────
-
-function StaggerText({
-  text, className, style, delay = 0,
-}: {
-  text: string;
-  className?: string;
-  style?: React.CSSProperties;
-  delay?: number;
-}) {
-  const words = text.split(' ');
-  return (
-    <span className={className} style={{ ...style, display: 'inline-flex', flexWrap: 'wrap', gap: '0 0.3em' }}>
-      {words.map((word, i) => (
-        <motion.span
-          key={i}
-          initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          transition={{ ...SPRING, delay: delay + i * 0.06 }}
-          style={{ display: 'inline-block' }}
-        >
-          {word}
-        </motion.span>
-      ))}
-    </span>
-  );
-}
-
-// ─── Animated counter ────────────────────────────────────────────────────────
-
-function CountUp({ target, suffix = '', duration = 1400 }: { target: number; suffix?: string; duration?: number }) {
-  const ref    = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true });
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    if (!inView) return;
-    let start = 0;
-    const step = target / (duration / 16);
-    const timer = setInterval(() => {
-      start = Math.min(start + step, target);
-      setCount(Math.round(start));
-      if (start >= target) clearInterval(timer);
-    }, 16);
-    return () => clearInterval(timer);
-  }, [inView, target, duration]);
-
-  return (
-    <span ref={ref}>
-      {count.toLocaleString('nl')}{suffix}
-    </span>
-  );
-}
 
 // ─── CLV data ────────────────────────────────────────────────────────────────
 
@@ -140,7 +63,9 @@ export default function Landing() {
         position: 'relative',
       }}>
         {/* 3D particle background */}
-        <Hero3D />
+        <ErrorBoundary>
+          <Hero3D />
+        </ErrorBoundary>
 
         {/* Radial glow */}
         <div style={{
@@ -288,7 +213,9 @@ export default function Landing() {
             transition={{ ...SPRING, delay: 0.4 }}
             className="hero-map-col"
           >
-            <HeroMapAnim />
+            <ErrorBoundary>
+              <HeroMapAnim />
+            </ErrorBoundary>
           </motion.div>
         </div>
       </section>

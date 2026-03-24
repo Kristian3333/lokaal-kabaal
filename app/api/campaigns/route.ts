@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { campaigns, retailers } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
+import { getAuthEmail } from '@/lib/auth';
+import { isValidFormaat, isValidDuration, isValidPc4List, isValidBranche } from '@/lib/validation';
 
 // ─── POST /api/campaigns ────────────────────────────────────────────────────
 // Slaat een nieuwe campagne op in de database en maakt een Print.one template aan.
@@ -23,7 +25,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       // Retailer lookup
-      email,                // email van de ingelogde gebruiker
+      email: bodyEmail,     // email van de ingelogde gebruiker (fallback)
       // Campagne data
       naam,
       branche,
@@ -40,11 +42,26 @@ export async function POST(req: NextRequest) {
       flyerDesign,
     } = body;
 
+    const email = getAuthEmail(req, bodyEmail, 'campaigns/POST');
     if (!email || !branche || !centrum || !startMaand) {
       return NextResponse.json(
         { error: 'Verplichte velden ontbreken: email, branche, centrum, startMaand' },
         { status: 400 },
       );
+    }
+
+    // Input validation
+    if (!isValidBranche(branche)) {
+      return NextResponse.json({ error: 'Branche is ongeldig (max 100 tekens)' }, { status: 400 });
+    }
+    if (!isValidFormaat(formaat)) {
+      return NextResponse.json({ error: 'Formaat is ongeldig (kies a6, a5 of sq)' }, { status: 400 });
+    }
+    if (!isValidDuration(duurMaanden)) {
+      return NextResponse.json({ error: 'Duur moet tussen 1 en 24 maanden zijn' }, { status: 400 });
+    }
+    if (pc4Lijst && !isValidPc4List(Array.isArray(pc4Lijst) ? pc4Lijst : [])) {
+      return NextResponse.json({ error: 'Ongeldige postcodes in pc4Lijst (verwacht 4-cijferige postcodes)' }, { status: 400 });
     }
 
     // Haal retailer op via email
@@ -93,7 +110,6 @@ export async function POST(req: NextRequest) {
       status: 'actief',
     }).returning();
 
-    console.log(`[campaigns] campagne aangemaakt: ${campagne.id} (template: ${flyerTemplateId ?? 'geen'})`);
 
     return NextResponse.json({
       id: campagne.id,
@@ -128,7 +144,7 @@ async function createPrintoneTemplate(design: {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': PRINTONE_KEY },
       body: JSON.stringify({
-        name: `${design.bedrijfsnaam} — LokaalKabaal — ${new Date().toISOString().slice(0, 10)}`,
+        name: `${design.bedrijfsnaam} - LokaalKabaal - ${new Date().toISOString().slice(0, 10)}`,
         format: design.formaat === 'a6' ? 'POSTCARD_A6' : 'POSTCARD_A5',
         labels: ['lokaalkabaal'],
         pages: [
@@ -140,14 +156,14 @@ async function createPrintoneTemplate(design: {
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      console.warn('[campaigns] Print.one template mislukt:', data);
+      console.error('[campaigns] PrintOne template creation failed:', res.status, data);
       return null;
     }
 
     const data = await res.json();
     return data.id ?? null;
   } catch (err) {
-    console.warn('[campaigns] Print.one template call mislukt:', err);
+    console.error('[campaigns] PrintOne template creation error:', err);
     return null;
   }
 }
@@ -255,7 +271,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'DATABASE_URL niet geconfigureerd' }, { status: 503 });
   }
 
-  const email = req.nextUrl.searchParams.get('email');
+  const paramEmail = req.nextUrl.searchParams.get('email');
+  const email = getAuthEmail(req, paramEmail, 'campaigns/GET');
   if (!email) {
     return NextResponse.json({ error: 'email query param verplicht' }, { status: 400 });
   }

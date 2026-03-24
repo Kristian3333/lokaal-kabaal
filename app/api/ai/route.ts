@@ -1,13 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { requireAuth } from '@/lib/auth';
+import { isValidBranche } from '@/lib/validation';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
 });
 
 export async function POST(req: NextRequest) {
+  const authResult = requireAuth(req);
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const { spec, bedrijfsnaam, slogan, brandguideNaam } = await req.json();
+
+    // Input validation
+    if (spec && !isValidBranche(spec)) {
+      return NextResponse.json({ error: 'Branche/spec is ongeldig (max 100 tekens)' }, { status: 400 });
+    }
+    const MAX_TEXT_LENGTH = 5000;
+    if (bedrijfsnaam && typeof bedrijfsnaam === 'string' && bedrijfsnaam.length > MAX_TEXT_LENGTH) {
+      return NextResponse.json({ error: 'Bedrijfsnaam is te lang (max 5000 tekens)' }, { status: 400 });
+    }
+    if (slogan && typeof slogan === 'string' && slogan.length > MAX_TEXT_LENGTH) {
+      return NextResponse.json({ error: 'Slogan is te lang (max 5000 tekens)' }, { status: 400 });
+    }
+    if (brandguideNaam && typeof brandguideNaam === 'string' && brandguideNaam.length > MAX_TEXT_LENGTH) {
+      return NextResponse.json({ error: 'Merkstijl naam is te lang (max 5000 tekens)' }, { status: 400 });
+    }
 
     const brandContext = [
       bedrijfsnaam && `Bedrijfsnaam: ${bedrijfsnaam}`,

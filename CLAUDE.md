@@ -172,5 +172,9 @@ This workflow is not optional. Skipping it creates technical debt that compounds
 - [x] Stripe integration
 - [x] Multiple industry landing pages
 - [x] SEO and sitemap
-- [ ] Testing infrastructure (not yet set up)
-- [ ] Claude Code project structure (setting up now)
+- [x] Testing infrastructure (vitest 2.x, 163+ tests, lib/ coverage)
+- [x] Claude Code project structure
+- [x] Security hardening (auth middleware, input validation, security headers, CSRF)
+- [x] Code quality sweep (emdash removal, console.log cleanup, error handling)
+- [x] Accessibility improvements (aria-labels, error boundaries, toast notifications)
+- [ ] Component extraction (dashboard split in progress)

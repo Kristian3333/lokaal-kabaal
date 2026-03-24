@@ -1,10 +1,10 @@
-// Print.one tarieven — handmatig ingevoerd op basis van Print.one prijspagina
+// Print.one tarieven -- handmatig ingevoerd op basis van Print.one prijspagina
 // ACTIE VEREIST: Verifieer deze prijzen op https://print.one/pricing vóór go-live
 //
 // Bulktarief (≥300 stuks): €0,69/stuk incl. druk + PostNL-bezorging
 // Toeslagen zijn additief op de basisprijs
 
-export const PRINTONE_BASE_A6 = 0.69;   // A6 enkelvoudig — basistartief
+export const PRINTONE_BASE_A6 = 0.69;   // A6 enkelvoudig -- basistartief
 
 // Toeslagen per formaat (additief op PRINTONE_BASE_A6)
 export const PRINTONE_TOESLAG: Record<'a6' | 'a5' | 'sq', number> = {

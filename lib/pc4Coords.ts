@@ -1,5 +1,5 @@
 // Uitgebreide PC4 → [lat, lon] lookup voor Nederland
-// Gebaseerd op CBS/Kadaster centroids — hogere prioriteit dan Nominatim
+// Gebaseerd op CBS/Kadaster centroids -- hogere prioriteit dan Nominatim
 export const PC4_COORDS: Record<string, [number, number]> = {
   // Amsterdam 1000-1109
   '1011': [52.374, 4.901], '1012': [52.370, 4.897], '1013': [52.384, 4.879],
@@ -196,7 +196,7 @@ export const PC4_COORDS: Record<string, [number, number]> = {
   '7723': [52.516, 6.432], '7731': [52.569, 6.395], '7732': [52.565, 6.401],
   '7733': [52.561, 6.407], '7741': [52.593, 6.392], '7742': [52.589, 6.398],
   '7751': [52.567, 6.399], '7752': [52.563, 6.407], '7753': [52.559, 6.415],
-  // Coevorden / Schoonebeek 7740-7769 (Drenthe ZO — grensgebied DE)
+  // Coevorden / Schoonebeek 7740-7769 (Drenthe ZO -- grensgebied DE)
   '7740': [52.663, 6.745], '7745': [52.649, 6.780], '7746': [52.644, 6.795],
   '7761': [52.669, 6.876], '7762': [52.646, 6.920], '7763': [52.651, 6.885],
   '7764': [52.655, 6.850], '7765': [52.658, 6.863],

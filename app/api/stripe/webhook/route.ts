@@ -76,7 +76,6 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        console.log('[webhook] retailer geactiveerd:', email, tier);
         break;
       }
 
@@ -105,7 +104,6 @@ export async function POST(req: NextRequest) {
             .update(retailers)
             .set({ subscriptionStatus: 'gepauzeerd', updatedAt: new Date() })
             .where(eq(retailers.stripeSubscriptionId, subId));
-          console.warn('[webhook] betaling mislukt, abonnement gepauzeerd:', subId);
         }
         break;
       }

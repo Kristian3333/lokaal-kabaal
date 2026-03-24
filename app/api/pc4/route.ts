@@ -14,7 +14,7 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number): numb
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// Centroid from GeoJSON feature — uses bbox if present, else walks coordinates
+// Centroid from GeoJSON feature -- uses bbox if present, else walks coordinates
 function centroidFromFeature(feature: {
   bbox?: number[];
   geometry?: { type: string; coordinates: unknown };
@@ -42,7 +42,7 @@ function isNLCoord(lat: number, lon: number) {
   return lat > 50.5 && lat < 54 && lon > 3 && lon < 7.6;
 }
 
-// In-memory centroid cache — survives multiple requests on same Vercel instance
+// In-memory centroid cache -- survives multiple requests on same Vercel instance
 const centroidCache = new Map<string, { lat: number; lon: number }>();
 
 async function geocodePC4(pc4: string): Promise<{ lat: number; lon: number } | null> {
@@ -70,7 +70,7 @@ async function geocodePC4(pc4: string): Promise<{ lat: number; lon: number } | n
     }
   } catch { /* fall through to formula */ }
 
-  // Last-resort formula — rough regional approximation
+  // Last-resort formula -- rough regional approximation
   const n = parseInt(pc4, 10);
   let lat = 0, lon = 0;
   if      (n >= 1000 && n <= 1299) { lat = 52.37; lon = 4.89; }

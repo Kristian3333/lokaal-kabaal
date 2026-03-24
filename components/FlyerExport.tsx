@@ -1,7 +1,8 @@
 'use client';
 import { useState } from 'react';
+import { showToast } from '@/components/Toast';
 
-// Print dimensions in mm (incl. 3mm bleed rondom) — alle formaten portrait
+// Print dimensions in mm (incl. 3mm bleed rondom) -- alle formaten portrait
 // print.one specs: A6 105×148mm, A5 148×210mm, Vierkant 148×148mm + 3mm bleed rondom
 export const PRINT_DIMS = {
   a6: { w: 111, h: 154, trimW: 105, trimH: 148, label: 'A6 (105×148mm)' },
@@ -105,7 +106,7 @@ export default function FlyerExport({ frontRef, backRef, formaat, dubbelzijdig, 
       pdf.save(`flyer-${bedrijfsnaam.toLowerCase().replace(/\s+/g, '-')}-${formaat}.pdf`);
     } catch (e) {
       console.error('PDF export error:', e);
-      alert('PDF export mislukt. Probeer opnieuw.');
+      showToast('PDF export mislukt. Probeer opnieuw.', 'error');
     } finally {
       setLoading(false);
     }

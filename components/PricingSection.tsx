@@ -94,7 +94,7 @@ const TIERS = [
 
 // Print.one formaat toeslagen (additief op €0,69 basistartief)
 const FORMAT_UPGRADES = [
-  { label: 'A6 enkelvoudig (standaard)', extra: '€0,69/stuk', surcharge: '—' },
+  { label: 'A6 enkelvoudig (standaard)', extra: '€0,69/stuk', surcharge: '-' },
   { label: 'A6 dubbelzijdig',            extra: '€0,79/stuk', surcharge: '+€0,10' },
   { label: 'A5 enkelvoudig',             extra: '€0,87/stuk', surcharge: '+€0,18' },
   { label: 'A5 dubbelzijdig',            extra: '€0,97/stuk', surcharge: '+€0,28' },
@@ -139,7 +139,7 @@ export default function PricingSection() {
           </h2>
           <p style={{ fontSize: '13px', color: 'rgba(255,255,255,.4)', fontFamily: 'var(--font-mono)', maxWidth: '580px', margin: '0 auto 16px' }}>
             Het abonnement dekt service, automatisering en campagnebeheer. Printkosten komen daar bovenop:{' '}
-            <strong style={{ color: 'rgba(255,255,255,.6)' }}>€0,69 per flyer</strong> incl. druk en PostNL-bezorging — bij minimaal 300 stuks.
+            <strong style={{ color: 'rgba(255,255,255,.6)' }}>€0,69 per flyer</strong> incl. druk en PostNL-bezorging -- bij minimaal 300 stuks.
           </p>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,200,0,0.07)', border: '1px solid rgba(255,200,0,0.18)', borderRadius: '8px', padding: '8px 16px', marginBottom: '32px' }}>
             <span style={{ fontSize: '11px', color: 'rgba(255,200,80,0.8)', fontFamily: 'var(--font-mono)' }}>
@@ -310,7 +310,7 @@ export default function PricingSection() {
             style={{ width: '100%', background: 'rgba(255,255,255,0.03)', border: 'none', cursor: 'pointer', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
           >
             <span style={{ fontSize: '12px', color: 'rgba(255,255,255,.5)', fontFamily: 'var(--font-mono)' }}>
-              Groter formaat gewenst? Alle formaten en toeslagen — voor alle abonnementen.
+              Groter formaat gewenst? Alle formaten en toeslagen -- voor alle abonnementen.
             </span>
             <span style={{ fontSize: '12px', color: 'rgba(255,255,255,.3)', fontFamily: 'var(--font-mono)', flexShrink: 0, marginLeft: '12px' }}>{showFormats ? '▲' : '▼'}</span>
           </button>
@@ -320,7 +320,7 @@ export default function PricingSection() {
                 <div key={f.label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 'var(--radius)', padding: '10px 12px' }}>
                   <div style={{ fontSize: '12px', color: '#fff', marginBottom: '4px' }}>{f.label}</div>
                   <div style={{ fontSize: '13px', color: 'var(--green)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{f.extra}</div>
-                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,.3)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>{f.surcharge !== '—' ? `toeslag: ${f.surcharge}/stuk` : 'basistartief'}</div>
+                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,.3)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>{f.surcharge !== '-' ? `toeslag: ${f.surcharge}/stuk` : 'basistartief'}</div>
                 </div>
               ))}
             </div>

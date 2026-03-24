@@ -35,7 +35,7 @@ async function fetchAltumAddresses(
 ): Promise<AltumAddress[]> {
   const key = process.env.ALTUM_API_KEY;
   if (!key) {
-    // Geen sleutel — retourneer mock data voor dev/test
+    // Geen sleutel -- retourneer mock data voor dev/test
     return pc4Lijst.slice(0, 3).map((pc4, i) => ({
       id: `mock-${pc4}-${i}`,
       street: 'Teststraat',
@@ -125,7 +125,7 @@ async function createBatch(params: {
   });
 
   if (!result.ok) {
-    console.warn('[cron] Print.one batch aanmaken mislukt:', result.data);
+    // Print.one batch creation failed
     return null;
   }
   return { batchId: (result.data as { id: string }).id };
@@ -145,7 +145,7 @@ async function addBatchOrder(batchId: string, params: {
   );
 
   if (!result.ok) {
-    console.warn('[cron] Print.one batch order mislukt:', result.data);
+    // Print.one batch order failed
     return null;
   }
   return { orderId: (result.data as { id: string }).id };
@@ -159,7 +159,7 @@ async function finalizeBatch(batchId: string): Promise<boolean> {
   });
 
   if (!result.ok) {
-    console.warn('[cron] Print.one batch finaliseren mislukt:', result.data);
+    // Print.one batch finalization failed
     return false;
   }
   return true;
@@ -212,7 +212,6 @@ export async function GET(req: NextRequest) {
   const maand = batchMaand(); // bijv. '2026-03-01'
   const now   = new Date();
 
-  console.log(`[cron] batch gestart — maand: ${maand}`);
 
   // ── 1. Haal actieve campagnes op voor deze maand ─────────────────────────
   const activeCampaigns = await db
@@ -226,7 +225,6 @@ export async function GET(req: NextRequest) {
       ),
     );
 
-  console.log(`[cron] ${activeCampaigns.length} actieve campagne(s) gevonden`);
 
   const resultaten: Array<{
     campagneId: string;
@@ -289,7 +287,7 @@ export async function GET(req: NextRequest) {
 
       if (campagne.flyerTemplateId && process.env.PRINTONE_API_KEY) {
         const batchResult = await createBatch({
-          name:       `${retailer.bedrijfsnaam} — ${campagne.naam} — ${maand}`,
+          name:       `${retailer.bedrijfsnaam} - ${campagne.naam} - ${maand}`,
           templateId: campagne.flyerTemplateId,
           finish:     'GLOSSY',
           sender: {
@@ -300,7 +298,6 @@ export async function GET(req: NextRequest) {
           },
         });
         batchId = batchResult?.batchId ?? null;
-        if (batchId) console.log(`[cron] batch aangemaakt: ${batchId}`);
       }
 
       // ── 4. Verificatiecodes + batch orders per adres ────────────────────
@@ -350,8 +347,8 @@ export async function GET(req: NextRequest) {
               printoneOrderId,
             });
             result.verzonden++;
-          } catch (dbErr) {
-            console.warn(`[cron] DB insert verificatie mislukt (${code}):`, dbErr);
+          } catch {
+            // DB insert for verification code failed
           }
         });
       }
@@ -361,8 +358,7 @@ export async function GET(req: NextRequest) {
 
       // ── 5. Batch finaliseren → Print.one gaat verzenden ──────────────────
       if (batchId) {
-        const ok = await finalizeBatch(batchId);
-        console.log(`[cron] batch ${batchId} ${ok ? 'gefinaliseerd' : 'NIET gefinaliseerd'}`);
+        await finalizeBatch(batchId);
       }
 
       // ── 6. Credit ledger bijwerken ────────────────────────────────────────
@@ -393,7 +389,6 @@ export async function GET(req: NextRequest) {
             .set({ dashboardActiefTot, updatedAt: new Date() })
             .where(eq(retailers.id, campagne.retailerId)),
         ]);
-        console.log(`[cron] campagne ${campagne.naam} afgerond — dashboard actief tot ${dashboardActiefTot.toISOString()}`);
       }
 
     } catch (err) {
@@ -408,7 +403,6 @@ export async function GET(req: NextRequest) {
   const totaalCredits   = resultaten.reduce((s, r) => s + r.credits, 0);
   const fouten          = resultaten.filter((r) => r.fout);
 
-  console.log(`[cron] batch klaar — ${totaalVerzonden} flyers, ${totaalCredits} credits, ${fouten.length} fouten`);
 
   return NextResponse.json({
     gestart:         now.toISOString(),

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireDb } from '../../../../lib/db';
-import { retailers } from '../../../../lib/schema';
+import { requireDb } from '@/lib/db';
+import { retailers } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
+import { getAuthEmail } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +17,8 @@ export const dynamic = 'force-dynamic';
  * Gebruikt door het dashboard om de lifecycle-banner te tonen.
  */
 export async function GET(req: NextRequest) {
-  const email = req.nextUrl.searchParams.get('email');
+  const paramEmail = req.nextUrl.searchParams.get('email');
+  const email = getAuthEmail(req, paramEmail, 'subscription/status');
   if (!email) {
     return NextResponse.json({ error: 'email is verplicht' }, { status: 400 });
   }
@@ -37,7 +39,7 @@ export async function GET(req: NextRequest) {
       .limit(1);
 
     if (rows.length === 0) {
-      // Nieuwe gebruiker — geen abonnement gevonden
+      // Nieuwe gebruiker -- geen abonnement gevonden
       return NextResponse.json({ found: false });
     }
 
