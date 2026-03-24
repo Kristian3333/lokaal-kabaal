@@ -2427,69 +2427,12 @@ export default function LokaalKabaal() {
         </div>
 
         {/* Campaigns list or empty state */}
-        {campaigns.length === 0 ? (
-          <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '60px 40px', textAlign: 'center', marginBottom: '20px' }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', marginBottom: '16px', color: 'var(--line)' }}>◈</div>
-            <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', marginBottom: '10px' }}>Nog geen campagnes</div>
-            <p style={{ color: 'var(--muted)', fontSize: '13px', lineHeight: 1.65, maxWidth: '380px', margin: '0 auto 24px' }}>
-              Maak je eerste campagne en bereik nieuwe bewoners in jouw werkgebied — automatisch elke maand.
-            </p>
-            <button onClick={startNieuweCampagne} style={{ padding: '12px 28px', background: 'var(--ink)', color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}>
-              + Eerste campagne starten
-            </button>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-            {campaigns.map(c => {
-              const now = new Date();
-              const next25 = new Date(now.getFullYear(), now.getMonth(), 25);
-              if (next25 <= now) next25.setMonth(next25.getMonth() + 1);
-              const daysUntil = Math.ceil((next25.getTime() - now.getTime()) / 86400000);
-              return (
-              <div key={c.id} style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
-                {/* Type banner */}
-                <div style={{ background: 'var(--green-bg)', borderBottom: '1px solid rgba(0,232,122,0.2)', padding: '6px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, color: 'var(--green-dim)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Nieuwe bewoners · Altum-data</span>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'rgba(0,0,0,0.3)' }}>·</span>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--green-dim)' }}>elke 25e automatisch verstuurd</span>
-                  </div>
-                  {c.status === 'actief' && (
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--green-dim)' }}>
-                      volgende verzending over <strong>{daysUntil} dag{daysUntil !== 1 ? 'en' : ''}</strong>
-                    </span>
-                  )}
-                </div>
-                {/* Campaign body */}
-                <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: c.status === 'actief' ? 'var(--green)' : '#888', flexShrink: 0 }} />
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '2px' }}>{c.spec}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                        {c.centrum} · max {c.aantalFlyers.toLocaleString('nl')} flyers/mnd · {c.formaat.toUpperCase()}{c.dubbelzijdig ? ' dubbelzijdig' : ''} · start {c.datum ? new Date(c.datum).toLocaleDateString('nl', { month: 'long', year: 'numeric' }) : '—'}
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px' }}>{formatPrijs(c.maxBudget)}<span style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>/mnd max</span></div>
-                      <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--muted)' }}>betaal alleen actual gebruik</div>
-                    </div>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', padding: '3px 8px', borderRadius: '3px', background: c.status === 'actief' ? 'var(--green-bg)' : 'var(--paper2)', color: c.status === 'actief' ? 'var(--green-dim)' : 'var(--muted)', border: `1px solid ${c.status === 'actief' ? 'rgba(0,232,122,0.3)' : 'var(--line)'}`, fontWeight: 700 }}>
-                      {c.status.toUpperCase()}
-                    </span>
-                    <button onClick={() => setCampaigns(prev => prev.map(x => x.id === c.id ? { ...x, status: x.status === 'actief' ? 'gepauzeerd' : 'actief' } : x))}
-                      style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', padding: '5px 10px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper)', cursor: 'pointer' }}>
-                      {c.status === 'actief' ? 'Pauzeren' : 'Hervatten'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              );
-            })}
-          </div>
-        )}
+        <CampaignList
+          campaigns={campaigns}
+          onStartCampaign={startNieuweCampagne}
+          onToggleStatus={id => setCampaigns(prev => prev.map(x => x.id === id ? { ...x, status: x.status === 'actief' ? 'gepauzeerd' : 'actief' } : x))}
+          formatPrijs={formatPrijs}
+        />
 
         <Ticker />
       </div>
@@ -2578,28 +2521,11 @@ export default function LokaalKabaal() {
 
           {/* STAP 3: Datum */}
           {step === 3 && (
-            <div>
-              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '8px' }}>Wanneer wil je starten?</h2>
-              <p style={{ color: 'var(--muted)', marginBottom: '20px' }}>
-                Flyers worden elke maand op de <strong>25e</strong> verstuurd naar nieuwe bewoners van die maand. Kies je startmaand — tot 12 maanden vooruit.
-              </p>
-              <div className="datum-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-                {availableMonths.map(m => (
-                  <button key={m.value} onClick={() => updateWiz({ datum: m.value })}
-                    style={{
-                      padding: '14px 10px', border: `1px solid ${datum === m.value ? 'var(--green)' : 'var(--line)'}`,
-                      borderRadius: 'var(--radius)', background: datum === m.value ? 'var(--green-bg)' : 'var(--paper)',
-                      cursor: 'pointer', fontWeight: datum === m.value ? 700 : 400, fontSize: '13px',
-                      color: datum === m.value ? 'var(--green-dim)' : 'var(--ink)',
-                    }}>
-                    {m.label}
-                  </button>
-                ))}
-              </div>
-              <div style={{ marginTop: '16px', padding: '12px', background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                ℹ Startdatum is altijd de 1e van de gekozen maand. Bezorging vindt elke maand automatisch plaats op de 25e via Kadaster-data.
-              </div>
-            </div>
+            <MonthSelector
+              availableMonths={availableMonths}
+              selected={datum}
+              onSelect={v => updateWiz({ datum: v })}
+            />
           )}
 
           {/* STAP 4: Werkgebied */}
@@ -2737,120 +2663,19 @@ export default function LokaalKabaal() {
 
           {/* STAP 5: Formaat & Aantallen */}
           {step === 5 && (
-            <div>
-              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '8px' }}>Formaat & aantallen</h2>
-              <p style={{ color: 'var(--muted)', marginBottom: '16px' }}>
-                Minimum 300 flyers per batch voor een rendabele printrun. A6 is ons standaardformaat — grotere formaten hebben een toeslag.
-              </p>
-
-              {/* Min-300 waarschuwing */}
-              {stats.estAdressenMaand < 300 && (
-                <div style={{ background: 'rgba(255,200,0,0.08)', border: '1px solid rgba(255,200,0,0.3)', borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: '20px' }}>
-                  <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: '#b8860b', fontWeight: 700, marginBottom: '6px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                    Werkgebied onder minimumdrempel
-                  </div>
-                  <div style={{ fontSize: '13px', color: 'var(--ink)', lineHeight: 1.6, marginBottom: '8px' }}>
-                    Dit gebied heeft gemiddeld ~{stats.estAdressenMaand} overdrachten/maand. Voeg aangrenzende postcodes toe om de minimumdrempel van 300 te halen.
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                    Of kies bewust voor minder — dan geldt een toeslag van 3× het standaard tarief. Dit wordt bevestigd bij het afrekenen.
-                  </div>
-                </div>
-              )}
-
-              {/* Formaat — A6 is het standaard Print.one-formaat */}
-              <div style={{ marginBottom: '20px' }}>
-                <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '10px' }}>FORMAAT (Print.one tarieven)</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                  {([
-                    { id: 'a6' as FlyerFormaat, label: 'A6', afm: '105×148 mm', std: true },
-                    { id: 'a5' as FlyerFormaat, label: 'A5', afm: '148×210 mm', std: false },
-                  ] as const).map(f => {
-                    const toeslag = toeslagLabel(f.id, dubbelzijdig);
-                    const isSelected = formaat === f.id;
-                    return (
-                      <div key={f.id} onClick={() => updateWiz({ formaat: f.id })}
-                        style={{
-                          padding: '16px', border: `2px solid ${isSelected ? 'var(--green)' : 'var(--line)'}`,
-                          borderRadius: 'var(--radius)', cursor: 'pointer', textAlign: 'center',
-                          background: isSelected ? 'var(--green-bg)' : 'var(--paper)',
-                          transition: 'all 0.15s', position: 'relative',
-                        }}>
-                        {f.std && <div style={{ position: 'absolute', top: '-8px', left: '50%', transform: 'translateX(-50%)', background: 'var(--green)', color: 'var(--ink)', fontSize: '9px', fontWeight: 700, padding: '1px 8px', borderRadius: '2px', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>STANDAARD</div>}
-                        <div style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', marginBottom: '4px' }}>{f.label}</div>
-                        <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{f.afm}</div>
-                        <div style={{ fontSize: '11px', color: isSelected ? 'var(--green-dim)' : 'var(--muted)', fontFamily: 'var(--font-mono)', fontWeight: 600, marginTop: '6px' }}>{toeslag}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Dubbelzijdig */}
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '14px', border: `1px solid ${dubbelzijdig ? 'var(--green)' : 'var(--line)'}`, borderRadius: 'var(--radius)', background: dubbelzijdig ? 'var(--green-bg)' : 'var(--paper)' }}>
-                  <input type="checkbox" checked={dubbelzijdig} onChange={e => updateWiz({ dubbelzijdig: e.target.checked })} style={{ accentColor: 'var(--green)', width: '16px', height: '16px' }} />
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: '14px' }}>Dubbelzijdig</div>
-                    <div style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>+€0,10 per flyer — achterkant voor extra info, kortingscode of kaart</div>
-                  </div>
-                </label>
-              </div>
-
-              {/* Verwacht aantal flyers per maand */}
-              <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.3)', borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: '16px' }}>
-                <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--green)', letterSpacing: '0.08em', marginBottom: '6px' }}>VERWACHT AANTAL FLYERS PER MAAND</div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '4px' }}>
-                  <span style={{ fontFamily: 'var(--font-serif)', fontSize: '32px', color: 'var(--green)', lineHeight: 1 }}>
-                    {stats.estAdressenMaand.toLocaleString('nl')}
-                  </span>
-                  <span style={{ fontSize: '12px', color: 'var(--muted)' }}>nieuwe woningeigenaren/maand in uw werkgebied</span>
-                </div>
-                <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                  Dit aantal wordt elke 25e verstuurd. Printkosten: <strong>€{(prijsPerStuk(formaat, dubbelzijdig) * stats.estAdressenMaand).toFixed(2).replace('.', ',')}</strong> ({stats.estAdressenMaand} × €{prijsPerStuk(formaat, dubbelzijdig).toFixed(2).replace('.', ',')}/stuk)
-                </div>
-              </div>
-
-              {/* Offerte bij groot werkgebied */}
-              {stats.estAdressenMaand >= 5000 && (
-                <div style={{ background: 'var(--ink)', border: '1px solid rgba(0,232,122,0.3)', borderRadius: 'var(--radius)', padding: '16px', marginBottom: '16px' }}>
-                  <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green)', marginBottom: '8px', letterSpacing: '0.08em' }}>
-                    GROOT WERKGEBIED — MAATWERKTARIEF
-                  </div>
-                  <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', marginBottom: '12px', lineHeight: 1.6 }}>
-                    Uw werkgebied bevat ~{stats.estAdressenMaand.toLocaleString('nl')} nieuwe bewoners per maand. Voor grotere gebieden maken we een maatwerkaanbod.
-                  </div>
-                  <a
-                    href={`mailto:hallo@lokaalkabaal.nl?subject=Prijsverzoek groot werkgebied&body=Hallo,%0A%0AIk wil graag een offerte voor mijn werkgebied:%0A- Centrum: ${centrum}%0A- Straal: ${straal} km%0A- Branche: ${spec}%0A- Geschatte nieuwe bewoners/mnd: ${stats.estAdressenMaand}%0A%0AKunt u mij een aanbod sturen?`}
-                    style={{ display: 'inline-block', padding: '10px 20px', background: 'var(--green)', color: 'var(--ink)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', fontFamily: 'var(--font-mono)' }}
-                  >
-                    Stuur prijsverzoek →
-                  </a>
-                </div>
-              )}
-
-              {/* Abonnementsoverzicht op basis van werkgebied */}
-              <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px', marginBottom: '16px' }}>
-                <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>
-                  ABONNEMENT — {actualPc4Count} PC4-POSTCODE{actualPc4Count !== 1 ? 'S' : ''} IN UW WERKGEBIED
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                    <span>{abonnement.tier} abonnement ({actualPc4Count} PC4-gebieden in werkgebied)</span>
-                    <span style={{ fontFamily: 'var(--font-mono)' }}>{formatPrijs(abonnement.base)}/mnd</span>
-                  </div>
-                  {/* Abonnement is vaste maandprijs op basis van tier */}
-                  <div style={{ height: '1px', background: 'var(--line)', margin: '2px 0' }} />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <span style={{ fontWeight: 700 }}>Totaal per maand</span>
-                    <span style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', color: 'var(--green)' }}>{formatPrijs(abonnement.total)}</span>
-                  </div>
-                </div>
-                <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.2)', borderRadius: 'var(--radius)', padding: '10px 12px', fontSize: '12px', color: 'var(--ink)', lineHeight: 1.6 }}>
-                  Alle nieuwe bewoners in uw {actualPc4Count} postcode{actualPc4Count !== 1 ? 's' : ''} zijn inbegrepen — geen limiet op het aantal flyers. Jaarcontract: 25% korting.
-                </div>
-              </div>
-            </div>
+            <PriceCalculator
+              formaat={formaat}
+              dubbelzijdig={dubbelzijdig}
+              estAdressenMaand={stats.estAdressenMaand}
+              onFormaatChange={f => updateWiz({ formaat: f })}
+              onDubbelzijdigChange={checked => updateWiz({ dubbelzijdig: checked })}
+              abonnement={abonnement}
+              actualPc4Count={actualPc4Count}
+              formatPrijs={formatPrijs}
+              centrum={centrum}
+              straal={straal}
+              spec={spec}
+            />
           )}
 
           {/* STAP 6: Campagne duur & doelgroepfilters */}

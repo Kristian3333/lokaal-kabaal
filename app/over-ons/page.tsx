@@ -5,7 +5,7 @@ const PIJLERS = [
   {
     nummer: '01',
     titel: 'Hyper-lokaal',
-    tekst: 'We schieten niet met hagel. Geen landelijke campagnes, geen anonieme doelgroepen. We raken mensen precies op het moment dat ze in een nieuwe wijk terechtkomen — en dan telt elke interactie dubbel. Een flyer van de plaatselijke kapper is geen reclame. Het is een kennismaking.',
+    tekst: 'We schieten niet met hagel. Geen landelijke campagnes, geen anonieme doelgroepen. We raken mensen precies op het moment dat ze in een nieuwe wijk terechtkomen -- en dan telt elke interactie dubbel. Een flyer van de plaatselijke kapper is geen reclame. Het is een kennismaking.',
   },
   {
     nummer: '02',
@@ -15,7 +15,7 @@ const PIJLERS = [
   {
     nummer: '03',
     titel: 'Rebels & Energiek',
-    tekst: 'De naam "Lokaal Kabaal" is geen toeval. We maken lawaai voor de lokale ondernemer. Geen supermarktfolders, geen bleke coupons. Energie, cultuur, karakter. Of je nu een underground barista bent, een buurtbarbier of een stucadoor die trots is op zijn vak — wij maken jouw eerste indruk onvergetelijk.',
+    tekst: 'De naam "Lokaal Kabaal" is geen toeval. We maken lawaai voor de lokale ondernemer. Geen supermarktfolders, geen bleke coupons. Energie, cultuur, karakter. Of je nu een underground barista bent, een buurtbarbier of een stucadoor die trots is op zijn vak -- wij maken jouw eerste indruk onvergetelijk.',
   },
   {
     nummer: '04',
@@ -25,14 +25,14 @@ const PIJLERS = [
   {
     nummer: '05',
     titel: 'De Eerste Kennismaking',
-    tekst: 'Nieuwe bewoners kiezen hun vaste kapper, bakker en restaurant in de eerste 30 dagen na een verhuizing. Dat venster is goud. Wij zorgen dat jij er als eerste bent — niet met een banner die ze negeren, maar met een flyer die ze vasthouden.',
+    tekst: 'Nieuwe bewoners kiezen hun vaste kapper, bakker en restaurant in de eerste 30 dagen na een verhuizing. Dat venster is goud. Wij zorgen dat jij er als eerste bent -- niet met een banner die ze negeren, maar met een flyer die ze vasthouden.',
   },
 ];
 
 const STATS = [
   { val: '73%', label: 'van nieuwe bewoners kiest lokale vaste leveranciers in de eerste 30 dagen' },
   { val: '7 dagen', label: 'gemiddelde houdbaarheid van een flyer vs. 3 seconden voor een social ad' },
-  { val: '17.000+', label: 'huishoudens verhuizen elke maand in Nederland — dat zijn verse kansen' },
+  { val: '17.000+', label: 'huishoudens verhuizen elke maand in Nederland -- dat zijn verse kansen' },
 ];
 
 export default function OverOns() {
@@ -105,7 +105,7 @@ export default function OverOns() {
           <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Het team</div>
           <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '36px', fontWeight: 400, marginBottom: '20px' }}>Klein. <em style={{ color: 'var(--muted)' }}>Maar lawaaiig.</em></h2>
           <p style={{ fontSize: '15px', color: 'var(--muted)', lineHeight: 1.7, marginBottom: '16px' }}>
-            We zijn een klein team vanuit Amsterdam. We kennen alle lokale ondernemers in onze straat bij naam. Dat is precies waarom we dit bouwen — omdat we zien hoe moeilijk het is om op te vallen als je geen marketingbudget van een multinational hebt.
+            We zijn een klein team vanuit Amsterdam. We kennen alle lokale ondernemers in onze straat bij naam. Dat is precies waarom we dit bouwen -- omdat we zien hoe moeilijk het is om op te vallen als je geen marketingbudget van een multinational hebt.
           </p>
           <p style={{ fontSize: '15px', color: 'var(--muted)', lineHeight: 1.7 }}>
             Lokaal Kabaal is gebouwd voor de kapper op de hoek, de barista met een missie en de stucadoor die gewoon goed werk levert. Wij zijn hun megafoon.

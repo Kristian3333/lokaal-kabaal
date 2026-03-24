@@ -4,9 +4,9 @@ import { flyerVerifications, retailers } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 import PinForm from './PinForm';
 
-export const metadata: Metadata = { title: 'Verificatie — LokaalKabaal' };
+export const metadata: Metadata = { title: 'Verificatie - LokaalKabaal' };
 
-// Disable caching — elke scan is uniek
+// Disable caching -- elke scan is uniek
 export const dynamic = 'force-dynamic';
 
 type Status = 'interesse' | 'already-scanned' | 'expired' | 'invalid' | 'conversie' | 'no-db';
@@ -104,7 +104,7 @@ export default async function VerifyPage({
     }
   }
 
-  // Kleurconfiguratie — gebruik merkkleur als beschikbaar
+  // Kleurconfiguratie -- gebruik merkkleur als beschikbaar
   const accent = brand.merkKleur || '#00E87A';
   const accentDark = brand.merkKleur
     ? brand.merkKleur + 'CC'  // iets donkerder via opacity

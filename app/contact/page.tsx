@@ -15,7 +15,7 @@ const FAQS = [
   },
   {
     v: 'Werken jullie alleen in grote steden?',
-    a: 'Nee. We zijn actief in heel Nederland — van Amsterdam tot Zeeland. Zolang er mensen verhuizen, kunnen wij flyers bezorgen.',
+    a: 'Nee. We zijn actief in heel Nederland -- van Amsterdam tot Zeeland. Zolang er mensen verhuizen, kunnen wij flyers bezorgen.',
   },
   {
     v: 'Wat als er minder nieuwe bewoners zijn dan ik besteld heb?',
@@ -44,7 +44,7 @@ export default function Contact() {
             Zeg het maar.
           </h1>
           <p style={{ fontSize: '16px', color: 'var(--muted)', maxWidth: '500px', lineHeight: 1.6 }}>
-            Geen chatbot. Geen ticketsysteem. Gewoon een mens die antwoordt — binnen één werkdag.
+            Geen chatbot. Geen ticketsysteem. Gewoon een mens die antwoordt -- binnen één werkdag.
           </p>
         </div>
 

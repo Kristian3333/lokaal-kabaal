@@ -38,7 +38,7 @@ const STAPPEN = [
   {
     n: '02',
     titel: 'Upload je flyerontwerp',
-    tekst: 'Upload je eigen ontwerp of laat ons helpen. Elke flyer krijgt automatisch het juiste adres — gepersonaliseerd voor elke nieuwe bewoner.',
+    tekst: 'Upload je eigen ontwerp of laat ons helpen. Elke flyer krijgt automatisch het juiste adres -- gepersonaliseerd voor elke nieuwe bewoner.',
   },
   {
     n: '03',
@@ -206,7 +206,7 @@ export default function Landing() {
             </motion.div>
           </div>
 
-          {/* Right column — animated map */}
+          {/* Right column -- animated map */}
           <motion.div
             initial={{ opacity: 0, scale: 0.92, filter: 'blur(8px)' }}
             animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
@@ -232,10 +232,10 @@ export default function Landing() {
               <em style={{ color: 'var(--muted)' }}>30 dagen.</em>
             </h2>
             <p style={{ fontSize: '15px', color: 'var(--muted)', lineHeight: 1.8, marginBottom: '16px' }}>
-              Wanneer iemand verhuist, zijn alle gewoontes doorbroken. Er is geen vaste kapper, geen stamrestaurant, geen vertrouwde installateur. Alles staat open — en de keuzes worden razendsnel gemaakt.
+              Wanneer iemand verhuist, zijn alle gewoontes doorbroken. Er is geen vaste kapper, geen stamrestaurant, geen vertrouwde installateur. Alles staat open -- en de keuzes worden razendsnel gemaakt.
             </p>
             <p style={{ fontSize: '15px', color: 'var(--muted)', lineHeight: 1.8 }}>
-              Dit is het enige venster. LokaalKabaal zorgt dat jouw flyer in dat venster arriveert — vóór je concurrent.
+              Dit is het enige venster. LokaalKabaal zorgt dat jouw flyer in dat venster arriveert -- vóór je concurrent.
             </p>
           </FadeUp>
 
@@ -336,7 +336,7 @@ export default function Landing() {
               <em style={{ color: 'rgba(255,255,255,0.3)' }}>Wij zorgen voor de connectie.</em>
             </h2>
             <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.45)', maxWidth: '500px', margin: '0 auto', lineHeight: 1.7 }}>
-              LokaalKabaal is geen advertentieplatform. We zijn jouw stille partner die elke maand voor nieuwe klanten zorgt — terwijl jij gewoon je vak uitoefent.
+              LokaalKabaal is geen advertentieplatform. We zijn jouw stille partner die elke maand voor nieuwe klanten zorgt -- terwijl jij gewoon je vak uitoefent.
             </p>
           </FadeUp>
 
