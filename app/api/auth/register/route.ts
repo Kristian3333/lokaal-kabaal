@@ -6,6 +6,7 @@ import { createSessionToken, setSessionCookie } from '@/lib/auth';
 import { hashPassword } from '@/lib/password';
 import { isValidEmail, isValidBranche } from '@/lib/validation';
 import { sendWelcomeEmail } from '@/lib/email';
+import { authLimiter } from '@/lib/rate-limit';
 
 const MIN_PASSWORD_LENGTH = 8;
 const MAX_PASSWORD_LENGTH = 1024;
@@ -19,6 +20,14 @@ const MAX_BEDRIJFSNAAM_LENGTH = 255;
  * Returns retailer data and sets a session cookie.
  */
 export async function POST(req: NextRequest) {
+  const limit = authLimiter(req);
+  if (!limit.success) {
+    return NextResponse.json(
+      { error: 'Te veel verzoeken. Probeer het later opnieuw.' },
+      { status: 429, headers: { 'Retry-After': '60' } },
+    );
+  }
+
   if (!db) {
     return NextResponse.json({ error: 'Database niet geconfigureerd' }, { status: 503 });
   }

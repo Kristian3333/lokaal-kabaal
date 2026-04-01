@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/krist/Desktop/Projects/lokaalkabaal -name .env* -o -name *.env*)",
+      "Bash(find /c/Users/krist/Desktop/Projects/lokaalkabaal -maxdepth 2 -type f -name *.example -o -name *.env*)",
+      "Bash(ls -la /c/Users/krist/Desktop/Projects/lokaalkabaal/*.json /c/Users/krist/Desktop/Projects/lokaalkabaal/*.config.*)",
+      "Bash(find /c/Users/krist/Desktop/Projects/lokaalkabaal -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) ! -path \"*/node_modules/*\" ! -path \"*/.next/*\" ! -path \"*/dist/*\" ! -path \"*/tests/*\" ! -path \"*/scripts/*\" -exec wc -l {} +)",
+      "Bash(wc -l /c/Users/krist/Desktop/Projects/lokaalkabaal/components/dashboard/*.tsx)"
+    ]
+  }
+}

@@ -5,6 +5,10 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 
 const FROM_EMAIL = 'LokaalKabaal <noreply@lokaalkabaal.agency>';
 
+const APP_URL = process.env.NEXT_PUBLIC_BASE_URL
+  ? `${process.env.NEXT_PUBLIC_BASE_URL}/app`
+  : 'https://lokaalkabaal.agency/app';
+
 /** Monthly performance report data passed to sendMonthlyReport */
 export interface MonthlyReport {
   flyersSent: number;
@@ -48,7 +52,7 @@ export async function sendPaymentConfirmation(
     en je eerste campagne instellen.</p>
     <p>Heb je hulp nodig bij het opzetten? Bekijk onze handleiding in het dashboard.</p>
     `,
-    { text: 'Ga naar je dashboard', url: 'https://lokaalkabaal.agency/app' },
+    { text: 'Ga naar je dashboard', url: APP_URL },
   );
 
   return sendEmail({
@@ -73,7 +77,7 @@ export async function sendCampaignActivation(
     <strong>${pc4Count} postcodegebieden</strong>.</p>
     <p>De eerste verzending vindt plaats op de 25e van de komende maand.</p>
     `,
-    { text: 'Bekijk je campagne', url: 'https://lokaalkabaal.agency/app' },
+    { text: 'Bekijk je campagne', url: APP_URL },
   );
 
   return sendEmail({
@@ -97,7 +101,7 @@ export async function sendFlyerDispatchNotification(
     in ${maand}. Deze worden binnen 3&ndash;5 werkdagen bezorgd door PostNL.</p>
     <p>Via het dashboard zie je wanneer ontvangers jouw QR-code scannen.</p>
     `,
-    { text: 'Bekijk conversies', url: 'https://lokaalkabaal.agency/app' },
+    { text: 'Bekijk conversies', url: APP_URL },
   );
 
   return sendEmail({
@@ -169,7 +173,7 @@ export async function sendWelcomeEmail(
          style="color: #00E87A; text-decoration: none;">hallo@lokaalkabaal.agency</a>.
     </p>
     `,
-    { text: 'Start je eerste campagne', url: 'https://lokaalkabaal.agency/app' },
+    { text: 'Start je eerste campagne', url: APP_URL },
   );
 
   return sendEmail({
@@ -206,7 +210,7 @@ export async function sendScanNotification(
     ${statRow}
     <p>Bekijk het dashboard voor een volledig overzicht van scans en conversies.</p>
     `,
-    { text: 'Bekijk conversies', url: 'https://lokaalkabaal.agency/app' },
+    { text: 'Bekijk conversies', url: APP_URL },
   );
 
   return sendEmail({
@@ -249,7 +253,7 @@ export async function sendMonthlyReport(
     <p>Wil je je bereik vergroten of een nieuw postcodegebied toevoegen?
     Bekijk de campagne-instellingen in je dashboard.</p>
     `,
-    { text: 'Naar mijn dashboard', url: 'https://lokaalkabaal.agency/app' },
+    { text: 'Naar mijn dashboard', url: APP_URL },
   );
 
   return sendEmail({

@@ -1,132 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 import { put } from '@vercel/blob';
 import { generateVerificationCode, buildQRUrl, buildQRImageUrl } from '@/lib/verification';
 import { db } from '@/lib/db';
 import { flyerVerifications } from '@/lib/schema';
 import { requireAuth } from '@/lib/auth';
+import { generateFlyerCopy } from '@/lib/flyer-templates';
 
 export const maxDuration = 30;
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+// ---- Sub-function A: scrapeBasic ----
+// Simple HTML extraction without Browserless or Anthropic
 
-// ─── Sub-functie A: scrapeSite ────────────────────────────────────────────────
-
-async function scrapeSite(url: string) {
-  const browserlessToken = process.env.BROWSERLESS_TOKEN;
-
-  if (!browserlessToken) {
-    // Fallback: plain HTML fetch when Browserless is not configured
-    return scrapeBasic(url);
-  }
-
-  try {
-    const res = await fetch(
-      `https://chrome.browserless.io/function?token=${browserlessToken}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          code: `export default async function({ page, context }) {
-            await page.goto(context.url, { waitUntil: 'networkidle2', timeout: 15000 });
-            return await page.evaluate(() => {
-              // ── Kleuren uit CSS ──
-              const bgSet = new Set();
-              document.querySelectorAll('*').forEach(el => {
-                const s = getComputedStyle(el);
-                const bg = s.backgroundColor;
-                if (bg && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') bgSet.add(bg);
-                // Ook tekst- en borderkleur ophalen (bevat vaak merk-kleuren)
-                const color = s.color;
-                if (color && color !== 'rgba(0, 0, 0, 0)' && color !== 'rgb(0, 0, 0)') bgSet.add(color);
-                const bc = s.borderColor;
-                if (bc && bc !== 'rgba(0, 0, 0, 0)' && bc !== 'transparent') bgSet.add(bc);
-              });
-              // Hex kleuren uit inline styles en style tags
-              const htmlStr = document.documentElement.innerHTML || '';
-              const hexMatches = htmlStr.match(/#[0-9a-fA-F]{6}(?=[^0-9a-fA-F])/g) || [];
-              hexMatches.forEach(hex => {
-                const r = parseInt(hex.slice(1,3),16);
-                const g = parseInt(hex.slice(3,5),16);
-                const b = parseInt(hex.slice(5,7),16);
-                bgSet.add('rgb('+r+', '+g+', '+b+')');
-              });
-              // SVG fill kleuren
-              document.querySelectorAll('svg [fill]').forEach(el => {
-                const fill = el.getAttribute('fill');
-                if (fill && fill.startsWith('#') && fill.length === 7) {
-                  const r = parseInt(fill.slice(1,3),16);
-                  const g = parseInt(fill.slice(3,5),16);
-                  const b = parseInt(fill.slice(5,7),16);
-                  bgSet.add('rgb('+r+', '+g+', '+b+')');
-                }
-              });
-
-              // ── Logo: breed zoeken ──
-              const logo =
-                document.querySelector('img[alt*="logo" i]')?.src ||
-                document.querySelector('img[src*="logo" i]')?.src ||
-                document.querySelector('img[class*="logo" i]')?.src ||
-                document.querySelector('header img')?.src ||
-                document.querySelector('nav img')?.src ||
-                document.querySelector('.logo img, .logo-img, #logo img')?.src ||
-                document.querySelector('a[href="/"] img')?.src ||
-                document.querySelector('link[rel="apple-touch-icon"]')?.getAttribute('href') || null;
-
-              // ── Foto's: gebruik naturalWidth ipv getBoundingClientRect ──
-              const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute('content') || null;
-              const imgFotos = [...document.querySelectorAll('img')]
-                .filter(img => {
-                  const w = img.naturalWidth || img.width || parseInt(img.getAttribute('width') || '0');
-                  const h = img.naturalHeight || img.height || parseInt(img.getAttribute('height') || '0');
-                  return w > 300 && h > 200;
-                })
-                .map(img => img.src)
-                .filter(src =>
-                  src && src.startsWith('http') &&
-                  !src.includes('icon') &&
-                  !src.includes('favicon') &&
-                  !src.includes('avatar') &&
-                  !src.includes('sprite') &&
-                  !src.includes('pixel') &&
-                  !src.includes('tracking')
-                )
-                .slice(0, 8);
-
-              const fotos = ogImage
-                ? [ogImage, ...imgFotos.filter(s => s !== ogImage)].slice(0, 8)
-                : imgFotos;
-
-              // ── Tekst ──
-              const h1 = document.querySelector('h1')?.innerText?.trim() || '';
-              const meta = document.querySelector('meta[name="description"]')?.content?.trim() || '';
-              const ogDesc = document.querySelector('meta[property="og:description"]')?.content?.trim() || '';
-
-              return {
-                kleuren: [...bgSet].slice(0, 30),
-                logo,
-                fotos,
-                h1,
-                meta: meta || ogDesc
-              };
-            });
-          }`,
-          context: { url },
-        }),
-        signal: AbortSignal.timeout(18000),
-      }
-    );
-
-    if (!res.ok) throw new Error(`Browserless HTTP ${res.status}`);
-    return await res.json();
-  } catch (err) {
-    return scrapeBasic(url);
-  }
-}
-
-async function scrapeBasic(url: string) {
+async function scrapeBasic(url: string): Promise<{
+  kleuren: string[];
+  logo: string | null;
+  fotos: string[];
+  h1: string;
+  meta: string;
+  scrapedOk: boolean;
+  httpStatus?: number;
+}> {
   const normalizedUrl = url.startsWith('http') ? url : `https://${url}`;
-  let h1 = '', meta = '', logo: string | null = null;
 
   try {
     const res = await fetch(normalizedUrl, {
@@ -137,85 +31,60 @@ async function scrapeBasic(url: string) {
       },
       signal: AbortSignal.timeout(5000),
     });
-    if (res.ok) {
-      const html = await res.text();
-      h1 = html.match(/<h1[^>]*>([^<]+)<\/h1>/i)?.[1]?.trim() || '';
-      meta = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i)?.[1]?.trim()
-        || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i)?.[1]?.trim()
-        || '';
-      const ogImage = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1]
-        || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)?.[1]
-        || null;
-      logo = html.match(/<img[^>]+alt=["'][^"']*logo[^"']*["'][^>]+src=["']([^"']+)["']/i)?.[1] || null;
 
-      // Extraheer hex kleuren uit CSS in de HTML
-      const hexMatches = html.match(/#[0-9a-fA-F]{6}\b/g) || [];
-      const cssRgbMatches = html.match(/rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+/g) || [];
-      // Converteer hex naar rgb(...) formaat zodat kleurenUitCSSArray ze kan verwerken
-      const hexAsRgb = hexMatches.map(hex => {
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
-        return `rgb(${r}, ${g}, ${b})`;
-      });
-      const kleuren = [...hexAsRgb, ...cssRgbMatches];
-
-      const scrapedOk = !!(h1 || meta);
-      return { kleuren, logo, fotos: ogImage ? [ogImage] : [], h1, meta, scrapedOk };
+    if (!res.ok) {
+      return { kleuren: [], logo: null, fotos: [], h1: '', meta: '', scrapedOk: false, httpStatus: res.status };
     }
-    // Non-200 response (bijv. 403 Cloudflare, 429 rate limit)
-    return { kleuren: [], logo: null, fotos: [], h1: '', meta: '', scrapedOk: false, httpStatus: res.status };
+
+    const html = await res.text();
+    const h1 = html.match(/<h1[^>]*>([^<]+)<\/h1>/i)?.[1]?.trim() || '';
+    const meta =
+      html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i)?.[1]?.trim()
+      || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i)?.[1]?.trim()
+      || '';
+
+    // Extract OG image
+    const ogImage =
+      html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)?.[1]
+      || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)?.[1]
+      || null;
+
+    // Extract logo
+    const logo =
+      html.match(/<img[^>]+alt=["'][^"']*logo[^"']*["'][^>]+src=["']([^"']+)["']/i)?.[1]
+      || html.match(/<img[^>]+src=["']([^"']+)["'][^>]+alt=["'][^"']*logo[^"']*["']/i)?.[1]
+      || null;
+
+    // Extract hex colors from HTML/CSS
+    const hexMatches = html.match(/#[0-9a-fA-F]{6}\b/g) || [];
+    const kleuren = hexMatches.map(hex => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgb(${r}, ${g}, ${b})`;
+    });
+
+    // Make relative URLs absolute
+    const makeAbsolute = (urlStr: string | null): string | null => {
+      if (!urlStr) return null;
+      if (urlStr.startsWith('http')) return urlStr;
+      try { return new URL(urlStr, normalizedUrl).href; } catch { return null; }
+    };
+
+    return {
+      kleuren,
+      logo: makeAbsolute(logo),
+      fotos: ogImage ? [makeAbsolute(ogImage)].filter((u): u is string => u !== null) : [],
+      h1,
+      meta,
+      scrapedOk: !!(h1 || meta),
+    };
   } catch {
-    // Timeout of netwerk fout
     return { kleuren: [], logo: null, fotos: [], h1: '', meta: '', scrapedOk: false, httpStatus: 0 };
   }
 }
 
-// ─── Sub-functie B: selecteerBesteFoto ───────────────────────────────────────
-
-async function selecteerBesteFoto(fotos: string[], branche: string): Promise<string | null> {
-  if (fotos.length === 0) return null;
-  if (fotos.length === 1) return fotos[0];
-
-  try {
-    // Gebruik raw fetch omdat URL-source typing niet beschikbaar is in deze SDK versie
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY!,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 10,
-        messages: [{
-          role: 'user',
-          content: [
-            ...fotos.map(url => ({
-              type: 'image',
-              source: { type: 'url', url },
-            })),
-            {
-              type: 'text',
-              text: `Dit zijn foto's van de website van een ${branche}. Welke foto werkt het beste als hero image op een A5 direct mail flyer voor nieuwe bewoners? Kies op basis van: professioneel uitziend, herkenbaarheid als lokaal bedrijf, geen tekst in beeld, hoog contrast, warm gevoel. Antwoord ALLEEN met het getal van de beste foto (1 t/m ${fotos.length}). Niets anders.`,
-            },
-          ],
-        }],
-      }),
-      signal: AbortSignal.timeout(10000),
-    });
-    const response = await res.json();
-
-    const text = response.content?.[0]?.text?.trim() ?? '1';
-    const index = parseInt(text) - 1;
-    return fotos[Math.max(0, Math.min(index, fotos.length - 1))];
-  } catch (err) {
-    return fotos[0];
-  }
-}
-
-// ─── Sub-functie C: kleuren uit CSS array (meest betrouwbaar) ────────────────
+// ---- Color utilities ----
 
 function cssRgbToRgb(css: string): [number, number, number] | null {
   const m = css.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
@@ -237,44 +106,35 @@ function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
   return [h * 360, s, l];
 }
 
-// Standaard browser-kleuren die GEEN merkkleur zijn (link blauw, visited purple, etc.)
+function rgbToHex(r: number, g: number, b: number): string {
+  return '#' + [r, g, b].map(n => Math.min(255, Math.max(0, n)).toString(16).padStart(2, '0')).join('');
+}
+
 const BROWSER_DEFAULTS = new Set([
-  '0,0,240',     // #0000f0 -- afgerond van #0000ee (default link blue)
-  '0,0,228',     // #0000e4 -- afgerond van #0000ee
-  '0,0,252',     // #0000fc
-  '84,84,204',   // #5454cc -- visited link
-  '84,0,168',    // #5400a8 -- visited link purple
-  '96,0,168',    // #6000a8
-  '0,0,0',       // puur zwart
-  '252,252,252', // bijna-wit
-  '240,240,240', // lichtgrijs
+  '0,0,240', '0,0,228', '0,0,252',
+  '84,84,204', '84,0,168', '96,0,168',
+  '0,0,0', '252,252,252', '240,240,240',
 ]);
 
 function kleurenUitCSSArray(cssKleuren: string[]): { primair: string; accent: string } | null {
   if (!cssKleuren || cssKleuren.length === 0) return null;
 
-  // Verzamel unieke kleuren met hun saturatie
-  const uniek = new Map<string, { rgb: [number,number,number]; sat: number; lum: number; hue: number }>();
+  const uniek = new Map<string, { rgb: [number, number, number]; sat: number; lum: number; hue: number }>();
   for (const css of cssKleuren) {
     const rgb = cssRgbToRgb(css);
     if (!rgb) continue;
     const [r, g, b] = rgb;
-    const key = `${Math.round(r/12)*12},${Math.round(g/12)*12},${Math.round(b/12)*12}`;
+    const key = `${Math.round(r / 12) * 12},${Math.round(g / 12) * 12},${Math.round(b / 12) * 12}`;
     if (uniek.has(key)) continue;
-    // Filter standaard browser-kleuren
     if (BROWSER_DEFAULTS.has(key)) continue;
     const [hue, sat, lum] = rgbToHsl(r, g, b);
     uniek.set(key, { rgb, sat, lum, hue });
   }
 
-  // Gesatureerde kleuren (echte merkkleuren) gesorteerd op saturatie
-  // Filter ook: pure blauw (#0000xx) met lum < 0.5 is bijna altijd een link-kleur
   const merkKleuren = Array.from(uniek.values())
     .filter(c => {
       if (c.sat < 0.15 || c.lum <= 0.08 || c.lum >= 0.92) return false;
-      // Pure blauw (hue 230-250, sat > 0.9) met lage luminantie = browser link kleur
       if (c.hue > 225 && c.hue < 255 && c.sat > 0.85 && c.lum < 0.52) return false;
-      // Pure paars (hue 270-300, sat > 0.8) = visited link kleur
       if (c.hue > 265 && c.hue < 305 && c.sat > 0.75 && c.lum < 0.4) return false;
       return true;
     })
@@ -282,15 +142,9 @@ function kleurenUitCSSArray(cssKleuren: string[]): { primair: string; accent: st
 
   if (merkKleuren.length === 0) return null;
 
-  // Accent = meest gesatureerde kleur (de "pop" kleur van het merk)
   const accentRgb = merkKleuren[0].rgb;
   const accent = rgbToHex(accentRgb[0], accentRgb[1], accentRgb[2]);
 
-  // Primair: zoek een contrasterende tweede merkkleur
-  // Strategie: 1) donkere variant van accent, 2) tweede merkkleur met ander hue, 3) donker neutraal
-  let primair: string;
-
-  // Probeer een tweede merkkleur met voldoende hue-verschil
   const tweedeMerk = merkKleuren.find((c, i) => {
     if (i === 0) return false;
     const hueDiff = Math.abs(c.hue - merkKleuren[0].hue);
@@ -298,17 +152,15 @@ function kleurenUitCSSArray(cssKleuren: string[]): { primair: string; accent: st
     return hueDistance > 30 || Math.abs(c.lum - merkKleuren[0].lum) > 0.25;
   });
 
+  let primair: string;
   if (tweedeMerk) {
-    // Gebruik tweede merkkleur -- donkerder maken als te licht voor achtergrond
     const [r, g, b] = tweedeMerk.rgb;
     if (tweedeMerk.lum > 0.55) {
-      // Te licht als achtergrond → maak donkerder (60% intensiteit)
       primair = rgbToHex(Math.round(r * 0.45), Math.round(g * 0.45), Math.round(b * 0.45));
     } else {
       primair = rgbToHex(r, g, b);
     }
   } else {
-    // Geen tweede kleur: maak donkere variant van accent
     const [r, g, b] = accentRgb;
     primair = rgbToHex(Math.round(r * 0.18), Math.round(g * 0.18), Math.round(b * 0.18));
   }
@@ -316,132 +168,7 @@ function kleurenUitCSSArray(cssKleuren: string[]): { primair: string; accent: st
   return { primair, accent };
 }
 
-// ─── Sub-functie D-extra: dominanteKleuren uit foto (fallback) ────────────────
-// Pure-JS JPEG pixel sampler -- geen native binaries nodig
-
-function parseJpegPixels(buf: Buffer): Array<[number, number, number]> | null {
-  // Zoek Start of Scan marker (0xFFDA) -- pixels staan erna als compressed data
-  // Simpelere aanpak: sample regelmatig bytes die eruitzien als RGB waarden
-  const pixels: Array<[number, number, number]> = [];
-  const step = Math.max(1, Math.floor(buf.length / 800));
-  for (let i = 0; i < buf.length - 2; i += step) {
-    const r = buf[i], g = buf[i + 1], b = buf[i + 2];
-    if (r !== undefined && g !== undefined && b !== undefined) {
-      pixels.push([r, g, b]);
-    }
-  }
-  return pixels.length > 0 ? pixels : null;
-}
-
-function rgbToHex(r: number, g: number, b: number): string {
-  return '#' + [r, g, b].map(n => Math.min(255, Math.max(0, n)).toString(16).padStart(2, '0')).join('');
-}
-
-function kleurenUitPixels(pixels: Array<[number, number, number]>): { primair: string; accent: string } {
-  const kleurenMap = new Map<string, { count: number; r: number; g: number; b: number }>();
-
-  for (const [r, g, b] of pixels) {
-    // Quantize naar blokken van 32
-    const qr = Math.round(r / 32) * 32;
-    const qg = Math.round(g / 32) * 32;
-    const qb = Math.round(b / 32) * 32;
-
-    const isWit = qr > 200 && qg > 200 && qb > 200;
-    const isZwart = qr < 40 && qg < 40 && qb < 40;
-    const isGrijs = Math.abs(qr - qg) < 20 && Math.abs(qg - qb) < 20;
-    if (isWit || isZwart || isGrijs) continue;
-
-    const key = `${qr},${qg},${qb}`;
-    const entry = kleurenMap.get(key) || { count: 0, r: qr, g: qg, b: qb };
-    entry.count++;
-    kleurenMap.set(key, entry);
-  }
-
-  const gesorteerd = Array.from(kleurenMap.values()).sort((a, b) => b.count - a.count);
-  if (gesorteerd.length === 0) return { primair: '#0A0A0A', accent: '#00E87A' };
-
-  const p = gesorteerd[0];
-  const primair = rgbToHex(p.r, p.g, p.b);
-
-  // Kies accent met minimaal kleurverschil van 80
-  let accent = '#00E87A';
-  for (const c of gesorteerd.slice(1)) {
-    const afstand = Math.sqrt(
-      Math.pow(p.r - c.r, 2) + Math.pow(p.g - c.g, 2) + Math.pow(p.b - c.b, 2)
-    );
-    if (afstand > 80) {
-      accent = rgbToHex(c.r, c.g, c.b);
-      break;
-    }
-  }
-
-  return { primair, accent };
-}
-
-async function dominanteKleuren(imageUrl: string): Promise<{ primair: string; accent: string }> {
-  try {
-    const res = await fetch(imageUrl, { signal: AbortSignal.timeout(6000) });
-    if (!res.ok) throw new Error(`Image fetch ${res.status}`);
-    const buffer = Buffer.from(await res.arrayBuffer());
-    const pixels = parseJpegPixels(buffer);
-    if (!pixels || pixels.length < 10) throw new Error('Te weinig pixels');
-    return kleurenUitPixels(pixels);
-  } catch (err) {
-    return { primair: '#0A0A0A', accent: '#00E87A' };
-  }
-}
-
-// ─── Sub-functie D: genereerTekst ────────────────────────────────────────────
-
-async function genereerTekst(data: {
-  branche: string;
-  bedrijfsnaam: string;
-  h1: string;
-  meta: string;
-  slogan?: string;
-}) {
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 400,
-    system: `Je schrijft direct mail copy voor Nederlandse lokale retailers. Doelgroep: mensen die net verhuisd zijn naar een nieuw adres. Toon: warm, concreet, lokaal vertrouwd. Nooit salesy. Output: alleen JSON, geen uitleg, geen markdown backticks.`,
-    messages: [{
-      role: 'user',
-      content: `Bedrijf: ${data.bedrijfsnaam}
-Branche: ${data.branche}
-Website H1: ${data.h1}
-Website beschrijving: ${data.meta}
-${data.slogan ? `Slogan: ${data.slogan}` : ''}
-
-Schrijf flyer copy voor nieuwe bewoners in hun wijk.
-Geef terug als JSON met exact deze velden:
-{
-  "headline": "max 8 woorden, pakkend, geen uitroepteken",
-  "bodytekst": "max 50 woorden, warm en uitnodigend",
-  "usps": ["max 6 woorden", "max 6 woorden", "max 6 woorden"],
-  "cta": "max 5 woorden, actiegericht"
-}`,
-    }],
-  });
-
-  const raw = response.content[0].type === 'text'
-    ? response.content[0].text.replace(/```json|```/g, '').trim()
-    : '{}';
-
-  // Probeer direct te parsen; extraheer anders het JSON-blok uit de response
-  try {
-    return JSON.parse(raw);
-  } catch {
-    try {
-      const match = raw.match(/\{[\s\S]*\}/);
-      if (match) return JSON.parse(match[0]);
-    } catch (e) { console.error('Fallback triggered:', e); }
-  }
-
-  // Fallback: lege structuur zodat de pipeline niet crasht
-  return { headline: data.bedrijfsnaam, bodytekst: '', usps: [], cta: 'Kom langs' };
-}
-
-// ─── Sub-functie E: buildFlyerHTML ────────────────────────────────────────────
+// ---- Flyer HTML builder ----
 
 function buildFlyerHTML(d: {
   bedrijfsnaam: string;
@@ -456,7 +183,6 @@ function buildFlyerHTML(d: {
   telefoon?: string;
   email?: string;
   website?: string;
-  // Verificatie
   qrUrl?: string;
   code?: string;
   adres?: string;
@@ -520,10 +246,8 @@ function buildFlyerHTML(d: {
     var w = logo.naturalWidth, h = logo.naturalHeight;
     if(!w || !h) return;
     if(w/h > 2.2){
-      /* brede / tekst-logo */
       logo.style.height='10mm'; logo.style.width='auto'; logo.style.maxWidth='42mm'; logo.style.borderRadius='0';
     } else {
-      /* vierkant / icoon-logo */
       logo.style.height='14mm'; logo.style.width='14mm'; logo.style.maxWidth='14mm'; logo.style.borderRadius='1.5mm';
     }
   }
@@ -552,7 +276,7 @@ function buildFlyerHTML(d: {
   <div class="adres-block">
     <div style="font-size:7pt;color:${tekstKleur};font-weight:700;margin-bottom:.5mm">Speciaal voor de nieuwe bewoners van</div>
     <div style="font-size:8pt;color:${tekstKleur};font-family:'DM Mono',monospace;font-weight:500">${d.adres}, ${d.postcode} ${d.stad}</div>
-    <div style="font-size:6.5pt;color:${mutedKleur};margin-top:1mm">Geldig t/m ${d.geldigTot ? d.geldigTot.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' }) : '30 dagen'} · Eenmalig inwisselbaar</div>
+    <div style="font-size:6.5pt;color:${mutedKleur};margin-top:1mm">Geldig t/m ${d.geldigTot ? d.geldigTot.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' }) : '30 dagen'} &middot; Eenmalig inwisselbaar</div>
   </div>` : ''}
   <div class="footer">
     <div class="contact">
@@ -573,7 +297,7 @@ ${d.qrUrl && d.code ? `
 </html>`;
 }
 
-// ─── Sub-functie F: renderPDF ─────────────────────────────────────────────────
+// ---- PDF rendering via Browserless ----
 
 async function renderPDF(html: string): Promise<Buffer | null> {
   const browserlessToken = process.env.BROWSERLESS_TOKEN;
@@ -596,16 +320,28 @@ async function renderPDF(html: string): Promise<Buffer | null> {
         signal: AbortSignal.timeout(15000),
       }
     );
-
     if (!res.ok) throw new Error(`Browserless PDF HTTP ${res.status}`);
     return Buffer.from(await res.arrayBuffer());
   } catch (err) {
+    console.error('PDF rendering failed:', err);
     return null;
   }
 }
 
-// ─── Handler ──────────────────────────────────────────────────────────────────
+// ---- Main handler ----
 
+/**
+ * POST /api/flyer/generate
+ *
+ * Simplified flyer generation pipeline:
+ * 1. Scrape basic branding from URL (colors, logo, OG image) -- no AI
+ * 2. Generate copy from branche-specific templates -- no AI
+ * 3. Build HTML flyer
+ * 4. Render PDF (if Browserless configured)
+ * 5. Upload to Vercel Blob
+ *
+ * Optionally creates a verification code for real campaign sends.
+ */
 export async function POST(req: NextRequest) {
   const authResult = requireAuth(req);
   if (authResult instanceof NextResponse) return authResult;
@@ -614,7 +350,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       url, branche, bedrijfsnaam, telefoon, email, website, slogan,
-      // Verificatie-velden (optioneel -- alleen bij echte campagne-verzending)
+      // Verification fields (optional -- only for real campaign sends)
       adres, postcode, stad, retailerId, campagneId, overdrachtDatum,
     } = body;
 
@@ -627,46 +363,29 @@ export async function POST(req: NextRequest) {
 
     const normalizedUrl = url.startsWith('http') ? url : `https://${url}`;
 
-    // Stap 1: scrape
-    const scraped = await scrapeSite(normalizedUrl);
+    // Step 1: scrape basic info (no AI)
+    const scraped = await scrapeBasic(normalizedUrl);
 
-    // Stap 2: foto + tekst parallel (doorgaan ook als scrape mislukte -- bedrijfsnaam + branche zijn altijd aanwezig)
-    const [besteFoto, tekst] = await Promise.all([
-      selecteerBesteFoto(scraped.fotos || [], branche),
-      genereerTekst({
-        branche,
-        bedrijfsnaam,
-        h1: scraped.h1 || '',
-        meta: scraped.meta || '',
-        slogan,
-      }),
-    ]);
+    // Step 2: determine colors
+    const kleuren = kleurenUitCSSArray(scraped.kleuren || [])
+      ?? { primair: '#0A0A0A', accent: '#00E87A' };
 
-    // Stap 3: kleuren -- meerdere bronnen combineren
-    // Voeg kleuren uit logo SVG toe (bijv. fill="#df0000")
-    const extraKleuren: string[] = [];
-    if (scraped.logo && scraped.logo.startsWith('data:image/svg')) {
-      try {
-        const svgData = scraped.logo.includes('base64,')
-          ? Buffer.from(scraped.logo.split('base64,')[1], 'base64').toString()
-          : decodeURIComponent(scraped.logo.split(',')[1] || '');
-        const svgHexes = svgData.match(/#[0-9a-fA-F]{6}\b/g) || [];
-        for (const hex of svgHexes) {
-          const r = parseInt(hex.slice(1, 3), 16);
-          const g = parseInt(hex.slice(3, 5), 16);
-          const b = parseInt(hex.slice(5, 7), 16);
-          extraKleuren.push(`rgb(${r}, ${g}, ${b})`);
-        }
-      } catch (e) { console.error('SVG parse error:', e); }
-    }
-    const alleKleuren = [...(scraped.kleuren || []), ...extraKleuren];
-    const kleuren = kleurenUitCSSArray(alleKleuren)
-      ?? (besteFoto ? await dominanteKleuren(besteFoto) : { primair: '#0A0A0A', accent: '#00E87A' });
+    // Step 3: generate copy from templates (no AI)
+    const copy = generateFlyerCopy(branche, bedrijfsnaam);
+    const tekst = {
+      headline: copy.headline,
+      bodytekst: copy.tekst,
+      usps: copy.usps,
+      cta: copy.cta,
+    };
 
-    // Stap 3b: verificatiecode genereren + in DB opslaan (optioneel -- als adres + retailer meegegeven)
+    // Step 4: use first scraped photo (OG image), or null
+    const besteFoto = scraped.fotos.length > 0 ? scraped.fotos[0] : null;
+
+    // Step 5: verification code (optional)
     let verificationCode: string | undefined;
     let qrUrl: string | undefined;
-    const geldigTot = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 dagen
+    const geldigTot = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
     if (adres && postcode && stad && retailerId && campagneId) {
       verificationCode = generateVerificationCode();
@@ -684,13 +403,13 @@ export async function POST(req: NextRequest) {
             overdrachtDatum: overdrachtDatum ?? new Date().toISOString().slice(0, 10),
             geldigTot,
           });
-        } catch {
-          // DB insert failed; verification code is still rendered on the flyer
+        } catch (err) {
+          console.error('Verification code DB insert failed:', err);
         }
       }
     }
 
-    // Stap 4: flyer HTML bouwen
+    // Step 6: build HTML
     const html = buildFlyerHTML({
       bedrijfsnaam,
       logoUrl: scraped.logo || null,
@@ -701,7 +420,6 @@ export async function POST(req: NextRequest) {
       email,
       website: website || normalizedUrl,
       ...tekst,
-      // Verificatie
       qrUrl,
       code: verificationCode,
       adres,
@@ -710,7 +428,7 @@ export async function POST(req: NextRequest) {
       geldigTot: verificationCode ? geldigTot : undefined,
     });
 
-    // Stap 5: PDF renderen + opslaan in Blob (parallel waar mogelijk)
+    // Step 7: render PDF + upload
     const pdf = await renderPDF(html);
 
     let pdfUrl: string | null = null;
@@ -735,7 +453,11 @@ export async function POST(req: NextRequest) {
       tekst,
       verificationCode: verificationCode ?? null,
       qrUrl: qrUrl ?? null,
-      _debug: { rawKleurenCount: scraped.kleuren?.length ?? 0, scrapedOk: scraped.scrapedOk, httpStatus: scraped.httpStatus },
+      _debug: {
+        rawKleurenCount: scraped.kleuren?.length ?? 0,
+        scrapedOk: scraped.scrapedOk,
+        httpStatus: scraped.httpStatus,
+      },
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Onbekende fout';

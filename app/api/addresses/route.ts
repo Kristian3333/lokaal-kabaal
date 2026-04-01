@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isValidPc4List } from '@/lib/validation';
+import { requireAuth } from '@/lib/auth';
 
 const ALTUM_API_KEY = process.env.ALTUM_API_KEY;
 const ALTUM_BASE_URL = 'https://api.altum.ai/v1';
@@ -40,6 +41,9 @@ function generateMockAddresses(count: number, postcodes: string[]): AltumAddress
 }
 
 export async function POST(req: NextRequest) {
+  const auth = requireAuth(req);
+  if (auth instanceof Response) return auth;
+
   try {
     const body = await req.json();
     const { postcodes = [], maxAantal = 500, maand } = body;

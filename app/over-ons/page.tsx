@@ -1,5 +1,15 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
+
+export const metadata: Metadata = {
+  title: 'Over ons',
+  description: 'Leer het team achter LokaalKabaal kennen. Wij helpen lokale ondernemers nieuwe bewoners te bereiken met gepersonaliseerde flyers.',
+  openGraph: {
+    title: 'Over ons | LokaalKabaal',
+    description: 'Leer het team achter LokaalKabaal kennen. Wij helpen lokale ondernemers nieuwe bewoners te bereiken met gepersonaliseerde flyers.',
+  },
+};
 
 const PIJLERS = [
   {

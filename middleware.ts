@@ -18,13 +18,15 @@ export function middleware(request: NextRequest) {
   // CSP - allow Stripe, OpenStreetMap tiles, self
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com",
+    "script-src 'self' 'unsafe-inline' https://js.stripe.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: blob: https:",
     "upgrade-insecure-requests",
     "connect-src 'self' https://api.stripe.com https://*.tile.openstreetmap.org https://api.print.one https://nominatim.openstreetmap.org",
     "frame-src https://js.stripe.com",
+    "worker-src 'self' blob:",
+    "media-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
   ].join('; ');

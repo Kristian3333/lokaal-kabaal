@@ -1,38 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 import { requireAuth } from '@/lib/auth';
 import { isValidExternalUrl } from '@/lib/validation';
+import { generateFlyerCopy } from '@/lib/flyer-templates';
 
-export const maxDuration = 30;
+export const maxDuration = 15;
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
-
-// Simple HTML text extractor (no Cheerio needed)
-function extractText(html: string): { title: string; description: string; bodyText: string } {
+/**
+ * Extract basic info from a page's HTML without any AI/LLM calls.
+ */
+function extractFromHtml(html: string): {
+  title: string;
+  description: string;
+  brandName: string;
+  primaryColor: string | null;
+  accentColor: string | null;
+  logoUrl: string | null;
+} {
   const title = html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1]?.trim() || '';
-  const description = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i)?.[1]?.trim()
+  const description =
+    html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i)?.[1]?.trim()
     || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i)?.[1]?.trim()
     || '';
 
-  // Strip scripts, styles, nav, footer
-  const clean = html
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<style[\s\S]*?<\/style>/gi, '')
-    .replace(/<nav[\s\S]*?<\/nav>/gi, '')
-    .replace(/<footer[\s\S]*?<\/footer>/gi, '')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
+  // Extract brand name from og:site_name or title
+  const ogSiteName = html.match(/<meta[^>]+property=["']og:site_name["'][^>]+content=["']([^"']+)["']/i)?.[1]?.trim();
+  const brandName = ogSiteName || title.split(/[|\-\u2013]/)[0]?.trim() || '';
 
-  return { title, description, bodyText: clean.slice(0, 2000) };
+  // Extract hex colors from CSS (look for theme-color meta, inline styles, CSS custom properties)
+  const themeColor = html.match(/<meta[^>]+name=["']theme-color["'][^>]+content=["'](#[0-9a-fA-F]{6})["']/i)?.[1];
+  const hexMatches = html.match(/#[0-9a-fA-F]{6}\b/g) || [];
+
+  // Filter out common non-brand colors (pure black, white, greys, browser defaults)
+  const brandColors = hexMatches.filter(hex => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const isGreyscale = Math.abs(r - g) < 20 && Math.abs(g - b) < 20;
+    const isExtreme = (r + g + b < 60) || (r + g + b > 700);
+    return !isGreyscale && !isExtreme;
+  });
+
+  const primaryColor = themeColor || brandColors[0] || null;
+  const accentColor = brandColors.find(c => c !== primaryColor) || null;
+
+  // Extract logo URL
+  const logoUrl =
+    html.match(/<img[^>]+alt=["'][^"']*logo[^"']*["'][^>]+src=["']([^"']+)["']/i)?.[1]
+    || html.match(/<img[^>]+src=["']([^"']+)["'][^>]+alt=["'][^"']*logo[^"']*["']/i)?.[1]
+    || html.match(/<link[^>]+rel=["']apple-touch-icon["'][^>]+href=["']([^"']+)["']/i)?.[1]
+    || null;
+
+  return { title, description, brandName, primaryColor, accentColor, logoUrl };
 }
 
+/**
+ * POST /api/scrape
+ *
+ * Extracts basic branding info from a URL (title, colors, logo) and
+ * generates flyer copy using templates. No AI/LLM calls needed.
+ */
 export async function POST(req: NextRequest) {
   const authResult = requireAuth(req);
   if (authResult instanceof NextResponse) return authResult;
 
   try {
-    const { url } = await req.json();
+    const { url, branche } = await req.json();
 
     if (!url || typeof url !== 'string') {
       return NextResponse.json({ error: 'URL is verplicht' }, { status: 400 });
@@ -40,14 +72,19 @@ export async function POST(req: NextRequest) {
 
     const normalizedUrl = url.startsWith('http') ? url : `https://${url}`;
 
-    // SSRF protection: block internal/private IPs and non-http protocols
+    // SSRF protection
     if (!isValidExternalUrl(normalizedUrl)) {
       return NextResponse.json({ error: 'Ongeldige URL. Gebruik een publieke http/https URL.' }, { status: 400 });
     }
 
-    let pageContent = { title: '', description: '', bodyText: '' };
+    // Attempt to fetch the website
+    let extracted = {
+      title: '', description: '', brandName: '',
+      primaryColor: null as string | null,
+      accentColor: null as string | null,
+      logoUrl: null as string | null,
+    };
 
-    // Attempt to fetch the actual website
     try {
       const resp = await fetch(normalizedUrl, {
         headers: {
@@ -57,76 +94,46 @@ export async function POST(req: NextRequest) {
           'Accept-Encoding': 'gzip, deflate',
           'Connection': 'keep-alive',
         },
-        signal: AbortSignal.timeout(4000),
+        signal: AbortSignal.timeout(5000),
         redirect: 'follow',
       });
       if (resp.ok) {
         const html = await resp.text();
-        pageContent = extractText(html);
-      }
-    } catch (err) {
-      // If fetch fails, continue with URL-based analysis only
-      // Website fetch failed; continue with URL-based analysis only
-    }
+        extracted = extractFromHtml(html);
 
-    const hasContent = pageContent.title || pageContent.bodyText;
-    const prompt = `Je bent een expert flyer copywriter voor lokale ondernemers in Nederland.
-
-${hasContent
-  ? `Analyseer de volgende website-informatie en maak op basis daarvan een wervende flyertekst voor nieuwe huishoudens in de buurt.\n\nURL: ${normalizedUrl}\n${pageContent.title ? `Paginatitel: ${pageContent.title}` : ''}\n${pageContent.description ? `Omschrijving: ${pageContent.description}` : ''}\n${pageContent.bodyText ? `Websitetekst (fragment): ${pageContent.bodyText.slice(0, 800)}` : ''}`
-  : `De website kon niet worden bereikt, maar je kunt op basis van de domeinnaam een goede inschatting maken van het bedrijf.\n\nURL: ${normalizedUrl}\n\nLeid het bedrijfstype, de branche en merkstijl af uit de domeinnaam. Maak een professionele flyertekst voor nieuwe huishoudens in de buurt.`
-}
-
-Genereer ook een voorstel voor de merkstijl op basis van de bedrijfsnaam/type.
-
-Return ALLEEN geldig JSON (geen markdown):
-{
-  "tekst": "De flyertekst hier (max 80 woorden, vriendelijk en uitnodigend voor nieuwe bewoners)",
-  "usp": "USP 1 (max 6 woorden)\\nUSP 2\\nUSP 3",
-  "bedrijfsnaam": "Korte bedrijfsnaam",
-  "slogan": "Korte slogan (max 5 woorden)",
-  "primaryColor": "#hex (donkere achtergrondkleur passend bij het merk)",
-  "accentColor": "#hex (opvallende accentkleur passend bij het merk)"
-}`;
-
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 600,
-      messages: [{ role: 'user', content: prompt }],
-    });
-
-    const text = response.content[0].type === 'text' ? response.content[0].text : '';
-
-    try {
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        return NextResponse.json({
-          tekst: parsed.tekst || '',
-          usp: parsed.usp || '',
-          scan: {
-            brandName: parsed.bedrijfsnaam || '',
-            slogan: parsed.slogan || '',
-            primaryColor: parsed.primaryColor || '#0A0A0A',
-            accentColor: parsed.accentColor || '#00E87A',
+        // Make relative logo URLs absolute
+        if (extracted.logoUrl && !extracted.logoUrl.startsWith('http')) {
+          try {
+            extracted.logoUrl = new URL(extracted.logoUrl, normalizedUrl).href;
+          } catch {
+            extracted.logoUrl = null;
           }
-        });
+        }
       }
-    } catch (e) {
-      console.error('JSON parse fallback:', e);
+    } catch {
+      // Website fetch failed; continue with URL-based fallback
     }
 
-    // Fallback
+    // Derive brand name from domain if extraction failed
     const hostname = new URL(normalizedUrl).hostname.replace('www.', '').split('.')[0];
+    const brandName = extracted.brandName
+      || hostname.charAt(0).toUpperCase() + hostname.slice(1);
+
+    // Generate copy from templates
+    const copy = generateFlyerCopy(branche || 'Lokaal bedrijf', brandName);
+
     return NextResponse.json({
-      tekst: '',
-      usp: '',
+      tekst: copy.tekst,
+      usp: copy.usps.join('\n'),
+      headline: copy.headline,
+      cta: copy.cta,
       scan: {
-        brandName: hostname.charAt(0).toUpperCase() + hostname.slice(1),
-        slogan: '',
-        primaryColor: '#0A0A0A',
-        accentColor: '#00E87A',
-      }
+        brandName,
+        slogan: extracted.description.slice(0, 80) || '',
+        primaryColor: extracted.primaryColor || '#0A0A0A',
+        accentColor: extracted.accentColor || '#00E87A',
+        logoUrl: extracted.logoUrl,
+      },
     });
   } catch (error) {
     console.error('Scrape route error:', error);

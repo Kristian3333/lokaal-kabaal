@@ -47,7 +47,7 @@ interface FlyerDesignerProps {
 }
 
 /**
- * Flyer editor panel with design picker, website scan, branding fields,
+ * Flyer editor panel with design picker, website autofill, branding fields,
  * and a sticky preview sidebar with export controls.
  */
 export default function FlyerDesigner({
@@ -198,10 +198,10 @@ export default function FlyerDesigner({
               </div>
             </div>
 
-            {/* Website scan */}
+            {/* Website autofill */}
             <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
-              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Website scan</div>
-              <div style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>Voer je website in -- wij halen automatisch je merkstijl op</div>
+              <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', marginBottom: '4px' }}>Autofill van website</div>
+              <div style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>Optioneel: vul je URL in om kleuren en logo over te nemen</div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input
                   type="text"
@@ -217,7 +217,7 @@ export default function FlyerDesigner({
                     fontSize: '12px', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap',
                     opacity: (!flyer.websiteUrl || scanLoading) ? 0.5 : 1,
                   }}>
-                  {scanLoading ? 'Scannen...' : 'Scan →'}
+                  {scanLoading ? 'Ophalen...' : 'Ophalen \u2192'}
                 </button>
               </div>
               {scanMsg && (
@@ -292,19 +292,19 @@ export default function FlyerDesigner({
               </div>
             </div>
 
-            {/* AI Text generation */}
+            {/* Text generation */}
             <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px' }}>Flyertekst</div>
                 <button onClick={onGenerateAI} disabled={aiLoading}
                   style={{ padding: '6px 14px', background: 'var(--green)', color: 'var(--ink)', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: '12px', fontWeight: 700, opacity: aiLoading ? 0.6 : 1, fontFamily: 'var(--font-mono)' }}>
-                  {aiLoading ? 'AI schrijft...' : 'AI genereren'}
+                  {aiLoading ? 'Genereren...' : 'Tekst genereren'}
                 </button>
               </div>
               <textarea
                 value={flyer.tekst}
                 onChange={e => onUpdateFlyer({ tekst: e.target.value })}
-                placeholder="Klik op 'AI genereren' of schrijf je eigen tekst..."
+                placeholder="Klik op 'Tekst genereren' of schrijf je eigen tekst..."
                 rows={5}
                 style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)', resize: 'vertical', fontFamily: 'var(--font-sans)', fontSize: '13px', boxSizing: 'border-box' }}
               />
@@ -376,7 +376,7 @@ export default function FlyerDesigner({
                       <textarea
                         value={flyer.openingstijden}
                         onChange={e => onUpdateFlyer({ openingstijden: e.target.value })}
-                        placeholder={'Ma–Vr 09:00–18:00\nZa 10:00–17:00\nZo gesloten'}
+                        placeholder={'Ma\u2013Vr 09:00\u201318:00\nZa 10:00\u201317:00\nZo gesloten'}
                         rows={3}
                         style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)', resize: 'vertical', fontFamily: 'var(--font-sans)', fontSize: '13px', boxSizing: 'border-box' }}
                       />

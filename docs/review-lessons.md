@@ -43,6 +43,8 @@ When reviewing code (manually or via `/review` or `/cleanup`), verify each appli
 - CSV exports MUST escape cells starting with `=`, `+`, `-`, `@` to prevent formula injection in Excel -- caught: 2026-03-24, codes/export generated unescaped CSV
 - Security headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options) are set in middleware.ts -- caught: 2026-03-24, no security headers were configured
 - Input validation for all external data: use `lib/validation.ts` helpers (isValidEmail, isValidPc4, isValidFormaat, etc.) -- caught: 2026-03-24, most routes accepted unvalidated input
+- Auth endpoints (login, register, magic-link) MUST have rate limiting via `authLimiter` from `@/lib/rate-limit` -- caught: 2026-03-26, zero rate limiting existed on any endpoint
+- CSP must NOT include `unsafe-eval` -- Stripe.js works without it. Only `unsafe-inline` is needed for styles -- caught: 2026-03-26, CSP included unnecessary unsafe-eval
 
 ## Testing
 
@@ -54,6 +56,8 @@ When reviewing code (manually or via `/review` or `/cleanup`), verify each appli
 
 - Three.js: reuse BufferAttribute objects in useFrame, never create new ones per frame -- caught: 2026-03-24, Hero3D allocated new BufferAttribute objects 60x/second
 - Dynamic components (maps, 3D) should be wrapped in ErrorBoundary for graceful degradation -- caught: 2026-03-24, no error boundaries existed
+- Use `next/font/google` instead of external Google Fonts stylesheet links to eliminate render-blocking requests -- caught: 2026-03-26, three external font stylesheets were blocking initial render
+- Hardcoded URLs (like dashboard links in emails) MUST use `NEXT_PUBLIC_BASE_URL` env var for multi-environment support -- caught: 2026-03-26, 6 email functions had hardcoded production URLs
 
 ## External Integrations
 

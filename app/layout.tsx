@@ -1,8 +1,29 @@
 import type { Metadata } from "next";
+import { Manrope, DM_Mono, Instrument_Serif } from 'next/font/google';
 import "./globals.css";
 import ToastContainer from "@/components/Toast";
 
 const siteUrl = 'https://lokaalkabaal.agency';
+
+const manrope = Manrope({
+  subsets: ['latin'],
+  variable: '--font-manrope',
+  display: 'swap',
+});
+
+const dmMono = DM_Mono({
+  weight: ['300', '400', '500'],
+  subsets: ['latin'],
+  variable: '--font-dm-mono',
+  display: 'swap',
+});
+
+const instrumentSerif = Instrument_Serif({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-instrument-serif',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: {
@@ -16,13 +37,13 @@ export const metadata: Metadata = {
     locale: "nl_NL",
     siteName: "LokaalKabaal",
     title: "Flyers Versturen Nieuwe Bewoners - Automatisch | LokaalKabaal",
-    description: "LokaalKabaal verstuurt automatisch gepersonaliseerde flyers naar nieuwe huiseigenaren Elke 25e automatisch verstuurd. Wees er eerder dan de concurrent.",
+    description: "LokaalKabaal verstuurt automatisch gepersonaliseerde flyers naar nieuwe huiseigenaren. Elke 25e automatisch verstuurd. Wees er eerder dan de concurrent.",
     url: siteUrl,
   },
   twitter: {
     card: "summary_large_image",
     title: "Flyers Versturen Nieuwe Bewoners - Automatisch | LokaalKabaal",
-    description: "LokaalKabaal verstuurt automatisch gepersonaliseerde flyers naar nieuwe huiseigenaren Elke 25e automatisch verstuurd.",
+    description: "LokaalKabaal verstuurt automatisch gepersonaliseerde flyers naar nieuwe huiseigenaren. Elke 25e automatisch verstuurd.",
   },
   robots: { index: true, follow: true },
   alternates: { canonical: siteUrl },
@@ -34,7 +55,7 @@ const schemaOrg = [
     "@type": "Organization",
     name: "LokaalKabaal",
     url: siteUrl,
-    description: "SaaS-platform dat automatisch gepersonaliseerde direct mail flyers verstuurt naar nieuwe huiseigenaren Elke 25e automatisch verstuurd.",
+    description: "SaaS-platform dat automatisch gepersonaliseerde direct mail flyers verstuurt naar nieuwe huiseigenaren. Elke 25e automatisch verstuurd.",
     sameAs: ["https://www.linkedin.com/company/lokaalkabaal"],
   },
   {
@@ -63,19 +84,21 @@ export default function RootLayout({
   return (
     <html lang="nl">
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Manrope:wght@300;400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrg) }}
         />
       </head>
-      <body>
-        {children}
+      <body className={`${manrope.variable} ${dmMono.variable} ${instrumentSerif.variable}`}>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded focus:bg-white focus:px-4 focus:py-2 focus:text-black focus:shadow-lg"
+        >
+          Ga naar inhoud
+        </a>
+        <main id="main-content">
+          {children}
+        </main>
         <ToastContainer />
       </body>
     </html>

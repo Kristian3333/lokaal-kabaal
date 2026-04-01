@@ -71,7 +71,7 @@ export default function LokaalKabaal(): React.JSX.Element {
         const parsed: SavedFlyer[] = JSON.parse(saved);
         return parsed.map(f => ({ ...f, afmeting: f.afmeting === 'a4' ? 'sq' : f.afmeting }));
       }
-    } catch { /* ignore */ }
+    } catch (err) { console.error('[dashboard] Failed to parse localStorage flyers:', err); }
     return [{ ...INIT_FLYER, naam: 'Flyer 1', id: 1 }];
   });
   const [activeFlyerIdx, setActiveFlyerIdx] = useState(0);
@@ -129,12 +129,12 @@ export default function LokaalKabaal(): React.JSX.Element {
             identified = { email: session.email, naam: '', tier: session.tier ?? undefined };
           }
         }
-      } catch { /* fall through */ }
+      } catch (err) { console.error('[dashboard] Session check failed:', err); }
       if (!identified) {
         try {
           const raw = localStorage.getItem('lk_user');
           if (raw) identified = JSON.parse(raw);
-        } catch { /* ignore */ }
+        } catch (err) { console.error('[dashboard] Failed to parse localStorage user:', err); }
       }
       if (!identified) { setCampaignsLoading(false); return; }
       setUser(identified);
@@ -151,7 +151,7 @@ export default function LokaalKabaal(): React.JSX.Element {
               identified = updated;
             }
           }
-        } catch { /* ignore */ }
+        } catch (err) { console.error('[dashboard] Subscription status fetch failed:', err); }
         fetchCampaigns(identified.email);
       }
     }
@@ -183,7 +183,7 @@ export default function LokaalKabaal(): React.JSX.Element {
           sessionStorage.removeItem('lk_pending_campaign');
           sessionStorage.removeItem('lk_pending_flyer');
           setPendingCampaign(null);
-        } catch { /* ignore */ }
+        } catch (err) { console.error('[dashboard] Payment return processing failed:', err); }
       }
       setPage('dashboard');
       window.history.replaceState({}, '', '/app');
@@ -194,7 +194,7 @@ export default function LokaalKabaal(): React.JSX.Element {
   }, [fetchCampaigns]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const uitloggen = async (): Promise<void> => {
-    try { await fetch('/api/auth/logout', { method: 'POST' }); } catch { /* ignore */ }
+    try { await fetch('/api/auth/logout', { method: 'POST' }); } catch (err) { console.error('[dashboard] Logout request failed:', err); }
     localStorage.removeItem('lk_user');
     router.push('/login');
   };
@@ -243,8 +243,12 @@ export default function LokaalKabaal(): React.JSX.Element {
       const res = await fetch('/api/ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ spec: wiz.spec, bedrijfsnaam: flyer.bedrijfsnaam, slogan: flyer.slogan }) });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      if (data.tekst) updateFlyer({ tekst: data.tekst });
-      if (data.usp) updateFlyer({ usp: data.usp });
+      const patch: Partial<FlyerState> = {};
+      if (data.tekst) patch.tekst = data.tekst;
+      if (data.usp) patch.usp = data.usp;
+      if (data.headline) patch.headline = data.headline;
+      if (data.cta) patch.cta = data.cta;
+      updateFlyer(patch);
     } catch (e) { /* log suppressed per standards */ void e; }
     finally { setAiLoading(false); }
   }, [wiz.spec, flyer.bedrijfsnaam, flyer.slogan, flyer.websiteUrl, runFlyerPipeline, updateFlyer]);

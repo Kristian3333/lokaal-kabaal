@@ -4,6 +4,7 @@ import { retailers } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 import { sendMagicLink } from '@/lib/email';
 import { isValidEmail } from '@/lib/validation';
+import { authLimiter } from '@/lib/rate-limit';
 import crypto from 'crypto';
 
 const TOKEN_BYTES = 32; // 64 hex chars
@@ -24,6 +25,14 @@ function generateMagicToken(): string {
  * Always returns 200 to prevent email enumeration.
  */
 export async function POST(req: NextRequest) {
+  const limit = authLimiter(req);
+  if (!limit.success) {
+    return NextResponse.json(
+      { error: 'Te veel verzoeken. Probeer het later opnieuw.' },
+      { status: 429, headers: { 'Retry-After': '60' } },
+    );
+  }
+
   if (!db) {
     return NextResponse.json({ error: 'Database niet geconfigureerd' }, { status: 503 });
   }

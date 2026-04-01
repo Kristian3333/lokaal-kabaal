@@ -1,0 +1,140 @@
+'use client';
+
+import Link from 'next/link';
+import { useState } from 'react';
+import Nav from '@/components/Nav';
+
+const FAQS = [
+  {
+    v: 'Wat is het minimum aantal flyers?',
+    a: '250 flyers per campagne. Toegankelijk voor de lokale snackbar, de buurtkappers en de stucadoor om de hoek.',
+  },
+  {
+    v: 'Wanneer worden de flyers bezorgd?',
+    a: 'Elke maand op de 25e. We trekken op die dag verse Kadaster-data voor jouw werkgebied en sturen de flyers naar alle nieuwe bewoners van die maand.',
+  },
+  {
+    v: 'Werken jullie alleen in grote steden?',
+    a: 'Nee. We zijn actief in heel Nederland -- van Amsterdam tot Zeeland. Zolang er mensen verhuizen, kunnen wij flyers bezorgen.',
+  },
+  {
+    v: 'Wat als er minder nieuwe bewoners zijn dan ik besteld heb?',
+    a: 'Dan schrijven wij credits bij voor de niet-bezorgde exemplaren. Je betaalt nooit voor flyers die niet zijn bezorgd.',
+  },
+];
+
+/** Contact page client component with form state and FAQ. */
+export default function Contact() {
+  const [form, setForm] = useState({ naam: '', email: '', bericht: '' });
+  const [verzonden, setVerzonden] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setVerzonden(true);
+  };
+
+  return (
+    <div style={{ fontFamily: 'var(--font-sans)', background: 'var(--paper)', minHeight: '100vh', color: 'var(--ink)' }}>
+      <Nav />
+
+      <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '60px 40px' }}>
+        {/* Hero */}
+        <div style={{ marginBottom: '60px' }}>
+          <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Contact</div>
+          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '52px', fontWeight: 400, marginBottom: '12px', lineHeight: 1.1 }}>
+            Zeg het maar.
+          </h1>
+          <p style={{ fontSize: '16px', color: 'var(--muted)', maxWidth: '500px', lineHeight: 1.6 }}>
+            Geen chatbot. Geen ticketsysteem. Gewoon een mens die antwoordt -- binnen één werkdag.
+          </p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', alignItems: 'start' }}>
+          {/* Contactformulier */}
+          <div>
+            {verzonden ? (
+              <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.3)', borderRadius: 'var(--radius)', padding: '32px', textAlign: 'center' }}>
+                <div style={{ fontFamily: 'var(--font-serif)', fontSize: '32px', color: 'var(--green)', marginBottom: '12px' }}>✓</div>
+                <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', marginBottom: '8px' }}>Bericht ontvangen</h2>
+                <p style={{ color: 'var(--muted)', fontSize: '14px' }}>We reageren binnen één werkdag. Check je spam als je niks hoort.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--muted)', letterSpacing: '.1em', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>Naam</label>
+                  <input
+                    type="text" required placeholder="Jouw naam"
+                    value={form.naam} onChange={e => setForm(f => ({ ...f, naam: e.target.value }))}
+                    style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: '#fff', fontSize: '14px', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--muted)', letterSpacing: '.1em', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>E-mail</label>
+                  <input
+                    type="email" required placeholder="jij@bedrijf.nl"
+                    value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                    style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: '#fff', fontSize: '14px', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--muted)', letterSpacing: '.1em', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>Bericht</label>
+                  <textarea
+                    required rows={6} placeholder="Wat wil je weten of zeggen?"
+                    value={form.bericht} onChange={e => setForm(f => ({ ...f, bericht: e.target.value }))}
+                    style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: '#fff', fontSize: '14px', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'var(--font-sans)' }}
+                  />
+                </div>
+                <button type="submit" style={{ padding: '13px 24px', background: 'var(--ink)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px', cursor: 'pointer', alignSelf: 'flex-start' }}>
+                  Versturen →
+                </button>
+              </form>
+            )}
+          </div>
+
+          {/* Contactinfo + FAQ */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Kaartje */}
+            <div style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '24px' }}>
+              <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '16px' }}>Direct contact</h3>
+              {[
+                { icon: '✉', label: 'E-mail', val: 'hallo@lokaalkabaal.nl' },
+                { icon: '📞', label: 'Telefoon', val: '020-000 0000' },
+                { icon: '📍', label: 'Adres', val: 'Amsterdam, Nederland' },
+                { icon: '🕐', label: 'Bereikbaar', val: 'Ma–Vr · 09:00–17:00' },
+              ].map(({ icon, label, val }) => (
+                <div key={label} style={{ display: 'flex', gap: '12px', marginBottom: '12px', alignItems: 'flex-start' }}>
+                  <span style={{ fontSize: '16px', flexShrink: 0 }}>{icon}</span>
+                  <div>
+                    <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.08em' }}>{label}</div>
+                    <div style={{ fontSize: '13px', fontWeight: 500 }}>{val}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* FAQ */}
+            <div>
+              <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '16px' }}>Veel gestelde vragen</h3>
+              {FAQS.map((faq, i) => (
+                <div key={i} style={{ marginBottom: '16px', padding: '16px', background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)' }}>
+                  <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '6px' }}>{faq.v}</div>
+                  <div style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.6 }}>{faq.a}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer style={{ borderTop: '1px solid var(--line)', padding: '20px 40px', display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', flexWrap: 'wrap', gap: '12px' }}>
+        <span>© 2026 LokaalKabaal B.V.</span>
+        <div style={{ display: 'flex', gap: '20px' }}>
+          <Link href="/privacy" style={{ color: 'var(--muted)', textDecoration: 'none' }}>Privacy</Link>
+          <Link href="/voorwaarden" style={{ color: 'var(--muted)', textDecoration: 'none' }}>Voorwaarden</Link>
+          <Link href="/contact" style={{ color: 'var(--ink)', textDecoration: 'none', fontWeight: 600 }}>Contact</Link>
+          <Link href="/over-ons" style={{ color: 'var(--muted)', textDecoration: 'none' }}>Over ons</Link>
+        </div>
+      </footer>
+    </div>
+  );
+}

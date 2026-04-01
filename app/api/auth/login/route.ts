@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 import { createSessionToken, setSessionCookie } from '@/lib/auth';
 import { verifyPassword } from '@/lib/password';
 import { isValidEmail } from '@/lib/validation';
+import { authLimiter } from '@/lib/rate-limit';
 
 /**
  * POST /api/auth/login
@@ -14,6 +15,14 @@ import { isValidEmail } from '@/lib/validation';
  * for backwards compatibility.
  */
 export async function POST(req: NextRequest) {
+  const limit = authLimiter(req);
+  if (!limit.success) {
+    return NextResponse.json(
+      { error: 'Te veel verzoeken. Probeer het later opnieuw.' },
+      { status: 429, headers: { 'Retry-After': '60' } },
+    );
+  }
+
   if (!db) {
     return NextResponse.json({ error: 'Database niet geconfigureerd' }, { status: 503 });
   }
