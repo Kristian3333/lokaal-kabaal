@@ -351,10 +351,17 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
   for webshops. Listing on Shopify App Store = acquisition channel.
 - [ ] **Lightspeed / MplusKASSA POS integration** for in-store redeem.
   Same API surface, different UX.
-- [ ] **Zapier integration**: "when new scan happens, send Slack message /
-  add to Google Sheet". 3-line build on their side, huge distribution for us.
-- [ ] **Webhook outbox** in our DB for retailers to subscribe to our events
-  (scan, conversion, monthly_report_ready). Pair with the public API.
+- [~] **Zapier/Slack integration foundation**: `/docs/webhooks` public
+  page documenteert event-types (scan.registered, conversion.registered,
+  campaign.dispatched, monthly_report.ready), payload-shape en
+  HMAC-SHA256 signatuur-verificatie in Node.js. Retailer kan nu een
+  Zapier catch-hook opzetten zodra de DB-tabel voor subscriptions er is.
+- [~] **Webhook outbox primitives** (`lib/webhook-outbox.ts`):
+  `canonicalJson` (key-sort voor stabiele signatures), `signWebhookBody`
+  + `verifyWebhookSignature` (HMAC-SHA256, timing-safe compare),
+  `retryDelaySeconds` (exponential backoff 30s→2min→8min→30min→2h),
+  typed `WebhookEvent` union. 13 tests. Next: DB-tabel
+  `webhook_subscriptions` + cron die queue verwerkt.
 - [ ] **Gemeente welkomstpakket partnership SDK**: iframe / embed so a
   municipality site can render "welkomstpakket retailers in jouw buurt"
   driven by our retailer database. Revenue share.
