@@ -64,4 +64,6 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: `${base}/voorbeelden/maandrapport`, lastModified: now, changeFrequency: 'yearly', priority: 0.6 },
   { url: `${base}/docs/webhooks`, lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
   { url: `${base}/gemeenten`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+  { url: `${base}/white-label`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+  { url: `${base}/data`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
 ];

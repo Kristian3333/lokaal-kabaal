@@ -376,9 +376,12 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
 
 ## 7. Monetization expansion
 
-- [ ] **White-label "Powered by LokaalKabaal"** voor marketingbureaus die
-  meerdere lokale retailers beheren. Tier above Agency, high-margin, low
-  support overhead once built.
+- [~] **White-label landing** live op `/white-label`: positioneert
+  bureau-aanbod met 6 features (merk + domein, central workspace,
+  gebundelde billing, white-label e-mails, multi-brand templates,
+  bureau-dashboard), wholesale-tarief (30% korting, min 5 klanten),
+  bureaus@lokaalkabaal.agency CTA. Feature build komt later; dit is de
+  lead-gen surface.
 - [ ] **Add-on: design-on-demand**. Currently free for Agency jaarcontract
   as "Persoonlijke flyerhulp". Productize as a €49/flyer a-la-carte for
   other tiers -- known willingness to pay, existing mail alias already in
@@ -389,9 +392,11 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
 - [ ] **Municipal contracts**: sell gemeenten a "Welcome to [city]" booklet
   that bundles 20 local merchants. Flat-fee per printed batch, merchants
   pay per placement. High ACV, sticky.
-- [ ] **Data products** (anonymized): sell monthly "new movers by PC4"
-  aggregates to estate agents / insurance brokers / moving companies.
-  Zero marginal cost for us, pure upside.
+- [~] **Data product landing** live op `/data`: B2B aanbod voor makelaars,
+  verzekeraars, marketeers en overheden. 4 doelgroep-use-cases, 3 tiers
+  (Basic €500/mnd, Pro €1.900/mnd, Custom research op aanvraag),
+  data@lokaalkabaal.agency CTA. Lead-gen surface; API + data-cleanup
+  pipelines komen in de volgende fase.
 - [~] **Yearly upgrade A/B helper** (`lib/yearly-upgrade.ts`):
   `assignIncentive(retailerId)` buckets retailers deterministisch in 3
   varianten (control 15% discount, first-month-free + 10%, +200
