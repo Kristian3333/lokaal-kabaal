@@ -531,9 +531,16 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
 - [x] **Health probe endpoint** at `/api/health`: returns
   `{ok:true, db: 'up'|'down'|'unconfigured', ts}` with `cache-control:
   no-store`. Ready for Better Uptime / Vercel monitors.
-- [ ] **Uptime + synthetic monitoring**: Better Uptime checks against
-  /api/health, /api/auth/session, /api/pc4grenzen. On-call
-  alerts via Slack.
+- [~] **Uptime + synthetic monitoring** config gebouwd in
+  `lib/uptime-monitors.ts`: typed `MONITORS` array met 4 probes
+  (health JSON-assertion, session 401-liveness, pc4grenzen
+  200-check, landing keyword), `buildBetterUptimeConfig()` levert
+  de Better Uptime POST-payload en `buildDownAlertSlackPayload()`
+  formatteert de incident-Slack-bericht (rood block-kit attachment).
+  13 tests inclusief URL-https invariant, intervallen binnen
+  Better-Uptime-toegestaan set (30/60/180), en kind->monitor_type
+  mapping. Vendor-activatie is een ops-stap zodra het account
+  aangemaakt is.
 
 ## 11. Accessibility & content craft
 
