@@ -490,9 +490,15 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
 
 ## 10. Infra & performance
 
-- [ ] **Move user-uploaded logos + hero images to Vercel Blob** (already
-  installed) and swap the base64 `<img>` for `next/image` with proper
-  responsive srcsets. Dashboard bandwidth drops significantly.
+- [~] **Vercel Blob upload helper** gebouwd in `lib/blob-upload.ts`:
+  `validateImageUpload` doet MIME-allowlist (png/jpeg/webp), size cap
+  (64B - 5MB) en magic-byte sniff tegen MIME-spoofing (renamed .exe
+  files worden geweigerd voordat ze ooit bij `put()` landen).
+  `buildBlobPath` sanitizeert de retailerId om path-traversal te
+  blokkeren. `uploadImageToBlob` is een injectable wrapper voor
+  `@vercel/blob`. 18 tests inclusief magic mismatch + path-traversal.
+  FlyerDesigner/FlyerPreview wiring + next/image swap komt in de
+  volgende fase.
 - [x] **Edge ISR aangezet** op de zwaarste publieke pagina's:
   `/flyers-versturen-nieuwe-bewoners`, `/flyers-versturen-[gemeente]`,
   `/nl-verhuisdata` hebben `export const revalidate = 86400` (24h)
