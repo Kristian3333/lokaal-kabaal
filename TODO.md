@@ -358,8 +358,13 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
   voor Shopify scriptTag + WooCommerce PHP filter, verwijzing naar
   `/docs/webhooks` voor custom-stack integraties, mailto plugin-aanvraag
   naar integraties@lokaalkabaal.agency. App-Store listing blijft queued.
-- [ ] **Lightspeed / MplusKASSA POS integration** for in-store redeem.
-  Same API surface, different UX.
+- [~] **Lightspeed / MplusKASSA POS** integratiedocs + waitlist live op
+  `/integraties/pos-kassa`: 3 platformen (Lightspeed Custom Payment Type,
+  MplusKASSA REST + Custom Button, Zettle webhook-only), 4-staps
+  kassa-flow (scan -> API -> korting -> dashboard), fallback via
+  `/verify/[code]` voor overige kassasystemen, mailto-aanvraag naar
+  integraties@lokaalkabaal.agency. Daadwerkelijke Node-script en
+  Custom-Button-config komen in de volgende fase.
 - [~] **Zapier/Slack integration foundation**: `/docs/webhooks` public
   page documenteert event-types (scan.registered, conversion.registered,
   campaign.dispatched, monthly_report.ready), payload-shape en
