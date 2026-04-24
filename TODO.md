@@ -187,9 +187,12 @@ Direct-mail SEO today is 7 industry pages (bakker, kapper, installateur ...) +
 Current signup -> wizard -> Stripe -> first batch takes ~20 minutes and has no
 safety nets for drop-off.
 
-- [ ] **Interactive pricing preview on landing**: show a live "Jij betaalt
-  per vaste klant" slider that pulls branche-specific CLV into a break-even
-  calculation. Converts visitors who are doing the math mentally anyway.
+- [x] **Interactive pricing preview** live in `PricingSection`:
+  `PricingPreviewCalculator` met branche-picker + CLV-slider rekent live
+  uit hoeveel verwachte nieuwe klanten per maand bij 400 flyers @ 6%
+  conversie én wat de break-even is op het €499 Pro-abonnement.
+  Bovenaan de tier-cards zodat visitors eerst hun eigen math zien
+  kloppen.
 - [ ] **"Probeer een proef flyer gratis"** lead magnet: send a sample flyer
   to the retailer's own address free-of-charge in exchange for email
   + bedrijfsnaam. Converts the fence-sitters.
@@ -203,8 +206,11 @@ safety nets for drop-off.
   4.5s door 10 geanonimiseerde branche+stad events ("Kapsalon in Utrecht ·
   312 flyers ingepland"). `aria-live="polite"`. Geen echte retailer-namen,
   bewust composite zodat trust niet op nep-data rust.
-- [ ] **Exit-intent capture**: modal with "Wacht, bereken eerst wat
-  een nieuwe klant jou per jaar oplevert" + ROI calc.
+- [x] **Exit-intent modal** (`components/landing/ExitIntent.tsx`):
+  triggered wanneer cursor de top van de viewport verlaat, armed na
+  3s zodat fast-bouncers niet meteen triggeren. Eén keer per session
+  (sessionStorage). Niet getoond op mobiel. Copy linkt door naar
+  /tools/roi-calculator, met "Nee bedankt" dismiss-optie.
 - [~] **Lifecycle email helpers toegevoegd** in `lib/email.ts`:
   `sendFirstCampaignReminder(email, bedrijfsnaam)` voor de 48h reminder
   en `sendBundleNearLimitEmail(email, bedrijfsnaam, tier, used, bundle)`
@@ -302,9 +308,10 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
 - [x] **Security.txt** at `/.well-known/security.txt` via Next.js rewrite:
   RFC 9116 fields (Contact, Expires, Preferred-Languages, Canonical,
   Policy) serving plain text. Tested end-to-end.
-- [ ] **Cookie-less analytics** (Plausible or Umami) instead of any
-  future GA addition. Positions us as the privacy-first choice vs GAM-heavy
-  competitors.
+- [x] **Cookie-less Plausible analytics** gewired in root layout.
+  Script injecteert alleen wanneer `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` gezet
+  is, dus preview-deployments + local dev zijn tracker-loos. Defer-loaded,
+  geen cookies, positioneert ons als de privacy-first keuze.
 - [ ] **Partner logos strip** (municipalities, Ondernemersvereniging,
   printers) on landing for instant trust.
 

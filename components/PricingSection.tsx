@@ -9,6 +9,7 @@ import {
   CUSTOM_PRICING_THRESHOLD,
   type Tier,
 } from '@/lib/tiers';
+import PricingPreviewCalculator from '@/components/landing/PricingPreviewCalculator';
 
 // ─── Tier display configuration ───────────────────────────────────────────────
 //
@@ -176,6 +177,9 @@ export default function PricingSection(): React.JSX.Element {
             </div>
           )}
         </div>
+
+        {/* Interactive pricing preview -- shows "break-even bij X klanten/mnd" */}
+        <PricingPreviewCalculator />
 
         {/* Tier cards */}
         <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', alignItems: 'start', marginTop: '32px' }}>

@@ -103,6 +103,16 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrg) }}
         />
+        {/* Cookie-less analytics via Plausible. Opt-in via env var; when
+            NEXT_PUBLIC_PLAUSIBLE_DOMAIN is unset we don't inject the script
+            at all, which keeps preview deployments + local dev tracker-free. */}
+        {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN && (
+          <script
+            defer
+            data-domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN}
+            src="https://plausible.io/js/script.js"
+          />
+        )}
       </head>
       <body className={`${manrope.variable} ${dmMono.variable} ${instrumentSerif.variable}`}>
         <a

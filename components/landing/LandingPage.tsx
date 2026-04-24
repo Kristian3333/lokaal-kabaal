@@ -11,6 +11,7 @@ import CountUp from '@/components/landing/CountUp';
 import StaggerText from '@/components/landing/StaggerText';
 import Testimonials from '@/components/landing/Testimonials';
 import ActivityTicker from '@/components/landing/ActivityTicker';
+import ExitIntent from '@/components/landing/ExitIntent';
 import { motion } from 'framer-motion';
 
 const Hero3D = dynamic(() => import('@/components/Hero3D'), { ssr: false });
@@ -58,6 +59,7 @@ const STAPPEN = [
 export default function LandingPage(): React.JSX.Element {
   return (
     <div style={{ fontFamily: 'var(--font-sans)', background: 'var(--paper)', minHeight: '100vh', color: 'var(--ink)' }}>
+      <ExitIntent />
 
       <Nav />
 
