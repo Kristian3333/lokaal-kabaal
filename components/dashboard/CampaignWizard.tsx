@@ -3,6 +3,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { TIERS, computeAbonnement, type Tier } from '@/lib/tiers';
+import { predictClv } from '@/lib/predictive-clv';
+import { BRANCHE_CLV } from '@/lib/clv';
 import { BRANCHE_OPTIES } from '@/lib/branches';
 import { prijsPerStuk, type FlyerFormaat } from '@/lib/printone-pricing';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -24,6 +26,18 @@ const NLMap = dynamic(() => import('@/components/NLMap'), {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const SPECS = BRANCHE_OPTIES;
+
+/** Map the wizard's verbose branche labels into BRANCHE_CLV keys. */
+function specToBrancheKey(spec: string): keyof typeof BRANCHE_CLV {
+  const s = spec.toLowerCase();
+  if (s.includes('kapper') || s.includes('barber')) return 'kapper';
+  if (s.includes('bakker')) return 'bakker';
+  if (s.includes('restaurant') || s.includes('café') || s.includes('pizzeria') || s.includes('traiteur')) return 'restaurant';
+  if (s.includes('installateur') || s.includes('stucadoor') || s.includes('schilder')) return 'installateur';
+  if (s.includes('makelaar')) return 'makelaar';
+  if (s.includes('fysio') || s.includes('sport') || s.includes('yoga') || s.includes('zwembad')) return 'fysio';
+  return 'overig';
+}
 
 const MAANDEN = [
   'Januari', 'Februari', 'Maart', 'April', 'Mei', 'Juni',
@@ -781,6 +795,51 @@ export default function CampaignWizard({
                   Incasso op de 1e van de maand · bezorging tussen de 28e en 30e. Meer flyers nodig? Betaal per extra flyer bij (€0,70 per A6).
                 </div>
               </div>
+
+              {/* Predictive CLV banner -- shows expected klantwaarde band
+                  based on branche + active filters. Updates as the user
+                  tweaks the targeting below. */}
+              {(() => {
+                const brancheKey = specToBrancheKey(spec);
+                if (brancheKey === 'overig') return null;
+                const wozAvg = filterWozMin > 0 && filterWozMax > 0
+                  ? (filterWozMin + filterWozMax) / 2
+                  : undefined;
+                const bouwjaarMed = filterBouwjaarMin > 1800 && filterBouwjaarMax > filterBouwjaarMin
+                  ? Math.round((filterBouwjaarMin + filterBouwjaarMax) / 2)
+                  : undefined;
+                const clv = predictClv({
+                  brancheKey,
+                  wozAverage: wozAvg,
+                  bouwjaarMediaan: bouwjaarMed,
+                });
+                return (
+                  <div style={{
+                    background: 'var(--green-bg)',
+                    border: '1px solid rgba(0,232,122,0.25)',
+                    borderRadius: 'var(--radius)',
+                    padding: '14px 18px',
+                    marginBottom: '20px',
+                  }}>
+                    <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>
+                      Verwachte klantwaarde (CLV) per jaar
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
+                      <span style={{ fontFamily: 'var(--font-serif)', fontSize: '26px', color: 'var(--ink)', lineHeight: 1 }}>
+                        €{clv.clvLow.toLocaleString('nl-NL')} - €{clv.clvHigh.toLocaleString('nl-NL')}
+                      </span>
+                      <span style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                        mediaan ~€{clv.clvMid.toLocaleString('nl-NL')}
+                      </span>
+                    </div>
+                    {clv.toegepasteSignalen.length > 0 && (
+                      <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '6px', lineHeight: 1.5 }}>
+                        Aanpassingen op basis van jouw filters: {clv.toegepasteSignalen.join(' · ')}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Advanced targeting filters */}
               <div style={{ position: 'relative', marginBottom: '20px' }}>

@@ -378,13 +378,12 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
   × 4% conversie) + provincie-tabel met verwachte maandomzet +
   inlinks naar gemeente-pages. Next: kwartaal-PDF voor bestaande
   retailers bovenop deze publieke versie.
-- [~] **Predictive CLV model core** (`lib/predictive-clv.ts`):
-  `predictClv({brancheKey, wozAverage, eigenwoningratio, bouwjaarMediaan})`
-  produceert low/mid/high EUR-band gebaseerd op de branche-default +
-  hand-getunde modifiers (WOZ voor discretionaire branches,
-  eigenwoningratio > 70%, bouwjaar jong of >1945 voor installateur).
-  9 tests inclusief cap op 35% voor runaway WOZ. Next: wizard step 6
-  UI-banner die deze band laat zien vóór de retailer betaalt.
+- [x] **Predictive CLV** end-to-end: `lib/predictive-clv.ts` core +
+  9 tests + wizard step 6 UI-banner die de verwachte klantwaarde-band
+  (low / mid / high EUR) toont op basis van spec + actieve
+  bouwjaar/WOZ-filters. `specToBrancheKey` map in de wizard normaliseert
+  de verbose branche-labels naar BRANCHE_CLV keys. Retailer ziet nu
+  verwacht rendement per jaar vóór Stripe-checkout.
 - [x] **Churn signal helper** (`lib/churn-signal.ts`): `assessChurn(series)`
   returnt een severity-bucket (healthy/watch/risk/critical) op basis van
   de laatste maand vs. baseline gemiddelde scan-rate. Epsilon-bewust voor
