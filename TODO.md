@@ -512,9 +512,16 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
   `npm run db:migrate`. Maakt het triviaal om een GHA-step te toevoegen
   die `db:check` runt en een PR blokkeert bij ongenoteerde schema-drift.
   De GHA workflow zelf is nog niet toegevoegd.
-- [ ] **Rate-limit backend upgrade**: in-memory `lib/rate-limit.ts` doesn't
-  coordinate across serverless instances. Move to Upstash Redis for
-  stricter bot/brute-force protection at scale.
+- [~] **Rate-limit backend upgrade** — Upstash swap-in gebouwd in
+  `lib/rate-limit-upstash.ts`: sliding window via Redis sorted sets
+  over de Upstash REST API (geen @upstash/redis dep, gewoon fetch),
+  `checkAndIncrementUpstash` doet ZREMRANGEBYSCORE + ZCARD + conditional
+  ZADD + EXPIRE. `isUpstashConfigured()` + `readUpstashConfig()`
+  laten de bestaande `rate-limit.ts` als graceful fallback blijven
+  draaien tot de env-vars zijn gezet. Injectable fetch/now/suffix +
+  13 tests (onder limit, at-max, cutoff, auth header, pipeline/HTTP
+  errors, expire ceiling). Call-site wiring in api/auth/etc komt als
+  de Upstash env-vars in Vercel zijn geconfigureerd.
 - [x] **Health probe endpoint** at `/api/health`: returns
   `{ok:true, db: 'up'|'down'|'unconfigured', ts}` with `cache-control:
   no-store`. Ready for Better Uptime / Vercel monitors.
