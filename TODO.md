@@ -193,9 +193,11 @@ safety nets for drop-off.
   conversie én wat de break-even is op het €499 Pro-abonnement.
   Bovenaan de tier-cards zodat visitors eerst hun eigen math zien
   kloppen.
-- [ ] **"Probeer een proef flyer gratis"** lead magnet: send a sample flyer
-  to the retailer's own address free-of-charge in exchange for email
-  + bedrijfsnaam. Converts the fence-sitters.
+- [~] **Proef-flyer lead magnet** gewired: `ProefFlyerForm` tussen
+  "het moment" en PricingSection, validatie via `lib/proef-flyer.ts`
+  (7 tests), `/api/proef-flyer` POST endpoint met rate-limit + Resend
+  bevestigingsemail + dagelijkse cap van 10 proeven. Next: DB-tabel
+  voor de queue + cron die PrintOne-batches aanmaakt vanuit de queue.
 - [x] **Testimonials strip on landing** tussen "het moment"-sectie en
   PricingSection: 3 quotes (barbershop Utrecht, installateur Amersfoort,
   bakker Amsterdam) met naam, branche, stad, en waar bekend een harde
@@ -283,8 +285,11 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
   scans/conversions/scanRate/conversionRate/topPostcodes (min 5 volume
   per PC4) + overage-informatie. 7 tests. Next: jsPDF renderer +
   cron op de 5e van de maand die deze data in een PDF mailt.
-- [ ] **Browser notifications** for real-time scan events (opt-in) -- gives
-  retailers a dopamine hit that keeps them engaged.
+- [~] **Browser notifications helper** (`lib/browser-notifications.ts`):
+  `getNotificationPermission`, `requestNotificationPermission`,
+  `showScanNotification` met SSR-safe fallbacks. 9 tests (no-window,
+  unsupported, granted, default, class-based Notification mock). UI
+  opt-in toggle + dashboard-scan hookup zijn de volgende stappen.
 - [ ] **Mobile dashboard**: today the dashboard is desktop-only in practice.
   Responsive pass on CampaignWizard + FlyerDesigner for iPad/phone editing.
 - [x] **Dark mode toggle** in SettingsPanel top-right via
