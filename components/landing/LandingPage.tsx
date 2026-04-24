@@ -9,6 +9,8 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import FadeUp from '@/components/landing/FadeUp';
 import CountUp from '@/components/landing/CountUp';
 import StaggerText from '@/components/landing/StaggerText';
+import Testimonials from '@/components/landing/Testimonials';
+import ActivityTicker from '@/components/landing/ActivityTicker';
 import { motion } from 'framer-motion';
 
 const Hero3D = dynamic(() => import('@/components/Hero3D'), { ssr: false });
@@ -179,6 +181,16 @@ export default function LandingPage(): React.JSX.Element {
               }}>
                 Hoe het werkt
               </Link>
+            </motion.div>
+
+            {/* Activity ticker -- real-feel social proof */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...SPRING, delay: 0.75 }}
+              style={{ marginTop: '28px' }}
+            >
+              <ActivityTicker />
             </motion.div>
 
             {/* Mini stats */}
@@ -552,6 +564,9 @@ export default function LandingPage(): React.JSX.Element {
           ))}
         </div>
       </section>
+
+      {/* ── TESTIMONIALS ────────────────────────────────────────────────────── */}
+      <Testimonials />
 
       {/* ── PRICING ─────────────────────────────────────────────────────────── */}
       <PricingSection />

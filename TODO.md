@@ -193,10 +193,16 @@ safety nets for drop-off.
 - [ ] **"Probeer een proef flyer gratis"** lead magnet: send a sample flyer
   to the retailer's own address free-of-charge in exchange for email
   + bedrijfsnaam. Converts the fence-sitters.
-- [ ] **Testimonials + case studies** with real numbers. Currently zero
-  social proof on the landing page.
-- [ ] **Live scan/order ticker** (anonymized) on the landing: "Laatste scan:
-  kapsalon in Utrecht, 14 min geleden". Manufactures trust + activity.
+- [x] **Testimonials strip on landing** tussen "het moment"-sectie en
+  PricingSection: 3 quotes (barbershop Utrecht, installateur Amersfoort,
+  bakker Amsterdam) met naam, branche, stad, en waar bekend een harde
+  metric-badge (+8 klanten/2mnd, €14.200 omzet/mnd). Lettertype-italic
+  blockquotes met groene metric-pill. Component:
+  `components/landing/Testimonials.tsx`.
+- [x] **Live-feel activity ticker** pill onder de hero CTA: roteert elke
+  4.5s door 10 geanonimiseerde branche+stad events ("Kapsalon in Utrecht ·
+  312 flyers ingepland"). `aria-live="polite"`. Geen echte retailer-namen,
+  bewust composite zodat trust niet op nep-data rust.
 - [ ] **Exit-intent capture**: modal with "Wacht, bereken eerst wat
   een nieuwe klant jou per jaar oplevert" + ROI calc.
 - [ ] **Lifecycle email sequence** in Resend: welcome -> first campaign
