@@ -263,9 +263,16 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
   bereik-labels. Degenerate-case afgevangen (`count === max` is altijd
   peak). 12 tests inclusief boundaries, zeros, threshold en
   kleur-mapping. Leaflet NLMap overlay-wiring is de volgende stap.
-- [ ] **Multi-location support**: one retailer account, multiple winkels
-  each with own pincode + branding. Requires schema change (retailer
-  -> retailer + retailer_location one-to-many).
+- [~] **Multi-location domain layer** gebouwd in
+  `lib/retailer-locations.ts`: typed `RetailerLocation` +
+  `canAddLocation(tier, count)` tier-gating (Starter=1, Pro=3,
+  Agency=unlimited), `findLocationForPc4` met exact->PC3 prefix->
+  primary->first fallback-keten, `attributeConversions` voor per-
+  locatie analytics, en `validateLocations` invariant-check (exact 1
+  primary, geen dubbele pincodes). 19 tests. De schema-migratie
+  (`retailer_locations` tabel) blijft open en vraagt user-approval
+  per CLAUDE.md regels voor DB-wijzigingen. Sketch van de tabel
+  staat in het JSDoc-blok bovenaan de helper.
 - [x] **Flyer template marketplace** (`lib/flyer-presets.ts` +
   `TemplateMarketplace` in FlyerDesigner): 8 curated presets (kapper
   editorial, bakker warm, restaurant bold hero, installateur corporate,
