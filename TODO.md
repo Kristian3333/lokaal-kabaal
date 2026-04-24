@@ -264,9 +264,11 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
   campaigns list. Widget verbergt zichzelf als alle 4 stappen done zijn.
 - [ ] **In-product tour** for first-time users (intro.js or custom) that
   walks through wizard, flyer editor, conversies panel.
-- [ ] **Monthly report PDF** auto-generated and emailed on the 5th of each
-  month with scans/conversions/ROI. Shareable link so retailers can show
-  their accountant.
+- [~] **Monthly report data-shape** (`lib/monthly-report.ts`):
+  `buildMonthlyReport(input)` aggregeert raw verifications tot
+  scans/conversions/scanRate/conversionRate/topPostcodes (min 5 volume
+  per PC4) + overage-informatie. 7 tests. Next: jsPDF renderer +
+  cron op de 5e van de maand die deze data in een PDF mailt.
 - [ ] **Browser notifications** for real-time scan events (opt-in) -- gives
   retailers a dopamine hit that keeps them engaged.
 - [ ] **Mobile dashboard**: today the dashboard is desktop-only in practice.
@@ -370,13 +372,19 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
   met top-3 gemeenten per provincie als inlinks naar de gemeente-
   programmatic pages. `lib/provincie-data.ts` helper + 5 tests. ISR
   revalidate=86400 op de pagina + dynamic OG image met "Open data" badge.
-- [ ] **Industry benchmark reports**: "de gemiddelde kapsalon in Utrecht
-  ziet 4.8% scan-rate". Quarterly PDF sent to all retailers, positions us
-  as the market authority.
-- [ ] **Predictive CLV model**: use retailer branche + PC4 socioeconomic
-  data (WOZ average, bouwjaar spread) to predict expected conversion per
-  new mover. Shown at campaign setup so retailers understand expected ROI
-  before paying.
+- [x] **Industry benchmark landing pages** live op `/nl-verhuisdata/[branche]`
+  voor 6 branches (kapper/bakker/restaurant/installateur/fysio/makelaar).
+  Elke pagina toont de nationale markt (klantwaarde × verhuizingen
+  × 4% conversie) + provincie-tabel met verwachte maandomzet +
+  inlinks naar gemeente-pages. Next: kwartaal-PDF voor bestaande
+  retailers bovenop deze publieke versie.
+- [~] **Predictive CLV model core** (`lib/predictive-clv.ts`):
+  `predictClv({brancheKey, wozAverage, eigenwoningratio, bouwjaarMediaan})`
+  produceert low/mid/high EUR-band gebaseerd op de branche-default +
+  hand-getunde modifiers (WOZ voor discretionaire branches,
+  eigenwoningratio > 70%, bouwjaar jong of >1945 voor installateur).
+  9 tests inclusief cap op 35% voor runaway WOZ. Next: wizard step 6
+  UI-banner die deze band laat zien vóór de retailer betaalt.
 - [x] **Churn signal helper** (`lib/churn-signal.ts`): `assessChurn(series)`
   returnt een severity-bucket (healthy/watch/risk/critical) op basis van
   de laatste maand vs. baseline gemiddelde scan-rate. Epsilon-bewust voor

@@ -2,6 +2,7 @@ import { MetadataRoute } from 'next';
 import { GEMEENTEN } from '@/lib/gemeenten';
 import { CONCURRENTEN } from '@/lib/concurrenten';
 import { allBrancheCityCombos } from '@/lib/industry-city';
+import { BRANCHE_CLV } from '@/lib/clv';
 
 const base = 'https://lokaalkabaal.agency';
 const now = new Date();
@@ -26,7 +27,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // Lower priority than the canonical branche pages
     priority: 0.5,
   }));
-  return [...gemeentenRoutes, ...vergelijkRoutes, ...matrixRoutes, ...STATIC_ROUTES];
+  const benchmarkRoutes: MetadataRoute.Sitemap = Object.keys(BRANCHE_CLV)
+    .filter(k => k !== 'overig')
+    .map(b => ({
+      url: `${base}/nl-verhuisdata/${b}`,
+      lastModified: now,
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    }));
+  return [...gemeentenRoutes, ...vergelijkRoutes, ...matrixRoutes, ...benchmarkRoutes, ...STATIC_ROUTES];
 }
 
 const STATIC_ROUTES: MetadataRoute.Sitemap = [
