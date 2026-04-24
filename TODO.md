@@ -250,8 +250,14 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
   dedupes tegen bestaande lijst, caps op tier-limiet en toont feedback
   ("3 toegevoegd, 2 overgeslagen wegens tier-limiet"). CSV export nog
   openstaand.
-- [ ] **PC4 heatmap**: overlay new-mover density on the NLMap so retailers
-  pick PC4's with the highest yield per euro.
+- [~] **PC4 heatmap** data layer gebouwd in `lib/pc4-heatmap.ts`:
+  `bucketPc4Counts` bucketteert PC4 mover-counts in 5 density-banden
+  (none/low/mid/high/peak) op basis van quartielen uit de positieve
+  distributie, levert een 0-1 intensity en een hex-kleur per PC4.
+  `buildHeatmapLegend` produceert een bijpassende legend met
+  bereik-labels. Degenerate-case afgevangen (`count === max` is altijd
+  peak). 12 tests inclusief boundaries, zeros, threshold en
+  kleur-mapping. Leaflet NLMap overlay-wiring is de volgende stap.
 - [ ] **Multi-location support**: one retailer account, multiple winkels
   each with own pincode + branding. Requires schema change (retailer
   -> retailer + retailer_location one-to-many).
