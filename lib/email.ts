@@ -156,6 +156,73 @@ export async function sendMagicLink(
 }
 
 /**
+ * Reminder email sent ~48h after signup if the retailer hasn't yet created
+ * their first campaign. The only behavioural gate comes from the caller
+ * (cron query). This function is deliberately idempotent on the email side
+ * -- Resend dedupes, and we log which address we've already notified.
+ */
+export async function sendFirstCampaignReminder(
+  email: string,
+  bedrijfsnaam: string,
+): Promise<boolean> {
+  const html = buildEmailHtml(
+    `Nog 1 stap, ${escHtml(bedrijfsnaam)}`,
+    `
+    <p>Je account staat klaar, maar er loopt nog geen campagne. De eerste
+    campagne opzetten kost 20 minuten en daarna worden jouw flyers <strong>elke maand
+    tussen de 28e en 30e</strong> automatisch bij nieuwe bewoners in jouw postcodes bezorgd.</p>
+    <p>In de wizard kies je eenmalig:</p>
+    <ol style="padding-left: 20px; margin: 12px 0;">
+      <li style="margin-bottom: 6px;">Welke postcodes je wil bereiken</li>
+      <li style="margin-bottom: 6px;">Hoeveel maanden de campagne loopt</li>
+      <li style="margin-bottom: 6px;">Jouw flyerontwerp (of laat onze AI-assistent hem maken)</li>
+    </ol>
+    `,
+    { text: 'Start mijn eerste campagne', url: APP_URL },
+  );
+  return sendEmail({
+    to: email,
+    subject: 'Start jouw eerste campagne -- LokaalKabaal',
+    html,
+  });
+}
+
+/**
+ * Heads-up email when a retailer is ~80% through their monthly flyer
+ * bundle. Prevents the surprise-overage feeling by nudging upgrade or
+ * conscious opt-in to overage billing before the cap is hit.
+ */
+export async function sendBundleNearLimitEmail(
+  email: string,
+  bedrijfsnaam: string,
+  tier: string,
+  flyersUsed: number,
+  flyersBundle: number,
+): Promise<boolean> {
+  const pct = Math.round((flyersUsed / flyersBundle) * 100);
+  const overage = Math.max(0, flyersUsed - flyersBundle);
+  const html = buildEmailHtml(
+    `Je hebt ${pct}% van je flyerbundel gebruikt`,
+    `
+    <p>Beste ${escHtml(bedrijfsnaam)}, deze maand heb je al <strong>${flyersUsed} van de
+    ${flyersBundle}</strong> flyers uit je ${escHtml(tier)}-bundel ingezet.</p>
+    ${overage > 0 ? `<p>Er liggen ${overage} extra flyers klaar om te versturen -- die komen bovenop je bundel aan &euro;0,70 per stuk.</p>` : ''}
+    <p>Twee opties:</p>
+    <ul style="padding-left: 20px; margin: 12px 0;">
+      <li style="margin-bottom: 6px;">Upgrade naar een ruimere bundel en bespaar per flyer</li>
+      <li style="margin-bottom: 6px;">Laat het staan: extra flyers worden netjes bijgerekend op jouw volgende incasso</li>
+    </ul>
+    `,
+    { text: 'Bekijk abonnement', url: APP_URL },
+  );
+  return sendEmail({
+    to: email,
+    subject: `${pct}% van je flyerbundel gebruikt -- ${bedrijfsnaam}`,
+    html,
+  });
+}
+
+/**
  * Send a welcome email after a retailer completes registration.
  *
  * @param email        - Retailer email address

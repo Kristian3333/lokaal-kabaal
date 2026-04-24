@@ -205,9 +205,11 @@ safety nets for drop-off.
   bewust composite zodat trust niet op nep-data rust.
 - [ ] **Exit-intent capture**: modal with "Wacht, bereken eerst wat
   een nieuwe klant jou per jaar oplevert" + ROI calc.
-- [ ] **Lifecycle email sequence** in Resend: welcome -> first campaign
-  setup reminder (48h) -> scan recap (after first dispatch) -> upgrade
-  nudge at 80% of bundle. Today only welcome + dispatch notifications exist.
+- [~] **Lifecycle email helpers toegevoegd** in `lib/email.ts`:
+  `sendFirstCampaignReminder(email, bedrijfsnaam)` voor de 48h reminder
+  en `sendBundleNearLimitEmail(email, bedrijfsnaam, tier, used, bundle)`
+  voor de upgrade-nudge. Cron-scheduling die deze aanroept is de
+  volgende stap.
 
 ## 3. Product depth -- unlock already-built features
 
@@ -244,8 +246,11 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
   -> retailer + retailer_location one-to-many).
 - [ ] **Flyer template marketplace**: curated designs per branche, one-click
   apply with brand colors auto-substituted.
-- [ ] **Welkomst-serie** (3-flyer arc): month 1 = intro offer, month 2 =
-  reminder + review CTA, month 3 = loyalty signup. Sold as an add-on.
+- [~] **Welkomst-serie core** (`lib/welkomst-serie.ts`): 3-step arc
+  (0d intro, 30d reminder, 60d loyalty) met tier-gate via
+  `hasWelkomstSerieEntitlement` en `nextStepDue(send, now, alreadySent)`
+  scheduler-helper. 12 tests. Dispatch-cron wiring + wizard-toggle
+  zijn de volgende stap.
 
 ## 4. Retailer dashboard UX polish
 
