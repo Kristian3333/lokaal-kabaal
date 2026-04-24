@@ -141,7 +141,7 @@ export default function PricingSection(): React.JSX.Element {
             <em style={{ color: 'rgba(255,255,255,.35)' }}>automatisch, elke maand</em>
           </h2>
           <p style={{ fontSize: '13px', color: 'rgba(255,255,255,.4)', fontFamily: 'var(--font-mono)', maxWidth: '580px', margin: '0 auto 16px' }}>
-            A6 dubbelzijdig is standaard in elk pakket. Printkosten en PostNL-bezorging voor de inbegrepen flyers zitten in de prijs. Alleen als je meer wil versturen, betaal je per extra flyer bij.
+            A6 dubbelzijdig, drukkosten en PostNL-bezorging zitten bij je abonnement. Je betaalt alleen bij als je boven je maandbundel uitkomt.
           </p>
 
           {/* Billing toggle */}

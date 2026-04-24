@@ -593,8 +593,17 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
   `PlainLanguageToggle` component toont 5-6 bullet-point TL;DR in gewone
   taal, standaard uitgeklapt zodat de bounce-rate op legal pages daalt.
   aria-expanded + collapsible.
-- [ ] **Dutch copy polish**: have a native copywriter rewrite the landing
-  hero + pricing section. Current copy is good but reads engineer-native.
+- [~] **Dutch copy polish** pass op de twee belangrijkste blokken:
+  landing hero subtitle herschreven van "tienduizenden huishoudens in
+  Nederland... LokaalKabaal zorgt dat jouw flyer als eerste op de mat
+  ligt" naar "tienduizenden Nederlanders naar een nieuwe buurt...
+  Wees jij die eerste keuze" (actieve imperatief, concreter beeld,
+  rits van 3 korte zinnen). Pricing subtitle van "A6 dubbelzijdig is
+  standaard in elk pakket. Printkosten en PostNL-bezorging voor de
+  inbegrepen flyers zitten in de prijs" naar "A6 dubbelzijdig,
+  drukkosten en PostNL-bezorging zitten bij je abonnement" (korter,
+  natuurlijker Nederlands). Een volledige native-copywriter-sweep
+  over alle landing pages blijft een content-ops investering.
 
 ---
 

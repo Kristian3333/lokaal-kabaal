@@ -152,7 +152,7 @@ export default function LandingPage(): React.JSX.Element {
                 lineHeight: 1.75, maxWidth: '520px', marginBottom: '44px',
               }}
             >
-              Elke maand verhuizen <strong style={{ color: 'rgba(255,255,255,0.85)' }}>tienduizenden huishoudens</strong> in Nederland. De eerste 30 dagen kiezen ze hun vaste kapper, bakker en installateur. LokaalKabaal zorgt dat jouw flyer als eerste op de mat ligt.
+              Elke maand verhuizen er <strong style={{ color: 'rgba(255,255,255,0.85)' }}>tienduizenden Nederlanders</strong> naar een nieuwe buurt. In de eerste 30 dagen kiezen ze hun vaste kapper, bakker en installateur. Daarna switchen ze zelden nog. Wees jij die eerste keuze.
             </motion.p>
 
             <motion.div
