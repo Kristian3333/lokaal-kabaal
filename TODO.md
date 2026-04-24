@@ -277,13 +277,19 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
   `<html>`. `app/globals.css` has an `html[data-theme='dark']` block
   that inverts neutral CSS vars; existing inline-style components
   that read var(--ink) / var(--paper) pick this up automatically.
-- [ ] **Keyboard shortcuts** for dashboard power users (cmd+k command
-  palette). Differentiator vs competitors who mostly have no keyboard UX.
+- [x] **Cmd+K command palette** live in dashboard: `CommandPalette`
+  component met 9 built-in commands (navigate, start nieuwe campagne,
+  upgrade, support mailen, uitloggen), arrow-keys + enter + escape
+  keyboard-only flow, filterbare search, `role="dialog"` + aria-labels.
+  ⌘K / ctrl+K globale binding.
 
 ## 5. Trust, compliance, and social proof
 
-- [ ] **AVG / DPIA document** publicly linked from /privacy. Procurement
-  teams at bigger clients will ask.
+- [x] **AVG / DPIA verantwoording** live op `/avg-dpia`: 8 secties
+  (doel, gegevens, rechtsgrond met balans-test, verwerkers-lijst,
+  technische maatregelen, bewaartermijnen, betrokkenenrechten,
+  contact). Privacy-pagina linkt prominent naar deze versie voor
+  procurement-teams. Opgenomen in sitemap.
 - [ ] **ISO 27001 roadmap** (not cert yet, but document the controls we do
   have: HTTPS/TLS, encrypted-at-rest Neon, scrypt password hashes, signed
   session tokens, rate limiting, signature-verified webhooks).

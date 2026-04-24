@@ -19,6 +19,15 @@ export default function Privacy() {
         <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '42px', fontWeight: 400, marginBottom: '8px' }}>Privacybeleid</h1>
         <p style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '48px' }}>Laatst bijgewerkt: 1 april 2026</p>
 
+        <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '14px 18px', marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ fontSize: '13px', color: 'var(--muted)' }}>
+            Voor procurement-teams met een eigen DPIA-traject
+          </div>
+          <Link href="/avg-dpia" style={{ color: 'var(--green-dim)', textDecoration: 'underline', fontSize: '13px', fontWeight: 600 }}>
+            Bekijk AVG/DPIA verantwoording →
+          </Link>
+        </div>
+
         {[
           {
             titel: '1. Wie zijn wij?',

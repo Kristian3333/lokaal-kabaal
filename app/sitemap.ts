@@ -49,4 +49,5 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: `${base}/contact`, lastModified: now, changeFrequency: 'yearly', priority: 0.5 },
   { url: `${base}/privacy`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
   { url: `${base}/voorwaarden`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
+  { url: `${base}/avg-dpia`, lastModified: now, changeFrequency: 'yearly', priority: 0.4 },
 ];

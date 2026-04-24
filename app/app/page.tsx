@@ -10,6 +10,7 @@ import type { WizState, PendingCampaign } from '@/components/dashboard/CampaignW
 import type { SavedFlyer } from '@/components/dashboard/FlyerDesigner';
 import { type FlyerState } from '@/components/dashboard/FlyerPreview';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
+import CommandPalette, { type Command } from '@/components/dashboard/CommandPalette';
 
 // ─── Dynamic panels ──────────────────────────────────────────────────────────
 //
@@ -342,10 +343,24 @@ export default function LokaalKabaal(): React.JSX.Element {
     finally { setAiLoading(false); }
   }, [wiz.spec, flyer.bedrijfsnaam, flyer.slogan, flyer.websiteUrl, runFlyerPipeline, updateFlyer]);
 
+  // ── Command palette (cmd/ctrl+K) ──────────────────────────────────────────
+  const commands: Command[] = [
+    { id: 'go-dashboard', label: 'Ga naar Dashboard',      hint: 'Overzicht + campagnes',        keywords: ['home', 'overview'],     onRun: () => setPage('dashboard') },
+    { id: 'go-wizard',    label: 'Nieuwe campagne starten',hint: '8-stappen wizard',             keywords: ['add', 'new', 'campagne'],onRun: startNieuweCampagne },
+    { id: 'go-flyer',     label: 'Flyer editor openen',    hint: 'Ontwerp of upload',            keywords: ['flyer', 'design'],       onRun: () => setPage('flyer') },
+    { id: 'go-conv',      label: 'Conversies bekijken',    hint: 'QR-scans + pincode-conversie', keywords: ['analytics', 'roi'],     onRun: () => setPage('conversies') },
+    { id: 'go-bill',      label: 'Abonnement & facturatie',hint: 'Stripe portaal + facturen',    keywords: ['billing', 'invoice'],    onRun: () => setPage('billing') },
+    { id: 'go-profile',   label: 'Mijn profiel',           hint: 'Bedrijfsgegevens + pincode',   keywords: ['settings', 'account'],   onRun: () => setPage('profiel') },
+    { id: 'upgrade',      label: 'Abonnement upgraden',    hint: 'Bekijk tiers',                 keywords: ['upgrade', 'prijs'],     onRun: () => window.open('/#prijzen', '_blank') },
+    { id: 'support',      label: 'Support mailen',         hint: 'support@lokaalkabaal.agency',  keywords: ['help', 'contact'],       onRun: () => { window.location.href = 'mailto:support@lokaalkabaal.agency'; } },
+    { id: 'logout',       label: 'Uitloggen',              hint: 'Terug naar de landing',        keywords: ['sign out', 'exit'],      onRun: uitloggen },
+  ];
+
   // ── Shell render ──────────────────────────────────────────────────────────
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--paper)' }}>
+      <CommandPalette commands={commands} />
       {/* Sidebar */}
       <DashboardSidebar
         page={page}
