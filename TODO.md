@@ -362,10 +362,17 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
   `retryDelaySeconds` (exponential backoff 30s→2min→8min→30min→2h),
   typed `WebhookEvent` union. 13 tests. Next: DB-tabel
   `webhook_subscriptions` + cron die queue verwerkt.
-- [ ] **Gemeente welkomstpakket partnership SDK**: iframe / embed so a
-  municipality site can render "welkomstpakket retailers in jouw buurt"
-  driven by our retailer database. Revenue share.
-- [ ] **Slack / Teams bot**: /lokaalkabaal scans today. Enterprise feel.
+- [~] **Gemeente partnership pagina** live op `/gemeenten`: 4 bouwstenen
+  (welkomstbooklet, digital embed, verhuisdata-dashboard, co-branded QR),
+  inclusief iframe-embed snippet voor gemeentelijke verhuis-landingspagina's
+  met `?gemeente=` / `?pc4=` params + "plan kennismakingscall" CTA naar
+  gemeenten@lokaalkabaal.agency. Embed-route zelf (/embed/welkomstpakket)
+  is nog TBD.
+- [~] **Slack + Teams message builders** (`lib/slack-messages.ts`):
+  `buildSlackMessage(event)` retourneert block-kit payload,
+  `buildTeamsMessage(event)` MessageCard-structure. Beide met
+  event-specifieke copy voor scan/conversion/dispatch/monthly-report.
+  8 tests. Klaar om vanuit de webhook-outbox delivery-cron aan te roepen.
 
 ## 7. Monetization expansion
 
