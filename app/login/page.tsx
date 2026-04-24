@@ -295,17 +295,21 @@ function LoginContent() {
             </p>
             <form onSubmit={(e) => { void handleLogin(e); }}>
               <div style={{ marginBottom: '14px' }}>
-                <label style={labelStyle}>E-mailadres</label>
+                <label htmlFor="login-email" style={labelStyle}>E-mailadres</label>
                 <input
+                  id="login-email"
                   type="email" placeholder="jij@bedrijf.nl" autoFocus
+                  autoComplete="email"
                   value={email} onChange={e => setEmail(e.target.value)}
                   style={inputStyle}
                 />
               </div>
               <div style={{ marginBottom: '8px' }}>
-                <label style={labelStyle}>Wachtwoord</label>
+                <label htmlFor="login-password" style={labelStyle}>Wachtwoord</label>
                 <input
+                  id="login-password"
                   type="password" placeholder="••••••••"
+                  autoComplete="current-password"
                   value={password} onChange={e => setPassword(e.target.value)}
                   style={inputStyle}
                 />
@@ -347,32 +351,39 @@ function LoginContent() {
             </p>
             <form onSubmit={(e) => { void handleRegister(e); }}>
               <div style={{ marginBottom: '12px' }}>
-                <label style={labelStyle}>E-mailadres</label>
+                <label htmlFor="reg-email" style={labelStyle}>E-mailadres</label>
                 <input
+                  id="reg-email"
                   type="email" placeholder="jij@bedrijf.nl" autoFocus
+                  autoComplete="email"
                   value={email} onChange={e => setEmail(e.target.value)}
                   style={inputStyle}
                 />
               </div>
               <div style={{ marginBottom: '12px' }}>
-                <label style={labelStyle}>Wachtwoord</label>
+                <label htmlFor="reg-password" style={labelStyle}>Wachtwoord</label>
                 <input
+                  id="reg-password"
                   type="password" placeholder="Minimaal 8 tekens"
+                  autoComplete="new-password"
                   value={password} onChange={e => setPassword(e.target.value)}
                   style={inputStyle}
                 />
               </div>
               <div style={{ marginBottom: '12px' }}>
-                <label style={labelStyle}>Bedrijfsnaam</label>
+                <label htmlFor="reg-bedrijfsnaam" style={labelStyle}>Bedrijfsnaam</label>
                 <input
+                  id="reg-bedrijfsnaam"
                   type="text" placeholder="Jouw Bedrijf BV"
+                  autoComplete="organization"
                   value={bedrijfsnaam} onChange={e => setBedrijfsnaam(e.target.value)}
                   style={inputStyle}
                 />
               </div>
               <div style={{ marginBottom: '20px' }}>
-                <label style={labelStyle}>Branche</label>
+                <label htmlFor="reg-branche" style={labelStyle}>Branche</label>
                 <select
+                  id="reg-branche"
                   value={branche} onChange={e => setBranche(e.target.value)}
                   style={{ ...inputStyle, appearance: 'none' }}
                 >
@@ -418,9 +429,11 @@ function LoginContent() {
             ) : (
               <form onSubmit={(e) => { void handleMagicLink(e); }}>
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={labelStyle}>E-mailadres</label>
+                  <label htmlFor="magic-email" style={labelStyle}>E-mailadres</label>
                   <input
+                    id="magic-email"
                     type="email" placeholder="jij@bedrijf.nl" autoFocus
+                    autoComplete="email"
                     value={email} onChange={e => setEmail(e.target.value)}
                     style={inputStyle}
                   />

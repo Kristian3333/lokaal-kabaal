@@ -544,9 +544,14 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
 
 ## 11. Accessibility & content craft
 
-- [ ] **Full WCAG 2.2 AA audit** of the dashboard. Previous passes fixed
-  obvious items; need a screen-reader sweep + focus-trap checks on wizard
-  steps.
+- [~] **WCAG 2.2 AA audit** — critical-flow forms gefixt: login,
+  register, magic-link en de homepage proef-flyer intake hebben nu
+  `autoComplete` attributen (email / current-password / new-password /
+  organization / street-address) plus `htmlFor`/`id` koppelingen tussen
+  labels en inputs. Dat sluit WCAG 1.3.5 (Identify Input Purpose) en
+  1.3.1 (Info and Relationships) op de vier belangrijkste intake-
+  surfaces. Dashboard-screen-reader sweep + wizard focus-trap checks
+  blijven queued.
 - [~] **Keyboard-only navigation** foundation hersteld in `globals.css`:
   `outline: none` op inputs/textareas/selects verwijderd (was een AA
   schending omdat er geen vervanging was), en een globale

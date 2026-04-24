@@ -104,6 +104,7 @@ export default function ProefFlyerForm(): React.JSX.Element {
                 <label htmlFor="proef-bedrijfsnaam" style={labelStyle}>Bedrijfsnaam</label>
                 <input
                   id="proef-bedrijfsnaam" style={inputStyle} required
+                  autoComplete="organization"
                   value={bedrijfsnaam} onChange={e => setBedrijfsnaam(e.target.value)}
                   placeholder="Jouw Bedrijf BV"
                 />
@@ -125,6 +126,7 @@ export default function ProefFlyerForm(): React.JSX.Element {
               <label htmlFor="proef-email" style={labelStyle}>E-mailadres</label>
               <input
                 id="proef-email" type="email" style={inputStyle} required
+                autoComplete="email"
                 value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="jij@bedrijf.nl"
               />
@@ -134,6 +136,7 @@ export default function ProefFlyerForm(): React.JSX.Element {
               <label htmlFor="proef-adres" style={labelStyle}>Afleveradres (straat + huisnr + postcode + stad)</label>
               <input
                 id="proef-adres" style={inputStyle} required
+                autoComplete="street-address"
                 value={adres} onChange={e => setAdres(e.target.value)}
                 placeholder="Kerkstraat 12, 3512 AB Utrecht"
               />
