@@ -377,8 +377,12 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
   data (WOZ average, bouwjaar spread) to predict expected conversion per
   new mover. Shown at campaign setup so retailers understand expected ROI
   before paying.
-- [ ] **Churn signal**: flag campaigns with declining scan-rates so we can
-  proactively reach out before the retailer cancels.
+- [x] **Churn signal helper** (`lib/churn-signal.ts`): `assessChurn(series)`
+  returnt een severity-bucket (healthy/watch/risk/critical) op basis van
+  de laatste maand vs. baseline gemiddelde scan-rate. Epsilon-bewust voor
+  floating-point grenssgevallen. 8 tests (te weinig data, stabiele rate,
+  15/35/60% drops, out-of-order input, zero-volume maanden skip).
+  Next: sluit aan op een cron die retailers proactief mailt.
 
 ## 10. Infra & performance
 
