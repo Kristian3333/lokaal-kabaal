@@ -385,18 +385,25 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
 - [ ] **Data products** (anonymized): sell monthly "new movers by PC4"
   aggregates to estate agents / insurance brokers / moving companies.
   Zero marginal cost for us, pure upside.
-- [ ] **Yearly contract upgrade incentive**: today 15% off. Experiment with
-  "first month free + 10% off" or a concrete "200 extra flyers this month"
-  bonus to increase yearly share. A/B testable via the billing toggle.
+- [~] **Yearly upgrade A/B helper** (`lib/yearly-upgrade.ts`):
+  `assignIncentive(retailerId)` buckets retailers deterministisch in 3
+  varianten (control 15% discount, first-month-free + 10%, +200
+  bonus-flyers), `incentiveCopy(variant)` geeft pill + longTitle +
+  subtitlePerTier. 9 tests inclusief hash-stability en alle
+  variant-specifieke copy. Wizard + PricingSection UI-wiring is
+  de volgende stap.
 
 ## 8. Internationalization & expansion
 
 - [ ] **Belgium**: Kadaster-equivalent is Algemene Administratie van de
   Patrimoniumdocumentatie. Altum has a BE feed. Scope a 3-week expansion
   PoC; Flemish-speaking retailers convert at Dutch-ish rates.
-- [ ] **English UI toggle** for expat-owned SMBs in NL. 10% of Amsterdam
-  retailers are non-Dutch-speaking founders. Low lift (existing i18n via
-  next-intl), moderate unlock.
+- [~] **Engelse UI seed** (`lib/i18n.ts`): typed EN dictionary voor 20
+  core UI-strings (landing CTAs + wizard + sidebar + auth tabs),
+  `t(locale, key)` helper met fallback naar Dutch source als key
+  ontbreekt, `resolveLocale(acceptLanguage, cookie)` parser. 10 tests.
+  Next: locale-aware layout dat de header parset en call-sites omzetten
+  van hardcoded Dutch naar `t(locale, ...)`.
 - [ ] **Germany** as year 2+ bet: Grundbuch data exists, DSGVO-alignment
   is doable, the market is 5x NL. Needs partner on printing side.
 
@@ -445,9 +452,11 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
   / Highlight is nu één file; nieuwe callers worden automatisch meegenomen.
   Volgende stap: install `@sentry/nextjs` en vervang `console.*` calls in
   de helpers door Sentry hooks.
-- [ ] **Database migrations in CI**: currently `drizzle-kit migrate` is
-  manual. Add a GHA check that `drizzle-kit generate` produces no diff
-  versus the schema file.
+- [~] **Database migration scripts** aan `package.json` toegevoegd:
+  `npm run db:check` (drizzle-kit check voor drift), `npm run db:generate`,
+  `npm run db:migrate`. Maakt het triviaal om een GHA-step te toevoegen
+  die `db:check` runt en een PR blokkeert bij ongenoteerde schema-drift.
+  De GHA workflow zelf is nog niet toegevoegd.
 - [ ] **Rate-limit backend upgrade**: in-memory `lib/rate-limit.ts` doesn't
   coordinate across serverless instances. Move to Upstash Redis for
   stricter bot/brute-force protection at scale.
