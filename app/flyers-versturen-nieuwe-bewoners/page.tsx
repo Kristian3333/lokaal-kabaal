@@ -61,10 +61,44 @@ const faqSchema = {
   ],
 };
 
+// HowTo structured data -- mirrors the on-page "Drie stappen" section so
+// Google can show a step-by-step rich result on the SERP.
+const howToSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: 'Automatisch flyers versturen naar nieuwe bewoners',
+  description: 'In drie stappen bereik je maandelijks alle nieuwe huiseigenaren in jouw postcodes met een fysieke flyer.',
+  totalTime: 'PT20M',
+  step: [
+    {
+      '@type': 'HowToStep',
+      position: 1,
+      name: 'Kies jouw postcodes',
+      text: 'Selecteer de postcodegebieden waarin je nieuwe bewoners wil bereiken. De wizard toont direct hoeveel nieuwe huishoudens je gemiddeld per maand mag verwachten.',
+      url: 'https://lokaalkabaal.agency/login',
+    },
+    {
+      '@type': 'HowToStep',
+      position: 2,
+      name: 'Upload of ontwerp je flyer',
+      text: 'Upload een bestaand ontwerp of gebruik onze AI-assistent. Elke flyer krijgt automatisch het adres van de nieuwe bewoner en een unieke QR-code voor conversietracking.',
+      url: 'https://lokaalkabaal.agency/login',
+    },
+    {
+      '@type': 'HowToStep',
+      position: 3,
+      name: 'Elke maand automatisch bezorgd',
+      text: 'Wij trekken rond de 20e verse Kadaster-data, sturen de bulkorder naar de drukker, en PostNL bezorgt jouw flyer tussen de 28e en 30e bij alle nieuwe bewoners.',
+      url: 'https://lokaalkabaal.agency/login',
+    },
+  ],
+};
+
 export default function FlyersNieuweBewoners() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
       <div style={{ fontFamily: 'var(--font-sans)', background: 'var(--paper)', minHeight: '100vh', color: 'var(--ink)' }}>
 
         <Nav />

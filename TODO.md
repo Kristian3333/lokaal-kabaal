@@ -153,9 +153,11 @@ Direct-mail SEO today is 7 industry pages (bakker, kapper, installateur ...) +
   `~N nieuwe huiseigenaren per maand` + jaarcijfer + conversieratio 4-8%.
   SEO-metadata, OG image met "Gratis tool" badge, CTA naar /login.
   Opgenomen in sitemap.ts. Vervolg: CLV-branchefilter toevoegen.
-- [ ] **Free tool: flyer ROI calculator** as a standalone page with its own
-  SEO keywords ("ROI direct mail", "flyer rendement berekenen"). Embeddable
-  widget version for bloggers/partners.
+- [x] **Free tool: flyer ROI calculator** live bij `/tools/roi-calculator`.
+  Branche-picker + 4 sliders (CLV, flyers/mnd, conversieratio, maandkosten)
+  → reactieve verwachte klanten / omzet / terugverdientijd / jaar-ROI.
+  `lib/clv.ts` exports BRANCHE_CLV + `calculateRoi` pure helper; 8 tests.
+  Opgenomen in sitemap. Embeddable widget versie nog openstaand.
 - [ ] **Blog cadence 2x/week** via an editorial calendar. Themes: retailer
   success stories, new-mover behavior research, local marketing trends.
   Cross-link aggressively to product pages.
@@ -165,8 +167,11 @@ Direct-mail SEO today is 7 industry pages (bakker, kapper, installateur ...) +
   geschreven zodat Google dit als echte comparison indexeert. Opgenomen
   in sitemap met `lib/concurrenten.ts` als data-source. 3 routes
   geprerenderd via generateStaticParams.
-- [ ] **FAQ schema + HowTo schema** on all product pages (we already have
-  plain JSON-LD, need explicit `@type: FAQPage` and `@type: HowTo` blocks).
+- [x] **FAQ + HowTo schema**: FAQPage al op 6 industry pages + gemeente
+  programmatic page. HowTo schema toegevoegd aan
+  `/flyers-versturen-nieuwe-bewoners` met 3-stappen (postcodes → flyer →
+  bezorging tussen 28-30e) gekoppeld aan /login URLs zodat Google direct
+  rich results kan tonen.
 - [ ] **Backlink strategy**: partner with gemeente welkomstpakket sites,
   Ondernemersvereniging listings, Chamber of Commerce content partnerships.
 - [x] **Dynamic OG image generation** via `/api/og?title=...&subtitle=...&badge=...`
