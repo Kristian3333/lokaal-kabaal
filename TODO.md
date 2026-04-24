@@ -136,11 +136,14 @@ rest of it.
 Direct-mail SEO today is 7 industry pages (bakker, kapper, installateur ...) +
 4 blog posts. The opportunity is long-tail local intent.
 
-- [ ] **Programmatic city pages**: `/flyers-versturen-[gemeente]` for all ~340
-  Dutch municipalities. Each page pulls real monthly new-movers count for
-  that municipality from our own Altum-feed snapshot. Unique copy per city
-  + a local case study slot. Auto-generated, human-edited top 30. This is
-  *the* biggest Google NL play we have.
+- [x] **Programmatic city pages batch 1**: `/flyers-versturen-[gemeente]`
+  live voor de top 40 Dutch municipalities met `dynamicParams=false` +
+  `generateStaticParams`. Elke pagina heeft unieke hero (gemeente naam +
+  provincie + inwoners + PC4), lokale new-movers schatting via
+  `estimateNewMoversPerMonth(inwoners)`, FAQ schema.org markup, canonical
+  URL en dynamic OG image per stad. Sitemap.ts injecteert alle 40 slugs.
+  Tests: 10 lib cases + 7 metadata cases. Next batch: uitbreiden naar ~340
+  gemeenten en Altum-feed wiring voor echte data.
 - [ ] **Programmatic industry x city matrix**: "kapper in Rotterdam",
   "bakker in Utrecht". 7 branches x 340 cities = ~2.400 auto-generated
   landing pages. Canonical to the main industry page, differentiated by a
@@ -201,11 +204,11 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
 - [ ] **A/B testing UI**. Agency tier only. Two flyer variants, auto 50/50
   split, dashboard shows scan-rate and conversion per variant. Schema
   (`ab_tests`, `abTestVariant`) already exists.
-- [~] **Conversion dashboard v2 core** (`lib/conversie-stats.ts`):
-  `bucketByTime(points, 'day'|'month')` + `breakdownByPostcode(points)` +
-  `sparklinePoints(values, w, h)` SVG-polyline helper + 11 tests. Next step:
-  wire into `ConversiesPanel` with an inline `<svg>` sparkline and a
-  PC4-breakdown table.
+- [x] **Conversion dashboard v2**: `lib/conversie-stats.ts` helpers +
+  `TimeseriesAndBreakdown` component in `ConversiesPanel` shows an inline
+  SVG trendlijn (verzonden / interesse / conversies per maand, 3 colored
+  polylines) plus a top-5 PC4 breakdown card (PC4 + conversieratio +
+  sample size). 11 lib tests.
 - [ ] **Campaign duplication**: one-click "Start dezelfde campagne ergens
   anders" for retailers with multiple locations.
 - [ ] **PC4 bulk import + export**. CSV upload or paste list for retailers

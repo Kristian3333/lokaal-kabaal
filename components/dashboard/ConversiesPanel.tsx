@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { type Campaign } from '@/components/dashboard/CampaignDashboard';
+import { bucketByTime, breakdownByPostcode, sparklinePoints } from '@/lib/conversie-stats';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -215,6 +216,8 @@ export default function ConversiesPanel({ campaigns, userEmail, onStartCampagne 
               <span style={{ fontSize: '20px', fontWeight: 700, color: '#3b82f6', fontFamily: 'var(--font-serif)' }}>{stats.interesseConversieRatio}%</span>
             </div>
           </div>
+
+          <TimeseriesAndBreakdown results={convData?.results ?? []} />
         </>
       )}
 
@@ -348,6 +351,72 @@ export default function ConversiesPanel({ campaigns, userEmail, onStartCampagne 
         1. De consument ontvangt een flyer met QR-code en scant deze → interesse geregistreerd.<br />
         2. Bij bezoek aan jouw bedrijf voer je de 8-letterige code hierboven in → conversie geregistreerd.<br />
         Codes zijn eenmalig inwisselbaar en 30 dagen geldig na verzending.
+      </div>
+    </div>
+  );
+}
+
+/**
+ * TimeseriesAndBreakdown -- conversion dashboard v2 visuals.
+ * Inline SVG sparkline (verzonden/interesse/conversies per month) plus a
+ * top-5 PC4 breakdown table so retailers see which postcodes convert.
+ */
+function TimeseriesAndBreakdown({ results }: { results: ConvResult[] }): React.JSX.Element | null {
+  const buckets = useMemo(() => bucketByTime(results, 'month'), [results]);
+  const topPc4 = useMemo(() => breakdownByPostcode(results).slice(0, 5), [results]);
+
+  if (buckets.length === 0) return null;
+
+  const W = 560;
+  const H = 80;
+  const verzondenPts = sparklinePoints(buckets.map(b => b.verzonden), W, H);
+  const interessePts = sparklinePoints(buckets.map(b => b.interesse), W, H);
+  const conversiesPts = sparklinePoints(buckets.map(b => b.conversies), W, H);
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: '12px', marginBottom: '24px' }}>
+      {/* Sparkline card */}
+      <div style={{ background: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+          <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Verloop per maand
+          </div>
+          <div style={{ display: 'flex', gap: '12px', fontSize: '10px', fontFamily: 'var(--font-mono)' }}>
+            <span style={{ color: 'var(--ink)' }}>■ verstuurd</span>
+            <span style={{ color: '#3b82f6' }}>■ interesse</span>
+            <span style={{ color: 'var(--green)' }}>■ conversies</span>
+          </div>
+        </div>
+        <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} style={{ display: 'block' }} role="img" aria-label="Trendlijn verstuurd, interesse en conversies per maand">
+          <polyline fill="none" stroke="var(--ink)" strokeWidth="1.5" points={verzondenPts} />
+          <polyline fill="none" stroke="#3b82f6" strokeWidth="1.5" points={interessePts} />
+          <polyline fill="none" stroke="var(--green)" strokeWidth="1.5" points={conversiesPts} />
+        </svg>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '6px' }}>
+          <span>{buckets[0]?.key}</span>
+          <span>{buckets[buckets.length - 1]?.key}</span>
+        </div>
+      </div>
+
+      {/* Top PC4 card */}
+      <div style={{ background: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px' }}>
+        <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>
+          Beste postcodes
+        </div>
+        {topPc4.length === 0 ? (
+          <div style={{ fontSize: '12px', color: 'var(--muted)' }}>Geen data beschikbaar.</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {topPc4.map(row => (
+              <div key={row.pc4} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: '12px' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{row.pc4}</span>
+                <span style={{ color: 'var(--green-dim)' }}>
+                  {(row.conversieRate * 100).toFixed(0)}% <span style={{ color: 'var(--muted)' }}>· {row.verzonden}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
