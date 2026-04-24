@@ -3,6 +3,10 @@ import Link from 'next/link';
 import Nav from '@/components/Nav';
 import PricingSection from '@/components/PricingSection';
 
+// Edge ISR: revalidate rendered HTML every 24h so pricing-config changes
+// propagate without a deploy, while cold visitors still hit a cached page.
+export const revalidate = 86400;
+
 export const metadata: Metadata = {
   title: 'Flyers naar Nieuwe Bewoners Versturen | Maandelijks Automatisch',
   description: 'Bereik nieuwe huiseigenaren elke maand automatisch. LokaalKabaal bezorgt tussen de 28e en 30e gepersonaliseerde flyers bij alle nieuwe bewoners in uw postcodes. Geen handmatig werk.',

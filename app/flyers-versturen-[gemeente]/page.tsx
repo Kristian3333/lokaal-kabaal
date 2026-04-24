@@ -17,9 +17,11 @@ import { GEMEENTEN, findGemeenteBySlug, estimateNewMoversPerMonth } from '@/lib/
 const siteUrl = 'https://lokaalkabaal.agency';
 
 // Prerender one static HTML per gemeente at build time and 404 anything else
-// so Google only indexes canonical city pages. Adding new gemeenten requires
-// a rebuild (acceptable -- the list lives in source).
+// so Google only indexes canonical city pages.
 export const dynamicParams = false;
+// Edge ISR: revalidate daily so the per-city estimate copy refreshes when
+// lib/gemeenten numbers are tuned, without requiring a deploy.
+export const revalidate = 86400;
 
 export function generateStaticParams(): { gemeente: string }[] {
   return GEMEENTEN.map(g => ({ gemeente: g.slug }));

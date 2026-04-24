@@ -365,9 +365,11 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
 
 ## 9. Data products & analytics moat
 
-- [ ] **Public NL new-movers dashboard** at
-  `lokaalkabaal.agency/nl-verhuisdata` with monthly totals per province
-  for free, PC4 detail behind lead-gate. Press-release-able.
+- [x] **Public NL verhuisdata dashboard** live op `/nl-verhuisdata`:
+  hero met landelijke totalen, tabel per provincie (sorted by new-movers)
+  met top-3 gemeenten per provincie als inlinks naar de gemeente-
+  programmatic pages. `lib/provincie-data.ts` helper + 5 tests. ISR
+  revalidate=86400 op de pagina + dynamic OG image met "Open data" badge.
 - [ ] **Industry benchmark reports**: "de gemiddelde kapsalon in Utrecht
   ziet 4.8% scan-rate". Quarterly PDF sent to all retailers, positions us
   as the market authority.
@@ -383,8 +385,11 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
 - [ ] **Move user-uploaded logos + hero images to Vercel Blob** (already
   installed) and swap the base64 `<img>` for `next/image` with proper
   responsive srcsets. Dashboard bandwidth drops significantly.
-- [ ] **Edge caching for public landing pages**: ISR with revalidate=3600
-  on industry + city pages, invalidate via webhook when content changes.
+- [x] **Edge ISR aangezet** op de zwaarste publieke pagina's:
+  `/flyers-versturen-nieuwe-bewoners`, `/flyers-versturen-[gemeente]`,
+  `/nl-verhuisdata` hebben `export const revalidate = 86400` (24h)
+  zodat cold visitors altijd een cached HTML krijgen en tier-config
+  updates zonder redeploy propageren.
 - [ ] **E2E test harness**: Playwright on critical flows (signup, wizard,
   checkout redirect, conversion via pincode). One GHA job, runs against
   a staging deploy per PR.

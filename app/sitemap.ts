@@ -40,6 +40,7 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: `${base}/flyers-versturen-makelaar`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
   { url: `${base}/tools/verhuisdata`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
   { url: `${base}/tools/roi-calculator`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+  { url: `${base}/nl-verhuisdata`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
   { url: `${base}/blog`, lastModified: now, changeFrequency: 'weekly', priority: 0.7 },
   { url: `${base}/blog/digital-first`, lastModified: now, changeFrequency: 'yearly', priority: 0.6 },
   { url: `${base}/blog/digitale-moeheid`, lastModified: now, changeFrequency: 'yearly', priority: 0.6 },
