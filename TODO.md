@@ -414,9 +414,13 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
 
 ## 8. Internationalization & expansion
 
-- [ ] **Belgium**: Kadaster-equivalent is Algemene Administratie van de
-  Patrimoniumdocumentatie. Altum has a BE feed. Scope a 3-week expansion
-  PoC; Flemish-speaking retailers convert at Dutch-ish rates.
+- [~] **Belgium** lead-gen + waitlist surface live op `/be`: Q3 2026 PoC
+  positionering voor Antwerpen/Gent/Brugge/Leuven/Hasselt/Mechelen,
+  FOD Economie migratiestatistiek-volumes, NL-vs-BE vergelijkingstabel
+  (data-bron, GDPR, bpost, BTW, taal), pilot-voorwaarden (20 retailers
+  aan 50% korting, 3 maand commitment), mailto waitlist naar
+  be@lokaalkabaal.agency. Altum AI BE feed integration komt in de
+  volgende fase zodra coverage 90% haalt.
 - [~] **Engelse UI seed** (`lib/i18n.ts`): typed EN dictionary voor 20
   core UI-strings (landing CTAs + wizard + sidebar + auth tabs),
   `t(locale, key)` helper met fallback naar Dutch source als key
