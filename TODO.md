@@ -328,8 +328,15 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
   top-5 PC4 tabel met realistische illustratieve data. Retailers zien
   wat ze krijgen vóór signup. PDF-download komt nadat de real-data
   cron wired is.
-- [ ] **Trustpilot / Google reviews** integration with schema.org Review
-  markup on the pricing page.
+- [~] **Trustpilot / Google reviews** JSON-LD generator gebouwd in
+  `lib/reviews-jsonld.ts`: `computeReviewStats` berekent reviewCount +
+  ratingValue (afgerond op 1 decimaal, filtert NaN + out-of-range),
+  `buildReviewsJsonLd` produceert een Product + AggregateRating +
+  Review payload klaar voor een `<script type="application/ld+json">`
+  tag. Publisher-mapping voor trustpilot/google/eigen, sortering op
+  newest-first, configureerbare cap (default 10). 13 tests inclusief
+  edge-cases. Wiring op de pricing-page + live review-feed zijn de
+  volgende stap zodra we echte reviews hebben.
 - [x] **Security.txt** at `/.well-known/security.txt` via Next.js rewrite:
   RFC 9116 fields (Contact, Expires, Preferred-Languages, Canonical,
   Policy) serving plain text. Tested end-to-end.
