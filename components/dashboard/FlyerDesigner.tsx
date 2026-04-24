@@ -1,11 +1,12 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { PREVIEW_PX } from '@/components/FlyerExport';
 import FlyerExport from '@/components/FlyerExport';
 import FlyerPreview, { type FlyerState, AdaptiveLogo } from '@/components/dashboard/FlyerPreview';
 import FlyerBackPreview from '@/components/dashboard/FlyerBackPreview';
 import { type PendingCampaign } from '@/components/dashboard/CampaignWizard';
+import { FLYER_PRESETS, presetsForBranche, type FlyerPreset } from '@/lib/flyer-presets';
 
 // ─── Design Options ───────────────────────────────────────────────────────────
 
@@ -210,6 +211,9 @@ export default function FlyerDesigner({
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '16px', alignItems: 'start' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+
+            {/* Template marketplace */}
+            <TemplateMarketplace flyer={flyer} onUpdateFlyer={onUpdateFlyer} />
 
             {/* Design picker */}
             <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
@@ -603,5 +607,93 @@ export default function FlyerDesigner({
         )}
       </div>
     </>
+  );
+}
+
+/**
+ * TemplateMarketplace -- horizontal card strip of branche-specific flyer
+ * presets. Clicking a card applies the preset's patch to the active flyer,
+ * preserving bedrijfsnaam / logo / contact fields. Filter toggle between
+ * branche-specific and all presets.
+ */
+function TemplateMarketplace({
+  flyer,
+  onUpdateFlyer,
+}: {
+  flyer: FlyerState;
+  onUpdateFlyer: (patch: Partial<FlyerState>) => void;
+}): React.JSX.Element {
+  const [showAll, setShowAll] = useState(false);
+
+  // Guess branche from bedrijfsnaam or slogan (crude but beats nothing);
+  // the wizard's BRANCHE_OPTIES don't hit this component directly.
+  const guess = (flyer.slogan + ' ' + flyer.bedrijfsnaam + ' ' + flyer.tekst).toLowerCase();
+  const detectedBranche: FlyerPreset['branche'] =
+    guess.includes('kap') ? 'kapper' :
+    guess.includes('bakker') ? 'bakker' :
+    guess.includes('restaurant') || guess.includes('cafe') ? 'restaurant' :
+    guess.includes('install') ? 'installateur' :
+    guess.includes('makelaar') ? 'makelaar' :
+    guess.includes('fysio') ? 'fysio' :
+    'generic';
+
+  const presets = showAll ? FLYER_PRESETS : presetsForBranche(detectedBranche);
+
+  function applyPreset(p: FlyerPreset): void {
+    onUpdateFlyer(p.patch);
+  }
+
+  return (
+    <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px', flexWrap: 'wrap', gap: '8px' }}>
+        <div>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '16px' }}>Template marketplace</div>
+          <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '2px' }}>
+            {showAll ? 'Alle templates' : `Templates voor ${detectedBranche === 'generic' ? 'jouw branche' : detectedBranche}`} -- één klik om toe te passen
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowAll(v => !v)}
+          style={{
+            padding: '6px 12px', background: 'transparent', border: '1px solid var(--line)',
+            borderRadius: 'var(--radius)', cursor: 'pointer',
+            fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--muted)',
+          }}
+        >
+          {showAll ? 'Toon alleen mijn branche' : 'Toon alle templates'}
+        </button>
+      </div>
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+        gap: '10px', marginTop: '14px',
+      }}>
+        {presets.map(p => (
+          <button
+            key={p.id}
+            type="button"
+            onClick={() => applyPreset(p)}
+            aria-label={`Pas template ${p.label} toe`}
+            style={{
+              display: 'flex', flexDirection: 'column', gap: '8px',
+              padding: '10px', background: 'var(--paper)',
+              border: '1px solid var(--line)', borderRadius: 'var(--radius)',
+              cursor: 'pointer', textAlign: 'left',
+            }}
+          >
+            <div style={{ display: 'flex', gap: '4px', height: '42px', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{ flex: 3, background: p.swatch[0] }} />
+              <div style={{ flex: 1, background: p.swatch[1] }} />
+            </div>
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink)', lineHeight: 1.3 }}>{p.label}</div>
+              <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '2px', lineHeight: 1.4 }}>
+                {p.tagline}
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }

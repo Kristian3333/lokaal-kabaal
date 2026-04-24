@@ -253,8 +253,13 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
 - [ ] **Multi-location support**: one retailer account, multiple winkels
   each with own pincode + branding. Requires schema change (retailer
   -> retailer + retailer_location one-to-many).
-- [ ] **Flyer template marketplace**: curated designs per branche, one-click
-  apply with brand colors auto-substituted.
+- [x] **Flyer template marketplace** (`lib/flyer-presets.ts` +
+  `TemplateMarketplace` in FlyerDesigner): 8 curated presets (kapper
+  editorial, bakker warm, restaurant bold hero, installateur corporate,
+  makelaar minimal, fysio playful, 2 generic) elk met kleur-swatch,
+  design-variant, branche-specifieke headline/usp/cta. One-click apply
+  merget met huidige flyer state (logo/bedrijfsnaam blijft). Crude
+  branche-detection op bedrijfsnaam + slogan met toggle "toon alle".
 - [~] **Welkomst-serie core** (`lib/welkomst-serie.ts`): 3-step arc
   (0d intro, 30d reminder, 60d loyalty) met tier-gate via
   `hasWelkomstSerieEntitlement` en `nextStepDue(send, now, alreadySent)`
@@ -315,8 +320,10 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
   Script injecteert alleen wanneer `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` gezet
   is, dus preview-deployments + local dev zijn tracker-loos. Defer-loaded,
   geen cookies, positioneert ons als de privacy-first keuze.
-- [ ] **Partner logos strip** (municipalities, Ondernemersvereniging,
-  printers) on landing for instant trust.
+- [x] **Partner logos strip** (`components/landing/PartnerStrip.tsx`)
+  tussen "het moment" en testimonials op landing. Toont 6 partner-namen
+  (PostNL, Altum AI, Stripe, Print.one, Neon, Vercel) als typografische
+  lockups. Straks met echte SVG-logos swap-in zonder call-site change.
 
 ## 6. Platform & integrations
 

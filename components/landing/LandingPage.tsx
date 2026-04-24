@@ -12,6 +12,7 @@ import StaggerText from '@/components/landing/StaggerText';
 import Testimonials from '@/components/landing/Testimonials';
 import ActivityTicker from '@/components/landing/ActivityTicker';
 import ExitIntent from '@/components/landing/ExitIntent';
+import PartnerStrip from '@/components/landing/PartnerStrip';
 import { motion } from 'framer-motion';
 
 const Hero3D = dynamic(() => import('@/components/Hero3D'), { ssr: false });
@@ -566,6 +567,9 @@ export default function LandingPage(): React.JSX.Element {
           ))}
         </div>
       </section>
+
+      {/* ── PARTNER LOGOS ────────────────────────────────────────────────────── */}
+      <PartnerStrip />
 
       {/* ── TESTIMONIALS ────────────────────────────────────────────────────── */}
       <Testimonials />
