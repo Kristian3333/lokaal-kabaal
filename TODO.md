@@ -504,9 +504,15 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
   `/nl-verhuisdata` hebben `export const revalidate = 86400` (24h)
   zodat cold visitors altijd een cached HTML krijgen en tier-config
   updates zonder redeploy propageren.
-- [ ] **E2E test harness**: Playwright on critical flows (signup, wizard,
-  checkout redirect, conversion via pincode). One GHA job, runs against
-  a staging deploy per PR.
+- [~] **E2E test harness** Playwright scaffold: `playwright.config.ts`
+  met desktop + mobile Chrome projecten, 2 specs in `tests-e2e/`
+  (smoke.spec.ts dekt 11 publieke routes + /api/health + sitemap,
+  wizard-keyboard.spec.ts dekt keyboard-only flow achter login
+  credentials). `npm run test:e2e` en `:ui` scripts toegevoegd,
+  eslint + tsc excluden de harness zodat CI niet faalt tot
+  `@playwright/test` is geinstalleerd. Activatie: `npm i -D
+  @playwright/test && npx playwright install chromium`. GHA workflow
+  blijft queued.
 - [x] **Telemetry surface** (`lib/telemetry.ts`) met `captureError`,
   `captureWarning`, `captureEvent` helpers + 6 tests. ErrorBoundary gebruikt
   nu `captureError` i.p.v. kale `console.error`. Swap-in point voor Sentry
