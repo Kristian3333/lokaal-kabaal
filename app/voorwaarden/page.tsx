@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
+import PlainLanguageToggle from '@/components/PlainLanguageToggle';
 
 export const metadata: Metadata = {
   title: 'Algemene Voorwaarden',
@@ -17,7 +18,18 @@ export default function Voorwaarden() {
       <div style={{ maxWidth: '720px', margin: '0 auto', padding: '60px 40px' }}>
         <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Juridisch</div>
         <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '42px', fontWeight: 400, marginBottom: '8px' }}>Algemene Voorwaarden</h1>
-        <p style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '48px' }}>Versie 1.0 · Geldig vanaf 1 april 2026</p>
+        <p style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '24px' }}>Versie 1.0 · Geldig vanaf 1 april 2026</p>
+
+        <PlainLanguageToggle
+          samenvatting={[
+            'Drie maand-abonnementen: Starter €349, Pro €499, Agency €649. A6 dubbelzijdig inbegrepen.',
+            'Bezorging elke maand tussen de 28e en 30e via PostNL.',
+            'Maandelijks opzegbaar, tenzij je jaarcontract hebt (dan niet tussentijds).',
+            'Extra flyers boven je bundel: €0,70 per A6. A5 upgrade: +€0,15 per flyer.',
+            'Vanaf 5000 flyers/mnd maatwerk op aanvraag (support@lokaalkabaal.agency).',
+            'Betaling automatische incasso op de 1e. Wettelijke rente bij te laat betalen.',
+          ]}
+        />
 
         {[
           {

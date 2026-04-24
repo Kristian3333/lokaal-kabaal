@@ -11,6 +11,7 @@ import type { SavedFlyer } from '@/components/dashboard/FlyerDesigner';
 import { type FlyerState } from '@/components/dashboard/FlyerPreview';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import CommandPalette, { type Command } from '@/components/dashboard/CommandPalette';
+import ProductTour from '@/components/dashboard/ProductTour';
 
 // ─── Dynamic panels ──────────────────────────────────────────────────────────
 //
@@ -361,6 +362,13 @@ export default function LokaalKabaal(): React.JSX.Element {
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--paper)' }}>
       <CommandPalette commands={commands} />
+      <ProductTour
+        isNewUser={!campaignsLoading && campaigns.length === 0}
+        onGoTo={target => {
+          if (target === 'wizard') startNieuweCampagne();
+          else setPage(target as Page);
+        }}
+      />
       {/* Sidebar */}
       <DashboardSidebar
         page={page}

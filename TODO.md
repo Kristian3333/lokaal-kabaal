@@ -268,8 +268,11 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
   Component: `components/dashboard/OnboardingChecklist.tsx`. Signals
   gesourced uit `/api/pincode`, `/api/conversies?limit=1`, flyer state +
   campaigns list. Widget verbergt zichzelf als alle 4 stappen done zijn.
-- [ ] **In-product tour** for first-time users (intro.js or custom) that
-  walks through wizard, flyer editor, conversies panel.
+- [x] **In-product tour** (`components/dashboard/ProductTour.tsx`):
+  5-stappen guided walkthrough die alleen toont als de retailer 0
+  campagnes heeft. Persistente "seen" state in localStorage. Elke stap
+  heeft optional "Ga naar →" CTA die naar de target-pagina springt.
+  Bottom-right card, dismissibel, aria-modal.
 - [~] **Monthly report data-shape** (`lib/monthly-report.ts`):
   `buildMonthlyReport(input)` aggregeert raw verifications tot
   scans/conversions/scanRate/conversionRate/topPostcodes (min 5 volume
@@ -437,8 +440,10 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
   steps.
 - [ ] **Keyboard-only navigation** verified end-to-end, especially the
   wizard's range sliders and PC4 chips editor.
-- [ ] **Plain-language toggle** on legal pages (voorwaarden/privacy) that
-  shows a TL;DR summary above each article for readability.
+- [x] **Plain-language samenvatting** bovenaan `/privacy` en `/voorwaarden`:
+  `PlainLanguageToggle` component toont 5-6 bullet-point TL;DR in gewone
+  taal, standaard uitgeklapt zodat de bounce-rate op legal pages daalt.
+  aria-expanded + collapsible.
 - [ ] **Dutch copy polish**: have a native copywriter rewrite the landing
   hero + pricing section. Current copy is good but reads engineer-native.
 

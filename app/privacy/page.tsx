@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
+import PlainLanguageToggle from '@/components/PlainLanguageToggle';
 
 export const metadata: Metadata = {
   title: 'Privacybeleid',
@@ -17,7 +18,17 @@ export default function Privacy() {
       <div style={{ maxWidth: '720px', margin: '0 auto', padding: '60px 40px' }}>
         <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green-dim)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Juridisch</div>
         <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '42px', fontWeight: 400, marginBottom: '8px' }}>Privacybeleid</h1>
-        <p style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '48px' }}>Laatst bijgewerkt: 1 april 2026</p>
+        <p style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '24px' }}>Laatst bijgewerkt: 1 april 2026</p>
+
+        <PlainLanguageToggle
+          samenvatting={[
+            'We slaan alleen gegevens op die nodig zijn om de flyer bij nieuwe bewoners te krijgen -- naam + adres, maximaal 30 dagen.',
+            'We verkopen nooit gegevens door en gebruiken ze niet voor targeting of profilering.',
+            'Betalingsdata staat bij Stripe; emails gaan via Resend. Alle verwerkers staan in onze DPIA.',
+            'Je kunt altijd je gegevens opvragen of laten verwijderen via privacy@lokaalkabaal.agency. Wij reageren binnen 30 dagen.',
+            'Klachten kunnen bij de Autoriteit Persoonsgegevens.',
+          ]}
+        />
 
         <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '14px 18px', marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
           <div style={{ fontSize: '13px', color: 'var(--muted)' }}>
