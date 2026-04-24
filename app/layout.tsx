@@ -39,11 +39,20 @@ export const metadata: Metadata = {
     title: "Flyers Versturen Nieuwe Bewoners - Automatisch | LokaalKabaal",
     description: "LokaalKabaal verstuurt automatisch gepersonaliseerde flyers naar nieuwe huiseigenaren. Bezorgd tussen de 28e en 30e van elke maand. Wees er eerder dan de concurrent.",
     url: siteUrl,
+    images: [
+      {
+        url: `${siteUrl}/api/og?title=${encodeURIComponent('Van nieuwe bewoner naar vaste klant')}&subtitle=${encodeURIComponent('Elke maand automatisch op de mat bij alle nieuwe huiseigenaren in jouw postcodes')}`,
+        width: 1200,
+        height: 630,
+        alt: 'LokaalKabaal -- flyers naar nieuwe bewoners',
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Flyers Versturen Nieuwe Bewoners - Automatisch | LokaalKabaal",
     description: "LokaalKabaal verstuurt automatisch gepersonaliseerde flyers naar nieuwe huiseigenaren. Bezorgd tussen de 28e en 30e van elke maand.",
+    images: [`${siteUrl}/api/og?title=${encodeURIComponent('Van nieuwe bewoner naar vaste klant')}&subtitle=${encodeURIComponent('Elke maand automatisch op de mat')}`],
   },
   robots: { index: true, follow: true },
   alternates: { canonical: siteUrl },

@@ -1,6 +1,7 @@
 'use client';
 
 import { Component, type ReactNode } from 'react';
+import { captureError } from '@/lib/telemetry';
 
 interface Props {
   children: ReactNode;
@@ -24,7 +25,10 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo): void {
-    console.error('ErrorBoundary caught:', error, info.componentStack);
+    captureError(error, {
+      source: 'ErrorBoundary',
+      componentStack: info.componentStack ?? undefined,
+    });
   }
 
   render(): ReactNode {

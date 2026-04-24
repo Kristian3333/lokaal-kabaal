@@ -111,6 +111,9 @@ export default function LokaalKabaal(): React.JSX.Element {
   const [aiLoading, setAiLoading] = useState(false);
   const [scanLoading, setScanLoading] = useState(false);
   const [scanMsg, setScanMsg] = useState('');
+  // Onboarding progress signals -- sourced from /api/pincode + /api/conversies
+  const [winkelPincode, setWinkelPincode] = useState<string | null>(null);
+  const [firstScanSeen, setFirstScanSeen] = useState(false);
 
   const userTier: Tier = user?.tier ?? 'starter';
   const flyer = flyers[Math.min(activeFlyerIdx, flyers.length - 1)];
@@ -190,6 +193,16 @@ export default function LokaalKabaal(): React.JSX.Element {
           }
         } catch (err) { console.error('[dashboard] Subscription status fetch failed:', err); }
         fetchCampaigns(identified.email);
+
+        // Onboarding signals: pincode + first-scan-seen
+        fetch(`/api/pincode?email=${encodeURIComponent(identified.email)}`)
+          .then(r => r.json())
+          .then(d => { if (d.pincode) setWinkelPincode(d.pincode); })
+          .catch(() => { /* non-fatal */ });
+        fetch(`/api/conversies?email=${encodeURIComponent(identified.email)}&limit=1`)
+          .then(r => r.ok ? r.json() : null)
+          .then(d => { if (d && Array.isArray(d.conversies) && d.conversies.length > 0) setFirstScanSeen(true); })
+          .catch(() => { /* non-fatal */ });
       }
     }
     initUser();
@@ -342,8 +355,15 @@ export default function LokaalKabaal(): React.JSX.Element {
               pendingCampaign={pendingCampaign}
               flyerBedrijfsnaam={flyer.bedrijfsnaam}
               userEmail={user?.email || ''}
+              onboarding={{
+                flyerReady: !!flyer.bedrijfsnaam && !!flyer.logoData,
+                pincodeSet: !!winkelPincode,
+                campaignCreated: campaigns.length > 0,
+                firstScan: firstScanSeen,
+              }}
               onStartCampaign={startNieuweCampagne}
               onEditFlyer={() => setPage('flyer')}
+              onGoToSettings={() => setPage('profiel')}
               onClearPendingCampaign={() => setPendingCampaign(null)}
               onToggleCampaignStatus={id => setCampaigns(prev => prev.map(x => x.id === id ? { ...x, status: x.status === 'actief' ? 'gepauzeerd' : 'actief' } : x))}
               onRefetchCampaigns={() => { if (user?.email) fetchCampaigns(user.email); }}

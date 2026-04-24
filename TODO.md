@@ -110,3 +110,287 @@ Archived here for traceability. All items are live in the code.
 
 - Carmen (Altum) antwoord op extra filters voor Pro-tier (openstaand sinds round 1) -- niet blocking voor de huidige Pro-propositie, Altum kan later worden uitgebreid zonder codewijziging
 - Landingspagina branding "rebuild vs. remove" beslissing -- feature staat nu achter "Binnenkort" badge, tijd om later te kiezen
+
+---
+
+# Round 3: master plan (vision + roadmap)
+
+## North star
+
+**"The lokale ondernemer wins every new neighbour in NL before the concurrent does."**
+
+Today we sell a flyer-automation subscription. Where LokaalKabaal should be
+in 12 months: the default operating system for hyperlocal customer
+acquisition -- part data product (new-mover signal), part marketing
+automation (flyers + SMS + email), part community layer (municipalities,
+welkomstpakketten), and part proof-of-ROI dashboard. Everything on this plan
+builds a moat towards that.
+
+The bets below are ordered by leverage: the top of each section unlocks the
+rest of it.
+
+---
+
+## 1. Growth -- programmatic SEO + content engine
+
+Direct-mail SEO today is 7 industry pages (bakker, kapper, installateur ...) +
+4 blog posts. The opportunity is long-tail local intent.
+
+- [ ] **Programmatic city pages**: `/flyers-versturen-[gemeente]` for all ~340
+  Dutch municipalities. Each page pulls real monthly new-movers count for
+  that municipality from our own Altum-feed snapshot. Unique copy per city
+  + a local case study slot. Auto-generated, human-edited top 30. This is
+  *the* biggest Google NL play we have.
+- [ ] **Programmatic industry x city matrix**: "kapper in Rotterdam",
+  "bakker in Utrecht". 7 branches x 340 cities = ~2.400 auto-generated
+  landing pages. Canonical to the main industry page, differentiated by a
+  data block (new movers/mnd in that city for that branche).
+- [ ] **Free tool: new-movers checker**. Public page: enter a PC4, show the
+  monthly average new-movers count + CLV estimate for their branche. Strong
+  link bait, captures leads before signup. Public `/tools/verhuisdata/[pc4]`.
+- [ ] **Free tool: flyer ROI calculator** as a standalone page with its own
+  SEO keywords ("ROI direct mail", "flyer rendement berekenen"). Embeddable
+  widget version for bloggers/partners.
+- [ ] **Blog cadence 2x/week** via an editorial calendar. Themes: retailer
+  success stories, new-mover behavior research, local marketing trends.
+  Cross-link aggressively to product pages.
+- [ ] **Comparison pages**: "LokaalKabaal vs Spotta", "LokaalKabaal vs PostNL
+  Direct Mail", "Flyer vs Meta Ads voor lokale ondernemer". High-intent
+  bottom-of-funnel pages.
+- [ ] **FAQ schema + HowTo schema** on all product pages (we already have
+  plain JSON-LD, need explicit `@type: FAQPage` and `@type: HowTo` blocks).
+- [ ] **Backlink strategy**: partner with gemeente welkomstpakket sites,
+  Ondernemersvereniging listings, Chamber of Commerce content partnerships.
+- [x] **Dynamic OG image generation** via `/api/og?title=...&subtitle=...&badge=...`
+  using edge runtime + `next/og`. 1200x630, brand palette, Instrument Serif
+  title. Root layout references it in OpenGraph + Twitter card so shares
+  from the homepage already get branded cards; blog and industry pages can
+  opt in by overriding their `metadata.openGraph.images`.
+
+## 2. Acquisition funnel polish
+
+Current signup -> wizard -> Stripe -> first batch takes ~20 minutes and has no
+safety nets for drop-off.
+
+- [ ] **Interactive pricing preview on landing**: show a live "Jij betaalt
+  per vaste klant" slider that pulls branche-specific CLV into a break-even
+  calculation. Converts visitors who are doing the math mentally anyway.
+- [ ] **"Probeer een proef flyer gratis"** lead magnet: send a sample flyer
+  to the retailer's own address free-of-charge in exchange for email
+  + bedrijfsnaam. Converts the fence-sitters.
+- [ ] **Testimonials + case studies** with real numbers. Currently zero
+  social proof on the landing page.
+- [ ] **Live scan/order ticker** (anonymized) on the landing: "Laatste scan:
+  kapsalon in Utrecht, 14 min geleden". Manufactures trust + activity.
+- [ ] **Exit-intent capture**: modal with "Wacht, bereken eerst wat
+  een nieuwe klant jou per jaar oplevert" + ROI calc.
+- [ ] **Lifecycle email sequence** in Resend: welcome -> first campaign
+  setup reminder (48h) -> scan recap (after first dispatch) -> upgrade
+  nudge at 80% of bundle. Today only welcome + dispatch notifications exist.
+
+## 3. Product depth -- unlock already-built features
+
+We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
+
+- [~] **Follow-up flyer eligibility core** (`lib/follow-up.ts`): pure
+  `findFollowUpEligible(verifications, tier, {delayDays, now})` helper +
+  9 tests covering starter-gate, recent-send, already-scanned,
+  already-converted, already-followed-up, mixed-batch, custom-delay,
+  and boundary cases. Next: wire a cron that calls this and enqueues a
+  PrintOne follow-up batch, plus an opt-in toggle in the campaign wizard.
+- [ ] **A/B testing UI**. Agency tier only. Two flyer variants, auto 50/50
+  split, dashboard shows scan-rate and conversion per variant. Schema
+  (`ab_tests`, `abTestVariant`) already exists.
+- [~] **Conversion dashboard v2 core** (`lib/conversie-stats.ts`):
+  `bucketByTime(points, 'day'|'month')` + `breakdownByPostcode(points)` +
+  `sparklinePoints(values, w, h)` SVG-polyline helper + 11 tests. Next step:
+  wire into `ConversiesPanel` with an inline `<svg>` sparkline and a
+  PC4-breakdown table.
+- [ ] **Campaign duplication**: one-click "Start dezelfde campagne ergens
+  anders" for retailers with multiple locations.
+- [ ] **PC4 bulk import + export**. CSV upload or paste list for retailers
+  who already know their territory.
+- [ ] **PC4 heatmap**: overlay new-mover density on the NLMap so retailers
+  pick PC4's with the highest yield per euro.
+- [ ] **Multi-location support**: one retailer account, multiple winkels
+  each with own pincode + branding. Requires schema change (retailer
+  -> retailer + retailer_location one-to-many).
+- [ ] **Flyer template marketplace**: curated designs per branche, one-click
+  apply with brand colors auto-substituted.
+- [ ] **Welkomst-serie** (3-flyer arc): month 1 = intro offer, month 2 =
+  reminder + review CTA, month 3 = loyalty signup. Sold as an add-on.
+
+## 4. Retailer dashboard UX polish
+
+- [x] **Onboarding checklist** on the dashboard: 4 steps (ontwerp flyer,
+  pincode, eerste campagne, eerste scan) met progress-bar en dismiss-knop.
+  Component: `components/dashboard/OnboardingChecklist.tsx`. Signals
+  gesourced uit `/api/pincode`, `/api/conversies?limit=1`, flyer state +
+  campaigns list. Widget verbergt zichzelf als alle 4 stappen done zijn.
+- [ ] **In-product tour** for first-time users (intro.js or custom) that
+  walks through wizard, flyer editor, conversies panel.
+- [ ] **Monthly report PDF** auto-generated and emailed on the 5th of each
+  month with scans/conversions/ROI. Shareable link so retailers can show
+  their accountant.
+- [ ] **Browser notifications** for real-time scan events (opt-in) -- gives
+  retailers a dopamine hit that keeps them engaged.
+- [ ] **Mobile dashboard**: today the dashboard is desktop-only in practice.
+  Responsive pass on CampaignWizard + FlyerDesigner for iPad/phone editing.
+- [ ] **Dark mode** toggle in SettingsPanel. CSS vars already exist; just
+  needs a `data-theme` attr + alternate palette.
+- [ ] **Keyboard shortcuts** for dashboard power users (cmd+k command
+  palette). Differentiator vs competitors who mostly have no keyboard UX.
+
+## 5. Trust, compliance, and social proof
+
+- [ ] **AVG / DPIA document** publicly linked from /privacy. Procurement
+  teams at bigger clients will ask.
+- [ ] **ISO 27001 roadmap** (not cert yet, but document the controls we do
+  have: HTTPS/TLS, encrypted-at-rest Neon, scrypt password hashes, signed
+  session tokens, rate limiting, signature-verified webhooks).
+- [ ] **Sample campaign reports** PDF downloadable without signup for
+  retailers evaluating the product.
+- [ ] **Trustpilot / Google reviews** integration with schema.org Review
+  markup on the pricing page.
+- [x] **Security.txt** at `/.well-known/security.txt` via Next.js rewrite:
+  RFC 9116 fields (Contact, Expires, Preferred-Languages, Canonical,
+  Policy) serving plain text. Tested end-to-end.
+- [ ] **Cookie-less analytics** (Plausible or Umami) instead of any
+  future GA addition. Positions us as the privacy-first choice vs GAM-heavy
+  competitors.
+- [ ] **Partner logos strip** (municipalities, Ondernemersvereniging,
+  printers) on landing for instant trust.
+
+## 6. Platform & integrations
+
+Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
+
+- [ ] **Public REST API** for retailers: CRUD campaigns, read conversions,
+  webhook subscriptions. Needs OAuth / personal access tokens.
+- [ ] **Shopify + WooCommerce plugin**: auto-call `/api/codes/redeem` when
+  a customer checks out with one of our codes. Removes manual pincode entry
+  for webshops. Listing on Shopify App Store = acquisition channel.
+- [ ] **Lightspeed / MplusKASSA POS integration** for in-store redeem.
+  Same API surface, different UX.
+- [ ] **Zapier integration**: "when new scan happens, send Slack message /
+  add to Google Sheet". 3-line build on their side, huge distribution for us.
+- [ ] **Webhook outbox** in our DB for retailers to subscribe to our events
+  (scan, conversion, monthly_report_ready). Pair with the public API.
+- [ ] **Gemeente welkomstpakket partnership SDK**: iframe / embed so a
+  municipality site can render "welkomstpakket retailers in jouw buurt"
+  driven by our retailer database. Revenue share.
+- [ ] **Slack / Teams bot**: /lokaalkabaal scans today. Enterprise feel.
+
+## 7. Monetization expansion
+
+- [ ] **White-label "Powered by LokaalKabaal"** voor marketingbureaus die
+  meerdere lokale retailers beheren. Tier above Agency, high-margin, low
+  support overhead once built.
+- [ ] **Add-on: design-on-demand**. Currently free for Agency jaarcontract
+  as "Persoonlijke flyerhulp". Productize as a €49/flyer a-la-carte for
+  other tiers -- known willingness to pay, existing mail alias already in
+  production.
+- [ ] **Add-on: digital retargeting**. After scan, retailer can re-engage
+  the new resident via Facebook/Google display ads on a lookalike
+  audience. Partnership with a retargeting provider, we take a cut.
+- [ ] **Municipal contracts**: sell gemeenten a "Welcome to [city]" booklet
+  that bundles 20 local merchants. Flat-fee per printed batch, merchants
+  pay per placement. High ACV, sticky.
+- [ ] **Data products** (anonymized): sell monthly "new movers by PC4"
+  aggregates to estate agents / insurance brokers / moving companies.
+  Zero marginal cost for us, pure upside.
+- [ ] **Yearly contract upgrade incentive**: today 15% off. Experiment with
+  "first month free + 10% off" or a concrete "200 extra flyers this month"
+  bonus to increase yearly share. A/B testable via the billing toggle.
+
+## 8. Internationalization & expansion
+
+- [ ] **Belgium**: Kadaster-equivalent is Algemene Administratie van de
+  Patrimoniumdocumentatie. Altum has a BE feed. Scope a 3-week expansion
+  PoC; Flemish-speaking retailers convert at Dutch-ish rates.
+- [ ] **English UI toggle** for expat-owned SMBs in NL. 10% of Amsterdam
+  retailers are non-Dutch-speaking founders. Low lift (existing i18n via
+  next-intl), moderate unlock.
+- [ ] **Germany** as year 2+ bet: Grundbuch data exists, DSGVO-alignment
+  is doable, the market is 5x NL. Needs partner on printing side.
+
+## 9. Data products & analytics moat
+
+- [ ] **Public NL new-movers dashboard** at
+  `lokaalkabaal.agency/nl-verhuisdata` with monthly totals per province
+  for free, PC4 detail behind lead-gate. Press-release-able.
+- [ ] **Industry benchmark reports**: "de gemiddelde kapsalon in Utrecht
+  ziet 4.8% scan-rate". Quarterly PDF sent to all retailers, positions us
+  as the market authority.
+- [ ] **Predictive CLV model**: use retailer branche + PC4 socioeconomic
+  data (WOZ average, bouwjaar spread) to predict expected conversion per
+  new mover. Shown at campaign setup so retailers understand expected ROI
+  before paying.
+- [ ] **Churn signal**: flag campaigns with declining scan-rates so we can
+  proactively reach out before the retailer cancels.
+
+## 10. Infra & performance
+
+- [ ] **Move user-uploaded logos + hero images to Vercel Blob** (already
+  installed) and swap the base64 `<img>` for `next/image` with proper
+  responsive srcsets. Dashboard bandwidth drops significantly.
+- [ ] **Edge caching for public landing pages**: ISR with revalidate=3600
+  on industry + city pages, invalidate via webhook when content changes.
+- [ ] **E2E test harness**: Playwright on critical flows (signup, wizard,
+  checkout redirect, conversion via pincode). One GHA job, runs against
+  a staging deploy per PR.
+- [x] **Telemetry surface** (`lib/telemetry.ts`) met `captureError`,
+  `captureWarning`, `captureEvent` helpers + 6 tests. ErrorBoundary gebruikt
+  nu `captureError` i.p.v. kale `console.error`. Swap-in point voor Sentry
+  / Highlight is nu één file; nieuwe callers worden automatisch meegenomen.
+  Volgende stap: install `@sentry/nextjs` en vervang `console.*` calls in
+  de helpers door Sentry hooks.
+- [ ] **Database migrations in CI**: currently `drizzle-kit migrate` is
+  manual. Add a GHA check that `drizzle-kit generate` produces no diff
+  versus the schema file.
+- [ ] **Rate-limit backend upgrade**: in-memory `lib/rate-limit.ts` doesn't
+  coordinate across serverless instances. Move to Upstash Redis for
+  stricter bot/brute-force protection at scale.
+- [x] **Health probe endpoint** at `/api/health`: returns
+  `{ok:true, db: 'up'|'down'|'unconfigured', ts}` with `cache-control:
+  no-store`. Ready for Better Uptime / Vercel monitors.
+- [ ] **Uptime + synthetic monitoring**: Better Uptime checks against
+  /api/health, /api/auth/session, /api/pc4grenzen. On-call
+  alerts via Slack.
+
+## 11. Accessibility & content craft
+
+- [ ] **Full WCAG 2.2 AA audit** of the dashboard. Previous passes fixed
+  obvious items; need a screen-reader sweep + focus-trap checks on wizard
+  steps.
+- [ ] **Keyboard-only navigation** verified end-to-end, especially the
+  wizard's range sliders and PC4 chips editor.
+- [ ] **Plain-language toggle** on legal pages (voorwaarden/privacy) that
+  shows a TL;DR summary above each article for readability.
+- [ ] **Dutch copy polish**: have a native copywriter rewrite the landing
+  hero + pricing section. Current copy is good but reads engineer-native.
+
+---
+
+## Prioritization scoring
+
+One-line summary of where to start if we're resource-constrained (ICE
+framework: Impact * Confidence / Effort, 1-10 each, higher is better).
+
+| Bet                                   | I | C | E | ICE |
+| ------------------------------------- | - | - | - | --- |
+| Programmatic city pages               | 9 | 8 | 4 | 18  |
+| Free new-movers checker tool          | 8 | 8 | 3 | 21  |
+| Follow-up flyer UI                    | 8 | 9 | 3 | 24  |
+| Onboarding checklist on dashboard     | 7 | 9 | 2 | 32  |
+| Conversion dashboard v2               | 7 | 8 | 3 | 19  |
+| Shopify plugin                        | 8 | 7 | 6 | 9   |
+| Municipal welkomstpakket contracts    | 9 | 5 | 8 | 6   |
+| Sentry error tracking                 | 6 | 9 | 2 | 27  |
+| Belgium expansion PoC                 | 8 | 5 | 9 | 4   |
+
+Top 3 to start: **onboarding checklist**, **Sentry**, **follow-up flyer UI**.
+These compound with everything else -- better onboarding means more
+activated retailers, which means more scans, which means the conversion
+dashboard has something to show. Error tracking makes every future
+shipped item safer.

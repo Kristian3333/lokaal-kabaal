@@ -8,6 +8,7 @@
 import { useCallback } from 'react';
 import { showToast } from '@/components/Toast';
 import CampaignList from '@/components/dashboard/CampaignList';
+import OnboardingChecklist, { type OnboardingState } from '@/components/dashboard/OnboardingChecklist';
 import { TIERS, type Tier } from '@/lib/tiers';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -61,10 +62,14 @@ interface CampaignDashboardProps {
   flyerBedrijfsnaam: string;
   /** Current user email */
   userEmail: string;
+  /** Computed onboarding progress for the checklist widget */
+  onboarding: OnboardingState;
   /** Callback to start a new campaign */
   onStartCampaign: () => void;
   /** Callback to navigate to flyer editor */
   onEditFlyer: () => void;
+  /** Callback to navigate to settings (pincode) */
+  onGoToSettings: () => void;
   /** Callback to clear the pending campaign */
   onClearPendingCampaign: () => void;
   /** Callback to toggle a campaign status */
@@ -180,8 +185,10 @@ export default function CampaignDashboard({
   pendingCampaign,
   flyerBedrijfsnaam,
   userEmail,
+  onboarding,
   onStartCampaign,
   onEditFlyer,
+  onGoToSettings,
   onClearPendingCampaign,
   onToggleCampaignStatus,
   onRefetchCampaigns,
@@ -219,6 +226,13 @@ export default function CampaignDashboard({
   return (
     <div className="fade-in">
       {subStatus && <LifecycleBanner subStatus={subStatus} userTier={userTier} />}
+
+      <OnboardingChecklist
+        state={onboarding}
+        onGoToFlyer={onEditFlyer}
+        onGoToSettings={onGoToSettings}
+        onStartCampaign={onStartCampaign}
+      />
 
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
