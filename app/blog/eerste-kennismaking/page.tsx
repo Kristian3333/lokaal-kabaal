@@ -1,5 +1,17 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
+
+export const metadata: Metadata = {
+  title: 'De Eerste Kennismaking: Jouw Flyer als Start van de Klantreis',
+  description: 'De eerste 30 dagen na een verhuizing kiezen 80% van bewoners hun vaste kapper, bakker en leverancier. Hoe je flyer dat moment pakt.',
+  alternates: { canonical: 'https://lokaalkabaal.agency/blog/eerste-kennismaking' },
+  openGraph: {
+    title: 'De Eerste Kennismaking | LokaalKabaal',
+    description: 'Nieuwe bewoners kiezen binnen 30 dagen hun vaste leveranciers. Wees er als eerste.',
+    url: 'https://lokaalkabaal.agency/blog/eerste-kennismaking',
+  },
+};
 
 export default function BlogEersteKennismaking() {
   return (
@@ -64,7 +76,7 @@ Jij focust op je vak. Wij zorgen dat je nieuwe buren je kennen.`,
 
         <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.25)', borderRadius: 'var(--radius)', padding: '24px', marginTop: '40px' }}>
           <p style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '16px' }}>Wees er als eerste. Elke maand.</p>
-          <Link href="/login" style={{ display: 'inline-block', padding: '12px 24px', background: 'var(--ink)', color: '#fff', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px', textDecoration: 'none' }}>Eerste batch voor €49 →</Link>
+          <Link href="/login" style={{ display: 'inline-block', padding: '12px 24px', background: 'var(--ink)', color: '#fff', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px', textDecoration: 'none' }}>Start nu jouw campagne →</Link>
         </div>
       </article>
 

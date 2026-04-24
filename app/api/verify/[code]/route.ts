@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { flyerVerifications, retailers } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
+import { redeemLimiter } from '@/lib/rate-limit';
 
 // ─── GET /api/verify/[code] -- Interesse registreren (consument scant QR) ─────
 
@@ -66,6 +67,16 @@ export async function POST(
 ) {
   if (!db) {
     return NextResponse.json({ status: 'error', message: 'Database niet geconfigureerd' }, { status: 503 });
+  }
+
+  // Brute-force guard: pincode is only 4-6 digits, so a stricter limit than
+  // authLimiter keeps code-and-pin combos from being guessed at scale.
+  const limit = redeemLimiter(req);
+  if (!limit.success) {
+    return NextResponse.json(
+      { status: 'rate-limited', message: 'Te veel verzoeken. Wacht 10 minuten en probeer opnieuw.' },
+      { status: 429, headers: { 'Retry-After': '600' } },
+    );
   }
 
   const code = params.code.toUpperCase().trim();

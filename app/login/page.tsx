@@ -3,27 +3,9 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { TEST_ACCOUNTS } from '../../lib/tiers';
+import { BRANCHE_OPTIES } from '@/lib/branches';
 
 type TabMode = 'login' | 'register' | 'magic';
-
-const BRANCHE_OPTIES = [
-  'Restaurant / Café',
-  'Bakkerij',
-  'Supermarkt / Slijterij',
-  'Kapsalon / Schoonheid',
-  'Fysiotherapie / Gezondheid',
-  'Tandarts / Huisarts',
-  'Apotheek',
-  'Dierenwinkel / Dierenarts',
-  'Fietsenwinkel',
-  'Kleding / Mode',
-  'Sportschool / Yoga',
-  'Kinderopvang',
-  'Tuincentrum / Bloemist',
-  'Schildersbedrijf / Installateur',
-  'Makelaar',
-  'Overig',
-];
 
 const tierColors: Record<string, string> = {
   starter: '#94a3b8',
@@ -164,6 +146,7 @@ function LoginContent() {
           email: data.email,
           naam: data.bedrijfsnaam,
           tier: data.tier,
+          branche,
           isJaarcontract: false,
         }));
         router.push('/app');
@@ -190,11 +173,20 @@ function LoginContent() {
     setSuccess('');
 
     try {
-      await fetch('/api/auth/magic-link', {
+      const res = await fetch('/api/auth/magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
+      if (res.status === 429) {
+        setError('Te veel aanvragen. Wacht even en probeer opnieuw.');
+        return;
+      }
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError((body as { error?: string }).error || 'Versturen mislukt, probeer opnieuw');
+        return;
+      }
       // Always show success to prevent email enumeration
       setSuccess('Als dit e-mailadres bij ons bekend is, ontvang je een inloglink. Controleer ook je spam.');
     } catch {
@@ -324,6 +316,7 @@ function LoginContent() {
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
                 <button
                   type="button"
+                  aria-label="Wachtwoord vergeten? Inloglink per e-mail aanvragen"
                   onClick={() => { setTab('magic'); setError(''); }}
                   style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                 >
@@ -502,7 +495,7 @@ function LoginContent() {
                   {account.label}
                 </span>
               </div>
-              <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)', fontFamily: 'var(--font-mono)' }}>
+              <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.55)', fontFamily: 'var(--font-mono)' }}>
                 direct inloggen &rarr;
               </span>
             </button>
@@ -510,7 +503,7 @@ function LoginContent() {
         </div>
       </div>
 
-      <p style={{ marginTop: '16px', fontSize: '11px', color: 'rgba(255,255,255,0.15)', fontFamily: 'var(--font-mono)', textAlign: 'center' }}>
+      <p style={{ marginTop: '16px', fontSize: '11px', color: 'rgba(255,255,255,0.55)', fontFamily: 'var(--font-mono)', textAlign: 'center' }}>
         &copy; 2026 LokaalKabaal &middot; Demo omgeving
       </p>
     </div>

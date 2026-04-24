@@ -26,7 +26,8 @@ import {
 } from '@/lib/printone';
 import type { PrintRecipient, MergeVars } from '@/lib/printone';
 import { sendFlyerDispatchNotification } from '@/lib/email';
-import { addSurplusCredits } from '@/lib/credits';
+import { TIERS, calcOverage, buildOverageInvoiceItem, type Tier } from '@/lib/tiers';
+import Stripe from 'stripe';
 
 /** Summary for a single campaign dispatch run */
 export interface CampaignDispatchResult {
@@ -49,6 +50,15 @@ export interface DispatchResult {
   totalCreditsIssued: number;
   errorCount: number;
   campaigns: CampaignDispatchResult[];
+}
+
+/** Lazy Stripe client so unit-test imports don't require STRIPE_SECRET_KEY. */
+let stripeClient: Stripe | null = null;
+function getStripe(): Stripe {
+  if (!stripeClient) {
+    stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', { apiVersion: '2026-02-25.clover' });
+  }
+  return stripeClient;
 }
 
 /** Default sender address for all Print.one orders */
@@ -150,9 +160,42 @@ async function dispatchCampaign(
 
   result.addressesFound = addresses.length;
 
-  // Cap at expected volume
-  if (addresses.length > campagne.verwachtAantalPerMaand) {
-    addresses = addresses.slice(0, campagne.verwachtAantalPerMaand);
+  // Cap at what the campaign actually asked for; anything above the tier's
+  // included-flyer bundle is billed separately as a Stripe Invoice Item at
+  // €0,70 per extra flyer (A6). If the retailer has no Stripe customer yet
+  // we fall back to hard-capping so we don't ship flyers we can't bill for.
+  const tierQuota = TIERS[retailer.tier as Tier]?.includedFlyers ?? campagne.verwachtAantalPerMaand;
+  const wanted = Math.min(addresses.length, campagne.verwachtAantalPerMaand);
+
+  if (wanted > tierQuota && retailer.stripeCustomerId) {
+    const invoiceItem = buildOverageInvoiceItem(
+      retailer.stripeCustomerId,
+      retailer.tier as Tier,
+      wanted,
+      formatMaandLabel(maand),
+    );
+    if (invoiceItem) {
+      try {
+        await getStripe().invoiceItems.create(invoiceItem);
+        console.log(
+          `[dispatch] Overage invoice item created for campaign ${campagne.id}: ${invoiceItem.metadata.overageCount} flyers (€${(invoiceItem.amount / 100).toFixed(2)})`,
+        );
+      } catch (err) {
+        console.error(`[dispatch] Overage invoice item failed for campaign ${campagne.id} -- falling back to hard cap:`, err);
+        addresses = addresses.slice(0, tierQuota);
+      }
+    }
+  } else if (wanted > tierQuota) {
+    const overage = calcOverage(retailer.tier as Tier, wanted);
+    console.warn(
+      `[dispatch] Campaign ${campagne.id} would overshoot ${retailer.tier} bundle by ${overage.overageCount} flyers (€${overage.overageEuros.toFixed(2)}) but retailer has no Stripe customer -- capping at ${tierQuota}.`,
+    );
+    addresses = addresses.slice(0, tierQuota);
+  }
+
+  // Always enforce the campaign's own limit regardless of overage billing
+  if (addresses.length > wanted) {
+    addresses = addresses.slice(0, wanted);
   }
 
   // Step 2: Create Print.one batch (if API key + template are configured)
@@ -237,15 +280,14 @@ async function dispatchCampaign(
   const saved = await saveVerificationRecords(records);
   result.flyersSent = saved;
 
-  // Step 6: Credit ledger -- record surplus flyers (calculated after save)
-  const surplusCount = campagne.verwachtAantalPerMaand - saved;
-  if (surplusCount > 0) {
-    try {
-      await addSurplusCredits(campagne.retailerId, campagne.id, campagne.verwachtAantalPerMaand, saved, maand);
-      result.creditsIssued = surplusCount;
-    } catch (err) {
-      console.error(`[dispatch] Credit ledger insert failed for campaign ${campagne.id}:`, err);
-    }
+  // Step 6: Under-quota months -- the new abonnement model charges a flat
+  // tier fee regardless of how many new residents were found, so there is no
+  // "surplus flyers" to credit. We still surface the under-quota count in the
+  // result so dashboards can report on it, but nothing is written to the
+  // ledger. (The credit_ledger table is retained only for historical records.)
+  const underQuotaCount = campagne.verwachtAantalPerMaand - saved;
+  if (underQuotaCount > 0) {
+    result.creditsIssued = underQuotaCount;
   }
 
   // Step 7: Send dispatch notification email (fire-and-forget)

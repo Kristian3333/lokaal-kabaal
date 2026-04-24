@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { TIERS, type Tier } from '@/lib/tiers';
+import { TIERS, computeAbonnement, type Tier } from '@/lib/tiers';
+import { BRANCHE_OPTIES } from '@/lib/branches';
 import { prijsPerStuk, type FlyerFormaat } from '@/lib/printone-pricing';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import BrancheSelector from '@/components/dashboard/BrancheSelector';
@@ -22,18 +23,7 @@ const NLMap = dynamic(() => import('@/components/NLMap'), {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const SPECS = [
-  'Kapper / Barbershop', 'Nagelstudio', 'Schoonheidsspecialist', 'Tattoo & Piercing',
-  'Restaurant', 'Café / Bar', 'Koffietentje', 'Bakkerij', 'Slagerij', 'Traiteur / Catering',
-  'Afhaal & Bezorging', 'Pizzeria', 'Aziatisch restaurant', 'IJssalon',
-  'Sportschool / Fitness', 'Yoga & Pilates studio', 'Fysiotherapeut', 'Personal trainer',
-  'Dansschool', 'Zwembad & Wellness', 'Meubelwinkel', 'Keukenwinkel',
-  'Interieurwinkel / Woonwinkel', 'Verfwinkel / Behangwinkel', 'Doe-het-zelf & Bouwmarkt',
-  'Bloemist', 'Cadeauwinkel', 'Boekenwinkel', 'Speelgoedwinkel', 'Kinderkleding',
-  'Boetiek / Kledingwinkel', 'Schoenenwinkel', 'Juwelier', 'Opticiën', 'Drogist',
-  'Huisdierenwinkel', 'Rijschool', 'Stucadoor / Afbouwbedrijf', 'Stomerij / Wasserette',
-  'Fietsenwinkel', 'Overig (neem contact op)',
-];
+const SPECS = BRANCHE_OPTIES;
 
 const MAANDEN = [
   'Januari', 'Februari', 'Maart', 'April', 'Mei', 'Juni',
@@ -66,6 +56,10 @@ export interface WizState {
   pc4Lijst: string[];
   pc4Add: string;
   flyerIndex: number;
+  /** Package chosen in step 8 (replaces the old credits model) */
+  pakket: Tier;
+  /** Whether the user wants yearly billing (-15%) for the chosen pakket */
+  jaarcontract: boolean;
 }
 
 export interface PendingCampaign {
@@ -120,16 +114,8 @@ function roundUp50(n: number): number {
   return Math.ceil(n / 50) * 50;
 }
 
-/** Returns subscription tier pricing summary for wizard. */
-function berekenAbonnement(userTier: Tier): { tier: string; base: number; total: number } {
-  const tierMap: Record<Tier, { name: string; monthly: number }> = {
-    starter: { name: 'Starter', monthly: 99 },
-    pro: { name: 'Pro', monthly: 199 },
-    agency: { name: 'Agency', monthly: 499 },
-  };
-  const t = tierMap[userTier] ?? tierMap.starter;
-  return { tier: t.name, base: t.monthly, total: t.monthly };
-}
+/** Subscription tier pricing summary for the wizard — shared with Stripe checkout. */
+const berekenAbonnement = computeAbonnement;
 
 /** Computes the flyer price difference vs A6 baseline. */
 function berekenPrijs(aantalFlyers: number, formaat: FlyerFormaat, dubbelzijdig: boolean): number {
@@ -198,26 +184,38 @@ function CoverageVisual({ centrum, straalKm, onPc4sChange, onEstChange }: {
 }): React.JSX.Element {
   const [center, setCenter] = useState<{ lat: number; lon: number } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [geocodeError, setGeocodeError] = useState<string | null>(null);
   const [pc4List, setPc4List] = useState<string[]>([]);
 
-  // Geocode the centrum postcode via PDOK API
-  const geocodeRef = useRef<string>('');
-  const handleCentrumEffect = useCallback((c: string) => {
-    if (!c || c.length < 4) { setCenter(null); return; }
-    if (geocodeRef.current === c) return;
-    geocodeRef.current = c;
+  // Geocode the centrum postcode via PDOK API whenever the centrum input changes.
+  // Running this inside useEffect (not during render) prevents an infinite
+  // setState loop that previously broke wizard step 4.
+  useEffect(() => {
+    if (!centrum || centrum.length < 4) {
+      setCenter(null);
+      setGeocodeError(null);
+      return;
+    }
+    let cancelled = false;
     setLoading(true);
-    fetch(`/api/geocode?pc4=${encodeURIComponent(c.trim())}`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.lat && data.lon) setCenter({ lat: data.lat, lon: data.lon });
+    setGeocodeError(null);
+    fetch(`/api/geocode?pc4=${encodeURIComponent(centrum.trim())}`)
+      .then(async r => {
+        const data = await r.json().catch(() => null);
+        if (cancelled) return;
+        if (r.ok && data?.lat && data?.lon) {
+          setCenter({ lat: data.lat, lon: data.lon });
+        } else {
+          setCenter(null);
+          setGeocodeError(`Postcode ${centrum} niet gevonden -- controleer of je 4 cijfers correct hebt ingevoerd.`);
+        }
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  // Run geocoding when centrum changes
-  handleCentrumEffect(centrum);
+      .catch(() => {
+        if (!cancelled) setGeocodeError('Kon de postcode niet opzoeken. Controleer je internetverbinding.');
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [centrum]);
 
   const handlePc4sFound = (pc4s: string[]) => {
     setPc4List(pc4s);
@@ -240,6 +238,15 @@ function CoverageVisual({ centrum, straalKm, onPc4sChange, onEstChange }: {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {geocodeError && (
+        <div role="alert" style={{
+          background: 'rgba(231,76,60,0.08)', border: '1px solid rgba(231,76,60,0.3)',
+          borderRadius: 'var(--radius)', padding: '10px 14px',
+          fontSize: '12px', color: '#c0392b', fontFamily: 'var(--font-mono)',
+        }}>
+          {geocodeError}
+        </div>
+      )}
       <ErrorBoundary>
         <NLMap
           center={center}
@@ -300,7 +307,6 @@ interface CampaignWizardProps {
   onSetPage: (page: string) => void;
   onSetPendingCampaign: (pc: PendingCampaign | null) => void;
   userEmail: string;
-  isJaarcontract: boolean;
 }
 
 // ─── CampaignWizard ───────────────────────────────────────────────────────────
@@ -319,13 +325,12 @@ export default function CampaignWizard({
   onSetPage,
   onSetPendingCampaign,
   userEmail,
-  isJaarcontract,
 }: CampaignWizardProps): React.JSX.Element {
   const {
     step, akkoord, kluswaarde, spec, specQ, datum, centrum, straal,
     aantalFlyers, formaat, dubbelzijdig, proefFlyer, proefAdres, flyerIndex,
     duurMaanden, filterBouwjaarMin, filterBouwjaarMax,
-    filterWozMin, filterWozMax, filterEnergielabel,
+    filterWozMin, filterWozMax, filterEnergielabel, pakket, jaarcontract,
   } = wiz;
 
   const [adresStatus, setAdresStatus] = useState<'idle' | 'checking' | 'ok' | 'error'>('idle');
@@ -342,13 +347,13 @@ export default function CampaignWizard({
   const availableMonths = getAvailableMonths();
   const stats = estimeerDekkingsgebied(straal);
   const actualPc4Count = wiz.pc4Lijst.length > 0 ? wiz.pc4Lijst.length : stats.pc4Count;
-  const abonnement = berekenAbonnement(userTier);
+  const abonnement = berekenAbonnement(pakket, jaarcontract);
   const prijs = abonnement.total;
   const proefPrijs = 4.95;
   const totaal = prijs + (proefFlyer ? proefPrijs : 0);
 
   const tierOrder: Tier[] = ['starter', 'pro', 'agency'];
-  const kanFiltersGebruiken = tierOrder.indexOf(userTier) >= tierOrder.indexOf('pro');
+  const kanFiltersGebruiken = tierOrder.indexOf(pakket) >= tierOrder.indexOf('pro');
 
   const canNext = (
     (step === 1 && akkoord.av && akkoord.privacy) ||
@@ -392,7 +397,7 @@ export default function CampaignWizard({
         });
         const data = await res.json();
         if (!res.ok) {
-          setOrderError(data.error || 'Bestelling mislukt');
+          setOrderError(data.error || 'Bestelling bij de drukker mislukt. Klik "Proef bestellen" om het opnieuw te proberen, of zet "Proef flyer thuis ontvangen" uit om door te gaan zonder proef.');
           return;
         }
         onSetPendingCampaign({
@@ -402,7 +407,7 @@ export default function CampaignWizard({
         });
         onUpdateWiz({ step: step + 1 });
       } catch {
-        setOrderError('Verbindingsfout -- probeer opnieuw');
+        setOrderError('Verbindingsfout met de drukker. Klik opnieuw om het te proberen, of zet de proef flyer uit om door te gaan.');
       } finally {
         setOrderLoading(false);
       }
@@ -426,8 +431,8 @@ export default function CampaignWizard({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tier: userTier,
-          billing: isJaarcontract ? 'yearly' : 'monthly',
+          tier: pakket,
+          billing: jaarcontract ? 'yearly' : 'monthly',
           email: wiz.email || 'klant@lokaalkabaal.nl',
           bedrijfsnaam: flyer.bedrijfsnaam || 'Klant',
           branche: spec, centrum, duurMaanden,
@@ -501,19 +506,40 @@ export default function CampaignWizard({
             <div>
               <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '8px' }}>Welkom bij LokaalKabaal</h2>
               <p style={{ color: 'var(--muted)', marginBottom: '20px', lineHeight: 1.6 }}>
-                Bereik nieuwe huiseigenaren in jouw postcodes met een fysieke flyer. Elke maand verwerken wij alle eigendomsoverdrachten en sturen op de 25e automatisch jouw flyer naar elk nieuw adres. Geen handmatig werk.
+                Bereik nieuwe huiseigenaren in jouw postcodes met een fysieke flyer. Elke maand verwerken wij alle eigendomsoverdrachten, sturen een bulkorder naar de drukker en bezorgen jouw flyer tussen de 28e en 30e op elk nieuw adres. Geen handmatig werk.
               </p>
               <RoiCalc kluswaarde={kluswaarde} onChange={v => onUpdateWiz({ kluswaarde: v })} />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {[
-                  { key: 'av' as const, label: 'Ik ga akkoord met de algemene voorwaarden' },
-                  { key: 'privacy' as const, label: 'Ik ga akkoord met het privacybeleid' },
-                ].map(({ key, label }) => (
+                  {
+                    key: 'av' as const,
+                    prefix: 'Ik ga akkoord met de ',
+                    linkHref: '/voorwaarden',
+                    linkText: 'algemene voorwaarden',
+                  },
+                  {
+                    key: 'privacy' as const,
+                    prefix: 'Ik ga akkoord met het ',
+                    linkHref: '/privacy',
+                    linkText: 'privacybeleid',
+                  },
+                ].map(({ key, prefix, linkHref, linkText }) => (
                   <label key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
                     <input type="checkbox" checked={akkoord[key]}
                       onChange={e => onUpdateWiz({ akkoord: { ...akkoord, [key]: e.target.checked } })}
                       style={{ marginTop: '2px', accentColor: 'var(--green)', width: '16px', height: '16px' }} />
-                    <span style={{ fontSize: '13px', lineHeight: 1.5 }}>{label}</span>
+                    <span style={{ fontSize: '13px', lineHeight: 1.5 }}>
+                      {prefix}
+                      <a
+                        href={linkHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ color: 'var(--green-dim)', fontWeight: 600, textDecoration: 'underline' }}
+                      >
+                        {linkText}
+                      </a>
+                    </span>
                   </label>
                 ))}
               </div>
@@ -547,29 +573,41 @@ export default function CampaignWizard({
               <p style={{ color: 'var(--muted)', marginBottom: '20px' }}>
                 De straal selecteert automatisch alle PC4-postcodes in dat gebied. Verwijder gebieden die je niet wil bereiken, of voeg extra postcodes handmatig toe.
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-                <div>
-                  <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '6px' }}>CENTRUM POSTCODE</label>
-                  <input
-                    type="text" placeholder="bijv. 3512" maxLength={4} value={centrum}
-                    onChange={e => onUpdateWiz({ centrum: e.target.value.replace(/\D/g, '').slice(0, 4) })}
-                    style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', fontSize: '16px', fontFamily: 'var(--font-mono)', background: 'var(--paper2)', boxSizing: 'border-box', letterSpacing: '0.1em' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '6px' }}>
-                    STRAAL: {straal} KM
-                  </label>
-                  <input
-                    type="range" min={1} max={250} step={1} value={Math.min(straal, 250)}
-                    onChange={e => onUpdateWiz({ straal: Number(e.target.value) })}
-                    style={{ width: '100%', accentColor: 'var(--green)', marginTop: '8px' }}
-                  />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                    <span>1 km</span><span>50 km</span><span>150 km</span><span>250 km</span>
+              {(() => {
+                const tierMaxStraal = TIERS[userTier].maxStraalKm;
+                const sliderMax = tierMaxStraal ?? 400;
+                const clampedStraal = tierMaxStraal !== null ? Math.min(straal, tierMaxStraal) : straal;
+                return (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                    <div>
+                      <label htmlFor="wiz-centrum-pc4" style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '6px' }}>CENTRUM POSTCODE</label>
+                      <input
+                        id="wiz-centrum-pc4"
+                        type="text" placeholder="bijv. 3512" maxLength={4} value={centrum}
+                        onChange={e => onUpdateWiz({ centrum: e.target.value.replace(/\D/g, '').slice(0, 4) })}
+                        style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', fontSize: '16px', fontFamily: 'var(--font-mono)', background: 'var(--paper2)', boxSizing: 'border-box', letterSpacing: '0.1em' }}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="wiz-straal-km" style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '6px' }}>
+                        STRAAL: {clampedStraal} KM{tierMaxStraal !== null ? ` · max. ${tierMaxStraal} km (${TIERS[userTier].label})` : ' · onbeperkt (Agency)'}
+                      </label>
+                      <input
+                        id="wiz-straal-km"
+                        type="range" min={1} max={sliderMax} step={1} value={Math.min(clampedStraal, sliderMax)}
+                        onChange={e => onUpdateWiz({ straal: Number(e.target.value) })}
+                        style={{ width: '100%', accentColor: 'var(--green)', marginTop: '8px' }}
+                      />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                        <span>1 km</span>
+                        <span>{Math.round(sliderMax / 4)} km</span>
+                        <span>{Math.round(sliderMax / 2)} km</span>
+                        <span>{sliderMax} km</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                );
+              })()}
 
               {(() => {
                 const maxPc4s = TIERS[userTier].maxPc4s;
@@ -670,7 +708,6 @@ export default function CampaignWizard({
               dubbelzijdig={dubbelzijdig}
               estAdressenMaand={stats.estAdressenMaand}
               onFormaatChange={f => onUpdateWiz({ formaat: f })}
-              onDubbelzijdigChange={checked => onUpdateWiz({ dubbelzijdig: checked })}
               abonnement={abonnement}
               actualPc4Count={actualPc4Count}
               formatPrijs={formatPrijs}
@@ -685,11 +722,11 @@ export default function CampaignWizard({
             <div>
               <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '8px' }}>Campagneduur & doelgroep</h2>
               <p style={{ color: 'var(--muted)', marginBottom: '20px' }}>
-                Kies hoe lang je campagne loopt. Elke 25e van de maand gaat een batch de deur uit.
+                Kies hoe lang je campagne loopt. Elke maand gaat er een batch naar de drukker en liggen de flyers tussen de 28e en 30e bij de nieuwe bewoners op de mat.
               </p>
               <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', letterSpacing: '0.06em' }}>
+                  <label htmlFor="wiz-duur-maanden" style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', letterSpacing: '0.06em' }}>
                     HOEVEEL MAANDEN WIL JE DEZE CAMPAGNE DRAAIEN?
                   </label>
                   <span style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', color: 'var(--green)', lineHeight: 1 }}>
@@ -697,6 +734,7 @@ export default function CampaignWizard({
                   </span>
                 </div>
                 <input
+                  id="wiz-duur-maanden"
                   type="range" min={1} max={24} step={1} value={duurMaanden}
                   onChange={e => onUpdateWiz({ duurMaanden: Number(e.target.value) })}
                   style={{ width: '100%', accentColor: 'var(--green)', marginBottom: '8px' }}
@@ -708,7 +746,7 @@ export default function CampaignWizard({
                   {[
                     { label: 'VERWACHT FLYERS', val: `${stats.estAdressenMaand.toLocaleString('nl')}/mnd`, color: 'var(--green)' },
                     { label: 'TOTAAL FLYERS', val: (stats.estAdressenMaand * duurMaanden).toLocaleString('nl'), color: 'var(--ink)' },
-                    { label: 'TOTAAL PRINTKOSTEN', val: `€${(prijsPerStuk(formaat, dubbelzijdig) * stats.estAdressenMaand * duurMaanden).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`, color: 'var(--ink)' },
+                    { label: 'INBEGREPEN IN ABONNEMENT', val: `${TIERS[pakket].includedFlyers}/mnd`, color: 'var(--ink)' },
                   ].map(({ label, val, color }) => (
                     <div key={label} style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '10px', textAlign: 'center' }}>
                       <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '4px' }}>{label}</div>
@@ -717,7 +755,7 @@ export default function CampaignWizard({
                   ))}
                 </div>
                 <div style={{ marginTop: '12px', fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', background: 'rgba(255,200,0,0.06)', border: '1px solid rgba(255,200,0,0.2)', borderRadius: 'var(--radius)', padding: '8px 12px' }}>
-                  Incasso op de 25e van de maand · surplusflyers worden als credits bijgeschreven en automatisch toegepast
+                  Incasso op de 1e van de maand · bezorging tussen de 28e en 30e. Meer flyers nodig? Betaal per extra flyer bij (€0,70 per A6).
                 </div>
               </div>
 
@@ -861,10 +899,10 @@ export default function CampaignWizard({
                   { l: 'Startdatum', v: datum ? new Date(datum).toLocaleDateString('nl', { month: 'long', year: 'numeric' }) : '-' },
                   { l: 'Werkgebied', v: centrum ? `${centrum} · ${straal} km` : '-' },
                   { l: 'PC4-gebieden', v: wiz.pc4Lijst.length > 0 ? wiz.pc4Lijst.join(', ') : `~${stats.pc4Count} gebieden` },
-                  { l: 'Formaat', v: `${formaat.toUpperCase()}${dubbelzijdig ? ' dubbelzijdig' : ' enkelvoudig'}` },
+                  { l: 'Formaat', v: `${formaat.toUpperCase()} dubbelzijdig` },
                   { l: 'Abonnement', v: `${abonnement.tier} · ${formatPrijs(abonnement.total)}/mnd` },
                   { l: 'Campagneduur', v: `${duurMaanden} maand${duurMaanden !== 1 ? 'en' : ''}` },
-                  { l: 'Bezorging', v: 'Elke 25e van de maand' },
+                  { l: 'Bezorging', v: 'Tussen de 28e en 30e van elke maand' },
                 ].map(({ l, v }) => (
                   <div key={l} style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '12px' }}>
                     <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '3px' }}>{l.toUpperCase()}</div>
@@ -946,7 +984,7 @@ export default function CampaignWizard({
               {/* Total */}
               <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <span style={{ color: 'var(--muted)', fontSize: '13px' }}>{abonnement.tier} abonnement · {formaat.toUpperCase()}{dubbelzijdig ? ' dubbelzijdig' : ''} · {duurMaanden} mnd</span>
+                  <span style={{ color: 'var(--muted)', fontSize: '13px' }}>{abonnement.tier} abonnement · {formaat.toUpperCase()} dubbelzijdig · {duurMaanden} mnd</span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{formatPrijs(prijs)}/mnd</span>
                 </div>
                 {proefFlyer && (
@@ -964,84 +1002,111 @@ export default function CampaignWizard({
             </div>
           )}
 
-          {/* STAP 8: Bevestiging */}
+          {/* STAP 8: Pakketkeuze + betaling */}
           {step === 8 && (
-            <div style={{ textAlign: 'center', padding: '20px 0' }}>
-              {proefFlyer ? (
-                <>
-                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '56px', color: 'var(--green)', marginBottom: '12px', lineHeight: 1 }}>v</div>
-                  <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '32px', marginBottom: '8px' }}>Proef flyer onderweg!</h2>
-                  <p style={{ color: 'var(--muted)', maxWidth: '420px', margin: '0 auto 8px', lineHeight: 1.6 }}>
-                    Je proef flyer wordt verstuurd naar <strong>{proefAdres}</strong>. Verwacht hem binnen 2-4 werkdagen.
-                  </p>
-                  <div style={{ maxWidth: '420px', margin: '0 auto 20px', textAlign: 'left' }}>
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)', marginBottom: '8px', textAlign: 'center' }}>WAT GEBEURT ER DAARNA?</div>
-                    {[
-                      { n: '1', text: 'Ontvang je proef flyer thuis in de bus' },
-                      { n: '2', text: 'Log in op het dashboard en keur de flyer goed (of pas hem nog aan)' },
-                      { n: '3', text: 'Na jouw goedkeuring gaat de echte campagne van start' },
-                    ].map(s => (
-                      <div key={s.n} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', marginBottom: '8px' }}>
-                        <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'var(--green)', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, flexShrink: 0 }}>{s.n}</div>
-                        <span style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.5, paddingTop: '2px' }}>{s.text}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <p style={{ color: 'var(--muted)', fontSize: '11px', marginBottom: '20px', fontFamily: 'var(--font-mono)' }}>
-                    Betaald: €4,95 incl. verzending · Campagne nog niet actief
-                  </p>
-                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                    <button onClick={() => onSetPage('dashboard')} style={{ padding: '12px 24px', background: 'var(--ink)', color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)', fontWeight: 700, cursor: 'pointer', fontSize: '14px' }}>Naar dashboard →</button>
-                    <button onClick={() => onUpdateWiz({ step: 1, akkoord: { av: false, privacy: false }, spec: '', datum: '', centrum: '', proefFlyer: false, proefAdres: '', email: '' })} style={{ padding: '12px 24px', background: 'var(--paper)', color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: '14px' }}>+ Nog een campagne</button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '64px', color: 'var(--green)', marginBottom: '12px', lineHeight: 1 }}>€</div>
-                  <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '32px', marginBottom: '8px' }}>Betaal & activeer je campagne</h2>
-                  <p style={{ color: 'var(--muted)', maxWidth: '420px', margin: '0 auto 8px', lineHeight: 1.6 }}>
-                    Je flyers gaan elke maand op de <strong>25e</strong> de deur uit naar nieuwe bewoners in <strong>{centrum || 'jouw werkgebied'}</strong>.
-                  </p>
-                  <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '20px', fontFamily: 'var(--font-mono)' }}>
-                    Eerste bezorging: {datum ? new Date(datum).toLocaleDateString('nl', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'} · Betaling via Stripe
-                  </p>
-                  <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px', maxWidth: '420px', margin: '0 auto 20px', textAlign: 'left' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <span style={{ color: 'var(--muted)', fontSize: '13px' }}>{abonnement.tier} · ~{stats.estAdressenMaand}/mnd flyers · {duurMaanden} mnd campagne</span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px' }}>{formatPrijs(prijs)}/mnd</span>
-                    </div>
-                    <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-                      Vaste maandprijs -- geen verassingen. Factuur op de 1e v/d maand.
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div>
+              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '8px', textAlign: 'center' }}>Kies jouw pakket</h2>
+              <p style={{ color: 'var(--muted)', marginBottom: '20px', textAlign: 'center', lineHeight: 1.6 }}>
+                A6 dubbelzijdig is standaard in alle pakketten. Kies het aantal flyers per maand en werkgebiedstraal dat bij jou past.
+              </p>
+
+              {/* Jaar/maand toggle */}
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0', background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: '8px', padding: '3px' }}>
+                  <button type="button" onClick={() => onUpdateWiz({ jaarcontract: false })} style={{ padding: '7px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600, fontFamily: 'var(--font-mono)', background: !jaarcontract ? 'var(--ink)' : 'transparent', color: !jaarcontract ? '#fff' : 'var(--muted)' }}>
+                    Maandelijks
+                  </button>
+                  <button type="button" onClick={() => onUpdateWiz({ jaarcontract: true })} style={{ padding: '7px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 600, fontFamily: 'var(--font-mono)', background: jaarcontract ? 'var(--green)' : 'transparent', color: jaarcontract ? 'var(--ink)' : 'var(--muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    Jaarcontract
+                    <span style={{ fontSize: '10px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px', background: jaarcontract ? 'rgba(0,0,0,0.15)' : 'var(--green)', color: 'var(--ink)' }}>−15%</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Pakket cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '24px' }}>
+                {(['starter', 'pro', 'agency'] as Tier[]).map(t => {
+                  const cfg = TIERS[t];
+                  const sel = pakket === t;
+                  const priceM = jaarcontract ? cfg.priceYearly : cfg.priceMonthly;
+                  return (
                     <button
-                      onClick={handleStripeCheckout}
-                      disabled={orderLoading}
+                      key={t}
+                      type="button"
+                      onClick={() => onUpdateWiz({ pakket: t })}
                       style={{
-                        padding: '14px 32px',
-                        background: orderLoading ? 'var(--line)' : 'var(--ink)',
-                        color: orderLoading ? 'var(--muted)' : 'var(--paper)',
-                        border: 'none', borderRadius: 'var(--radius)',
-                        fontWeight: 700, cursor: orderLoading ? 'not-allowed' : 'pointer', fontSize: '15px',
-                      }}>
-                      {orderLoading ? 'Laden...' : 'Betalen via Stripe →'}
-                    </button>
-                    <button onClick={() => onSetPage('dashboard')} style={{ padding: '14px 24px', background: 'var(--paper)', color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: '14px' }}>Annuleren</button>
-                  </div>
-                  {orderError && <div style={{ marginTop: '12px', fontSize: '12px', color: '#c0392b', fontFamily: 'var(--font-mono)' }}>x {orderError}</div>}
-                  {largeOrderSent && (
-                    <div style={{ marginTop: '14px', display: 'flex', alignItems: 'flex-start', gap: '10px', background: 'rgba(0,232,122,0.07)', border: '1px solid rgba(0,232,122,0.25)', borderRadius: 'var(--radius)', padding: '12px 14px' }}>
-                      <span style={{ color: 'var(--green)', fontSize: '16px', flexShrink: 0 }}>v</span>
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--ink)', marginBottom: '2px' }}>Maatwerkaanvraag verstuurd</div>
-                        <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.5 }}>
-                          Uw aanvraag voor {aantalFlyers.toLocaleString('nl')} flyers is doorgestuurd naar support@lokaalkabaal.nl. We nemen binnen 24 uur contact op.
-                        </div>
+                        padding: '16px', textAlign: 'left', cursor: 'pointer',
+                        border: `2px solid ${sel ? 'var(--green)' : 'var(--line)'}`,
+                        background: sel ? 'var(--green-bg)' : 'var(--paper)',
+                        borderRadius: 'var(--radius)', transition: 'all 0.15s',
+                      }}
+                    >
+                      <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: sel ? 'var(--green-dim)' : 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>{cfg.label}</div>
+                      <div style={{ fontFamily: 'var(--font-serif)', fontSize: '26px', color: 'var(--ink)', lineHeight: 1, marginBottom: '6px' }}>
+                        €{priceM.toLocaleString('nl', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        <span style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-sans)', marginLeft: '4px' }}>/mnd</span>
                       </div>
+                      <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
+                        {cfg.includedFlyers} A6 dubbelzijdig/mnd
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--muted)', lineHeight: 1.5 }}>
+                        {cfg.maxStraalKm === null ? 'Onbeperkt werkgebied' : `Max. ${cfg.maxStraalKm} km straal`}
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--muted)', lineHeight: 1.5 }}>
+                        {cfg.maxCampaigns === null ? 'Onbeperkt campagnes' : `${cfg.maxCampaigns} campagne${cfg.maxCampaigns !== 1 ? 's' : ''}`}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Summary */}
+              <div style={{ background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '16px', marginBottom: '20px' }}>
+                <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '10px', lineHeight: 1.6 }}>
+                  Je flyers worden elke maand <strong>tussen de 28e en 30e</strong> bezorgd bij nieuwe bewoners in <strong>{centrum || 'jouw werkgebied'}</strong>.
+                  Eerste bezorging: <strong>{datum ? new Date(datum).toLocaleDateString('nl', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</strong>.
+                </p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                  <span style={{ color: 'var(--muted)' }}>{abonnement.tier}{jaarcontract ? ' · jaarcontract' : ''} · {stats.estAdressenMaand.toLocaleString('nl')}/mnd nieuwe adressen · {duurMaanden} mnd</span>
+                  <span style={{ fontFamily: 'var(--font-mono)' }}>{formatPrijs(prijs)}/mnd</span>
+                </div>
+                {proefFlyer && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                    <span style={{ color: 'var(--muted)' }}>Proef flyer (eenmalig)</span>
+                    <span style={{ fontFamily: 'var(--font-mono)' }}>{formatPrijs(proefPrijs)}</span>
+                  </div>
+                )}
+                <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginTop: '6px' }}>
+                  {jaarcontract ? 'Per jaar vooruit gefactureerd · niet tussentijds opzegbaar' : 'Maandelijks opzegbaar · incasso op de 1e'}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button
+                  onClick={handleStripeCheckout}
+                  disabled={orderLoading}
+                  style={{
+                    padding: '14px 32px',
+                    background: orderLoading ? 'var(--line)' : 'var(--ink)',
+                    color: orderLoading ? 'var(--muted)' : 'var(--paper)',
+                    border: 'none', borderRadius: 'var(--radius)',
+                    fontWeight: 700, cursor: orderLoading ? 'not-allowed' : 'pointer', fontSize: '15px',
+                  }}>
+                  {orderLoading ? 'Laden...' : `Betalen via Stripe -- ${formatPrijs(prijs)}/mnd →`}
+                </button>
+                <button onClick={() => onUpdateWiz({ step: 7 })} style={{ padding: '14px 24px', background: 'var(--paper)', color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', cursor: 'pointer', fontSize: '14px' }}>Terug</button>
+              </div>
+              {orderError && <div style={{ marginTop: '12px', fontSize: '12px', color: '#c0392b', fontFamily: 'var(--font-mono)', textAlign: 'center' }}>x {orderError}</div>}
+              {largeOrderSent && (
+                <div style={{ marginTop: '14px', display: 'flex', alignItems: 'flex-start', gap: '10px', background: 'rgba(0,232,122,0.07)', border: '1px solid rgba(0,232,122,0.25)', borderRadius: 'var(--radius)', padding: '12px 14px' }}>
+                  <span style={{ color: 'var(--green)', fontSize: '16px', flexShrink: 0 }}>v</span>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--ink)', marginBottom: '2px' }}>Maatwerkaanvraag verstuurd</div>
+                    <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.5 }}>
+                      Uw aanvraag voor {aantalFlyers.toLocaleString('nl')} flyers is doorgestuurd naar support@lokaalkabaal.nl. We nemen binnen 24 uur contact op.
                     </div>
-                  )}
-                </>
+                  </div>
+                </div>
               )}
             </div>
           )}

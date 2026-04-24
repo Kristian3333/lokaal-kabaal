@@ -66,8 +66,8 @@ export async function GET(req: NextRequest) {
       tier: retailer.tier,
     });
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://lokaalkabaal.agency';
-    const response = NextResponse.redirect(new URL('/app', baseUrl));
+    // Use the incoming request origin so this works identically on localhost and prod.
+    const response = NextResponse.redirect(new URL('/app', req.nextUrl.origin));
     return setSessionCookie(response, sessionToken);
   } catch (err) {
     console.error('[auth/magic-link/verify] Fout:', err);

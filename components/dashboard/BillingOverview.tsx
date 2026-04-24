@@ -49,7 +49,7 @@ function formatDatum(iso: string): string {
 
 /**
  * BillingOverview -- shows the current subscription plan, status, next billing
- * date, credit balance, and links to the Stripe billing portal and upgrade flow.
+ * date, included flyers, and links to the Stripe billing portal and upgrade flow.
  */
 export default function BillingOverview(): React.JSX.Element {
   const [status, setStatus] = useState<SubscriptionStatus | null>(null);
@@ -163,16 +163,16 @@ export default function BillingOverview(): React.JSX.Element {
             )}
           </div>
 
-          {/* Credit balance */}
+          {/* Included flyers per month */}
           <div>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
-              Tegoed (flyers)
+              Flyers/mnd inbegrepen
             </div>
-            <div style={{ fontWeight: 600, fontSize: '14px', color: (status.creditBalance ?? 0) > 0 ? '#00E87A' : 'var(--ink)' }}>
-              {(status.creditBalance ?? 0).toLocaleString('nl')}
+            <div style={{ fontWeight: 600, fontSize: '14px' }}>
+              {tierConfig.includedFlyers.toLocaleString('nl')}
             </div>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--muted)' }}>
-              automatisch verrekend
+              A6 dubbelzijdig
             </div>
           </div>
 

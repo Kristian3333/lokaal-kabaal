@@ -5,11 +5,11 @@ import PricingSection from '@/components/PricingSection';
 
 export const metadata: Metadata = {
   title: 'Flyers naar Nieuwe Bewoners Versturen | Maandelijks Automatisch',
-  description: 'Bereik nieuwe huiseigenaren elke maand automatisch. LokaalKabaal verstuurt elke 25e gepersonaliseerde flyers naar alle nieuwe bewoners in uw postcodes. Geen handmatig werk.',
+  description: 'Bereik nieuwe huiseigenaren elke maand automatisch. LokaalKabaal bezorgt tussen de 28e en 30e gepersonaliseerde flyers bij alle nieuwe bewoners in uw postcodes. Geen handmatig werk.',
   alternates: { canonical: 'https://lokaalkabaal.agency/flyers-versturen-nieuwe-bewoners' },
   openGraph: {
     title: 'Flyers naar Nieuwe Bewoners Versturen | LokaalKabaal',
-    description: 'Elke 25e van de maand bereikt u alle nieuwe eigenaren in uw postcodes. Automatisch, zonder handmatig werk.',
+    description: 'Elke maand tussen de 28e en 30e bereikt u alle nieuwe eigenaren in uw postcodes. Automatisch, zonder handmatig werk.',
     url: 'https://lokaalkabaal.agency/flyers-versturen-nieuwe-bewoners',
   },
 };
@@ -31,7 +31,7 @@ const faqSchema = {
       name: 'Hoe snel na een verhuizing ontvangen nieuwe bewoners mijn flyer?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Maandelijks verwerkt LokaalKabaal alle nieuwe eigendomsoverdrachten en verstuurt op de 25e een bulkprintorder. De nieuwe bewoner ontvangt uw flyer gemiddeld binnen 2–3 weken na hun verhuizing -- ruimschoots in het 30-dagen beslissingsvenster.',
+        text: 'Maandelijks verwerkt LokaalKabaal alle nieuwe eigendomsoverdrachten en verstuurt een bulkprintorder naar de drukker. De nieuwe bewoner ontvangt uw flyer tussen de 28e en 30e van de maand, ruimschoots in het 30-dagen beslissingsvenster na hun verhuizing.',
       },
     },
     {
@@ -87,7 +87,7 @@ export default function FlyersNieuweBewoners() {
                 color: 'var(--green-dim)', marginBottom: '28px',
               }}>
                 <span style={{ width: '6px', height: '6px', background: 'var(--green)', borderRadius: '50%', display: 'inline-block' }} />
-                Hyperlocal direct mail · elke 25e automatisch verstuurd
+                Hyperlocal direct mail · bezorgd tussen 28-30e van elke maand
               </div>
             </div>
 
@@ -102,7 +102,7 @@ export default function FlyersNieuweBewoners() {
                 marginBottom: '24px',
                 maxWidth: '720px',
               }}>
-                Elke 25e liggen jouw flyers<br />
+                Elke 28-30e liggen jouw flyers<br />
                 bij nieuwe bewoners <em style={{ color: 'var(--green)' }}>op de mat.</em>
               </h1>
             </div>
@@ -125,7 +125,7 @@ export default function FlyersNieuweBewoners() {
                 display: 'inline-flex', alignItems: 'center', gap: '6px',
                 minHeight: '48px',
               }}>
-                Eerste batch voor €49 →
+                Start nu jouw campagne →
               </Link>
               <Link href="#hoe-het-werkt" style={{
                 padding: '14px 20px', color: 'rgba(255,255,255,0.5)',
@@ -184,9 +184,9 @@ export default function FlyersNieuweBewoners() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {[
                 { dag: 'Dag 1',   label: 'Eigendomsoverdracht',    active: false, sub: 'Nieuwe eigenaar betreedt de woning' },
-                { dag: 'Dag 3',   label: 'Jouw flyer arriveert',   active: true,  sub: 'LokaalKabaal bezorgt via PostNL' },
-                { dag: 'Dag 7',   label: 'Eerste aankoop',         active: false, sub: 'Nieuwe bewoner kiest eerste leverancier' },
-                { dag: 'Dag 30',  label: 'Vaste klant gevormd',    active: false, sub: '80% heeft alle leveranciers gekozen' },
+                { dag: '28-30e', label: 'Jouw flyer arriveert',   active: true,  sub: 'LokaalKabaal bezorgt via PostNL' },
+                { dag: 'Week 2', label: 'Eerste aankoop',         active: false, sub: 'Nieuwe bewoner kiest eerste leverancier' },
+                { dag: 'Dag 30', label: 'Vaste klant gevormd',    active: false, sub: '80% heeft alle leveranciers gekozen' },
               ].map((item, i) => (
                 <div key={i} style={{
                   display: 'flex', alignItems: 'flex-start', gap: '16px',
@@ -244,9 +244,9 @@ export default function FlyersNieuweBewoners() {
             }} className="timeline-grid">
               {[
                 { dag: '20e', label: 'Verhuisdata beschikbaar', sub: 'nieuwe eigendomsoverdrachten' },
-                { dag: '21–23e', label: 'LokaalKabaal verwerkt', sub: 'adressen per abonnee' },
-                { dag: '24–25e', label: 'Printorder verstuurd', sub: 'gebundelde bulkrun' },
-                { dag: '28–30e', label: 'Bezorging', sub: 'flyer op de mat bij nieuwe bewoner', highlight: true },
+                { dag: '21-24e', label: 'LokaalKabaal verwerkt', sub: 'adressen per abonnee' },
+                { dag: '25-27e', label: 'Printorder verstuurd', sub: 'gebundelde bulkrun' },
+                { dag: '28-30e', label: 'Bezorging', sub: 'flyer op de mat bij nieuwe bewoner', highlight: true },
               ].map((t, i) => (
                 <div key={i} style={{
                   padding: '20px 20px',
@@ -274,8 +274,8 @@ export default function FlyersNieuweBewoners() {
                 },
                 {
                   n: '03',
-                  titel: 'Elke 25e automatisch verstuurd',
-                  tekst: 'Wij verwerken maandelijks alle overdrachten en sturen op de 25e een bulkorder. Jouw flyer ligt bij elke nieuwe bewoner in hun eerste maand.',
+                  titel: 'Bezorgd tussen 28-30e',
+                  tekst: 'Wij verwerken maandelijks alle overdrachten en sturen een bulkorder naar de drukker. Jouw flyer ligt tussen de 28e en 30e bij elke nieuwe bewoner op de mat.',
                 },
               ].map((s, i) => (
                 <div key={s.n} style={{ background: '#fff', padding: '36px 32px' }}>
@@ -355,7 +355,7 @@ export default function FlyersNieuweBewoners() {
                 Break-even: <em style={{ color: 'var(--green)' }}>1 nieuwe vaste klant per 2 maanden.</em>
               </span>
               <span style={{ display: 'block', fontSize: '12px', color: 'rgba(255,255,255,0.35)', fontFamily: 'var(--font-mono)', marginTop: '6px' }}>
-                Wijk-abonnement · €399/mnd service · printkosten €0,69/flyer apart
+                Pro-abonnement · €499/mnd · 400 A6 dubbelzijdig inbegrepen
               </span>
             </div>
           </div>
@@ -407,7 +407,7 @@ export default function FlyersNieuweBewoners() {
           <div style={{ maxWidth: '760px', margin: '0 auto' }}>
             {[
               { q: 'Is het legaal om verhuisdata te gebruiken voor marketingdoeleinden?', a: 'Ja. Eigendomsoverdrachten zijn openbare informatie. LokaalKabaal gebruikt uitsluitend adresgegevens die publiek beschikbaar zijn voor postbezorging. Persoonsgegevens worden verwerkt conform de AVG; de bezorging verloopt via geautoriseerde kanalen.' },
-              { q: 'Hoe snel na een verhuizing ontvangen nieuwe bewoners mijn flyer?', a: 'Maandelijks verwerkt LokaalKabaal alle nieuwe eigendomsoverdrachten en verstuurt op de 25e een bulkprintorder. Nieuwe bewoners ontvangen jouw flyer gemiddeld 2–3 weken na hun verhuizing -- ruimschoots binnen het 30-dagen venster.' },
+              { q: 'Hoe snel na een verhuizing ontvangen nieuwe bewoners mijn flyer?', a: 'Maandelijks verwerkt LokaalKabaal alle nieuwe eigendomsoverdrachten en stuurt een bulkprintorder naar de drukker. Nieuwe bewoners ontvangen jouw flyer tussen de 28e en 30e van de maand, gemiddeld 2-3 weken na hun verhuizing -- ruimschoots binnen het 30-dagen venster.' },
               { q: 'Kan ik zelf bepalen welke postcodes ik wil targeten?', a: 'Ja, volledig. Je kiest zelf welke postcodes je wilt activeren. Je kunt zo nauwkeurig zijn als één specifieke wijk, of zo breed als een heel stadsdeel. Er is geen minimum aantal postcodes.' },
               { q: 'Wat als er een maand geen eigendomsoverdrachten zijn in mijn postcodes?', a: 'In stedelijk Nederland is dat vrijwel nooit het geval -- gemiddeld zijn er 3–8 overdrachten per PC4-postcode per maand. Als er een maand geen overdrachten zijn, verstuurt je die maand geen flyers en betaal je alleen het serviceabonnement.' },
               { q: 'Kan ik meerdere flyer-templates instellen voor verschillende doelgroepen?', a: 'Ja. Je kunt meerdere templates aanmaken voor verschillende typen panden (appartement vs. gezinswoning), verschillende seizoenen, of specifieke aanbiedingen. Het systeem selecteert automatisch de juiste template op basis van regels die je zelf instelt.' },
@@ -423,11 +423,11 @@ export default function FlyersNieuweBewoners() {
         {/* ── FINAL CTA ── */}
         <section style={{ padding: '80px 40px 100px', textAlign: 'center', maxWidth: '640px', margin: '0 auto' }}>
           <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(32px, 5vw, 50px)', fontWeight: 400, marginBottom: '16px', lineHeight: 1.08 }}>
-            Start vandaag. Op de 25e liggen<br />
+            Start vandaag. Tussen 28-30e liggen<br />
             <em style={{ color: 'var(--muted)' }}>jouw flyers bij de nieuwe bewoners.</em>
           </h2>
           <p style={{ color: 'var(--muted)', fontSize: '15px', marginBottom: '36px', lineHeight: 1.65 }}>
-            Geen contract · Per maand opzegbaar · Setup in 20 minuten · Elke 25e automatisch verstuurd
+            Setup in 20 minuten · elke maand automatisch bezorgd tussen de 28e en 30e
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
             <Link href="/login" style={{
@@ -438,10 +438,10 @@ export default function FlyersNieuweBewoners() {
               minHeight: '52px',
               display: 'inline-flex', alignItems: 'center',
             }}>
-              Eerste batch voor €49 →
+              Start nu jouw campagne →
             </Link>
             <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-              Eenmalig instappen · of direct abonnement · vanaf €199/mnd service + printkosten
+              Abonnement vanaf €349/mnd · 15% korting bij jaarcontract
             </div>
           </div>
         </section>

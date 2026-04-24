@@ -8,14 +8,33 @@ function getStripe() {
 
 // ─── Tier-prijzen ─────────────────────────────────────────────────────────────
 //
-// Starter:  1 campagne  · €99/m  · €891/jaar  (= €74,25/m · −25%)
-// Pro:      3 campagnes · €199/m · €1.791/jaar (= €149,25/m · −25%)
-// Agency:   Onbeperkt   · €499/m · €4.491/jaar (= €374,25/m · −25%)
+// A6 dubbelzijdig is standaard in elk pakket. Jaarcontract: 15% korting.
+//
+// Starter: 1 campagne  · €349/m (300 flyers/mnd, max 100 km)
+// Pro:     3 campagnes · €499/m (400 flyers/mnd, max 200 km)
+// Agency:  Onbeperkt   · €649/m (500 flyers/mnd, onbeperkt werkgebied)
 
-const TIER_PRICES: Record<string, { monthly: number; yearlyTotal: number; name: string; maxCampaigns: number | null }> = {
-  starter: { monthly: 9900,  yearlyTotal:  89100, name: 'LokaalKabaal Starter', maxCampaigns: 1 },
-  pro:     { monthly: 19900, yearlyTotal: 179100, name: 'LokaalKabaal Pro',     maxCampaigns: 3 },
-  agency:  { monthly: 49900, yearlyTotal: 449100, name: 'LokaalKabaal Agency',  maxCampaigns: null },
+import { TIERS, YEARLY_DISCOUNT, type Tier as TierType } from '@/lib/tiers';
+
+const TIER_PRICES: Record<TierType, { monthly: number; yearlyTotal: number; name: string; maxCampaigns: number | null }> = {
+  starter: {
+    monthly:     Math.round(TIERS.starter.priceMonthly * 100),
+    yearlyTotal: Math.round(TIERS.starter.priceMonthly * (1 - YEARLY_DISCOUNT) * 12 * 100),
+    name: 'LokaalKabaal Starter',
+    maxCampaigns: TIERS.starter.maxCampaigns,
+  },
+  pro: {
+    monthly:     Math.round(TIERS.pro.priceMonthly * 100),
+    yearlyTotal: Math.round(TIERS.pro.priceMonthly * (1 - YEARLY_DISCOUNT) * 12 * 100),
+    name: 'LokaalKabaal Pro',
+    maxCampaigns: TIERS.pro.maxCampaigns,
+  },
+  agency: {
+    monthly:     Math.round(TIERS.agency.priceMonthly * 100),
+    yearlyTotal: Math.round(TIERS.agency.priceMonthly * (1 - YEARLY_DISCOUNT) * 12 * 100),
+    name: 'LokaalKabaal Agency',
+    maxCampaigns: TIERS.agency.maxCampaigns,
+  },
 };
 
 export async function POST(req: NextRequest) {
@@ -41,7 +60,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'tier, email en billing zijn verplicht' }, { status: 400 });
     }
 
-    const tierConfig = TIER_PRICES[tier as string];
+    const tierConfig = TIER_PRICES[tier as TierType];
     if (!tierConfig) {
       return NextResponse.json({ error: `Ongeldig pakket: ${tier}` }, { status: 400 });
     }
@@ -79,9 +98,9 @@ export async function POST(req: NextRequest) {
                 tierConfig.maxCampaigns !== null
                   ? `Max. ${tierConfig.maxCampaigns} gelijktijdige campagne${tierConfig.maxCampaigns !== 1 ? 's' : ''}`
                   : 'Onbeperkt campagnes',
-                'Min. 300 flyers per batch',
-                'A6 standaard incl. bezorging',
-                isYearly ? 'Jaarcontract (−25%)' : 'Maandelijks opzegbaar',
+                `${TIERS[tier as TierType].includedFlyers} flyers per maand inbegrepen`,
+                'A6 dubbelzijdig standaard · incl. print en PostNL-bezorging',
+                isYearly ? 'Jaarcontract (-15%)' : 'Maandelijks opzegbaar',
               ].join(' · '),
               metadata: { tier, branche: branche ?? '' },
             },
@@ -112,8 +131,8 @@ export async function POST(req: NextRequest) {
       custom_text: {
         submit: {
           message: isYearly
-            ? `Het volledige jaarbedrag (€${(tierConfig.yearlyTotal / 100).toLocaleString('nl')}) wordt direct afgeschreven via incasso.`
-            : 'De eerste maand wordt direct afgeschreven via automatische incasso op de 25e.',
+            ? `Het volledige jaarbedrag (€${(tierConfig.yearlyTotal / 100).toLocaleString('nl', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}) wordt direct afgeschreven via incasso.`
+            : 'De eerste maand wordt direct afgeschreven via automatische incasso op de 1e.',
         },
       },
     });

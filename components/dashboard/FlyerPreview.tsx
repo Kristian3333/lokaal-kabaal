@@ -44,10 +44,11 @@ export interface FlyerState {
 /**
  * Renders a logo image that adapts its dimensions to preserve the natural aspect ratio.
  */
-export function AdaptiveLogo({ src, baseSize, style }: {
+export function AdaptiveLogo({ src, baseSize, style, alt }: {
   src: string;
   baseSize: number;
   style?: React.CSSProperties;
+  alt?: string;
 }): React.JSX.Element {
   const [aspect, setAspect] = useState<number>(1);
   const targetArea = baseSize * baseSize * 1.5;
@@ -65,7 +66,7 @@ export function AdaptiveLogo({ src, baseSize, style }: {
   return (
     <img
       src={src}
-      alt=""
+      alt={alt ?? 'Logo'}
       style={imgStyle}
       onLoad={e => {
         const img = e.currentTarget;
@@ -202,7 +203,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
           {flyer.heroImageUrl ? (
             <>
               <div style={{ position: 'relative', marginBottom: '8px', borderRadius: '3px', overflow: 'hidden', flexShrink: 0, height: '85px' }}>
-                <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('85px'), borderRadius: '3px' }} onMouseDown={handleHeroDrag} />
+                <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle('85px'), borderRadius: '3px' }} onMouseDown={handleHeroDrag} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.35) 100%)', pointerEvents: 'none' }} />
                 {dragOverlay}
               </div>
@@ -255,7 +256,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
         <div style={{ position: 'absolute', bottom: '20px', left: '-20px', width: '100px', height: '100px', borderRadius: '50%', background: flyer.accent, opacity: 0.10 }} />
         {flyer.heroImageUrl ? (
           <div style={{ position: 'relative', height: '100px', overflow: 'hidden', flexShrink: 0 }}>
-            <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('100px') }} onMouseDown={handleHeroDrag} />
+            <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle('100px') }} onMouseDown={handleHeroDrag} />
             <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 30%, ${flyer.kleur}cc 100%)`, pointerEvents: 'none' }} />
             {dragOverlay}
             <div style={{ position: 'absolute', bottom: '10px', left: '14px', right: '14px' }}>
@@ -310,7 +311,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
       <div style={{ ...base, background: '#faf9f7', display: 'flex', flexDirection: 'column' }}>
         {flyer.heroImageUrl ? (
           <div style={{ position: 'relative', height: '110px', overflow: 'hidden', flexShrink: 0 }}>
-            <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('110px') }} onMouseDown={handleHeroDrag} />
+            <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle('110px') }} onMouseDown={handleHeroDrag} />
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(250,249,247,0.95) 100%)', pointerEvents: 'none' }} />
             {dragOverlay}
           </div>
@@ -367,7 +368,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
       <div style={{ ...base, background: flyer.kleur, display: 'flex', flexDirection: 'column' }}>
         {flyer.heroImageUrl ? (
           <div style={{ position: 'relative', height: '140px', overflow: 'hidden', flexShrink: 0 }}>
-            <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('140px') }} onMouseDown={handleHeroDrag} />
+            <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle('140px') }} onMouseDown={handleHeroDrag} />
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.65) 100%)', pointerEvents: 'none' }} />
             {dragOverlay}
             <div style={{ position: 'absolute', top: '10px', left: '12px', background: flyer.accent, borderRadius: '2px', padding: '3px 7px' }}>
@@ -432,7 +433,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
           </div>
           {flyer.heroImageUrl ? (
             <div style={{ position: 'relative', marginBottom: '8px', border: `2px solid ${flyer.kleur}`, overflow: 'hidden', flexShrink: 0, width: '100%', height: '65px' }}>
-              <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('65px') }} onMouseDown={handleHeroDrag} />
+              <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle('65px') }} onMouseDown={handleHeroDrag} />
               {dragOverlay}
             </div>
           ) : null}
@@ -482,7 +483,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
           <div style={{ position: 'absolute', bottom: '-25px', left: '10px', width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
           {flyer.heroImageUrl && (
             <div style={{ position: 'relative', marginBottom: '8px', borderRadius: '8px', overflow: 'hidden', height: '58px' }}>
-              <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('58px'), borderRadius: '8px' }} onMouseDown={handleHeroDrag} />
+              <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle('58px'), borderRadius: '8px' }} onMouseDown={handleHeroDrag} />
               {dragOverlay}
             </div>
           )}
@@ -536,7 +537,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
           </div>
           {flyer.heroImageUrl && (
             <div style={{ position: 'relative', marginBottom: '10px', borderRadius: '4px', overflow: 'hidden', border: `1px solid ${flyer.accent}35`, flexShrink: 0, height: '72px' }}>
-              <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('72px') }} onMouseDown={handleHeroDrag} />
+              <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle('72px') }} onMouseDown={handleHeroDrag} />
               <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 35%, ${bg}70)`, pointerEvents: 'none' }} />
               {dragOverlay}
             </div>
@@ -592,7 +593,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
         <div style={{ height: '3px', background: flyer.accent, flexShrink: 0 }} />
         {flyer.heroImageUrl ? (
           <div style={{ position: 'relative', height: '82px', overflow: 'hidden', flexShrink: 0 }}>
-            <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('82px') }} onMouseDown={handleHeroDrag} />
+            <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle('82px') }} onMouseDown={handleHeroDrag} />
             {dragOverlay}
           </div>
         ) : (
@@ -643,7 +644,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
           </div>
           {flyer.heroImageUrl && (
             <div style={{ position: 'relative', marginBottom: '8px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, height: '55px' }}>
-              <img src={flyer.heroImageUrl} alt="" style={{ ...heroImgStyle('55px'), borderRadius: '10px' }} onMouseDown={handleHeroDrag} />
+              <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle('55px'), borderRadius: '10px' }} onMouseDown={handleHeroDrag} />
               {dragOverlay}
             </div>
           )}

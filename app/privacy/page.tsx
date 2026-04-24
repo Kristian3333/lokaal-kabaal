@@ -1,5 +1,13 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
+
+export const metadata: Metadata = {
+  title: 'Privacybeleid',
+  description: 'Hoe LokaalKabaal persoonsgegevens verwerkt, beveiligt en welke rechten u heeft onder de AVG.',
+  alternates: { canonical: 'https://lokaalkabaal.agency/privacy' },
+  robots: { index: true, follow: true },
+};
 
 export default function Privacy() {
   return (

@@ -1,21 +1,23 @@
 /**
  * PriceCalculator -- pricing display section showing per-flyer costs
- * based on format/dubbelzijdig selections, plus subscription overview.
+ * based on format selection, plus subscription overview.
+ *
+ * A6 dubbelzijdig is standaard voor alle pakketten. Er is dus geen
+ * dubbelzijdig-toggle meer in de flow; A5 is een optionele upgrade.
  */
 
-import { prijsPerStuk, toeslagLabel, type FlyerFormaat } from '@/lib/printone-pricing';
+import { type FlyerFormaat } from '@/lib/printone-pricing';
+import { A5_UPGRADE_PRICE } from '@/lib/tiers';
 
 interface PriceCalculatorProps {
   /** Currently selected flyer format */
   formaat: FlyerFormaat;
-  /** Whether dubbelzijdig printing is enabled */
+  /** Whether dubbelzijdig printing is enabled (always true in current flow) */
   dubbelzijdig: boolean;
   /** Estimated new addresses per month */
   estAdressenMaand: number;
   /** Callback when format changes */
   onFormaatChange: (formaat: FlyerFormaat) => void;
-  /** Callback when dubbelzijdig changes */
-  onDubbelzijdigChange: (checked: boolean) => void;
   /** Subscription info to display */
   abonnement: { tier: string; base: number; total: number };
   /** Number of PC4 areas in the coverage */
@@ -35,7 +37,6 @@ export default function PriceCalculator({
   dubbelzijdig,
   estAdressenMaand,
   onFormaatChange,
-  onDubbelzijdigChange,
   abonnement,
   actualPc4Count,
   formatPrijs,
@@ -47,7 +48,7 @@ export default function PriceCalculator({
     <div>
       <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '8px' }}>Formaat & aantallen</h2>
       <p style={{ color: 'var(--muted)', marginBottom: '16px' }}>
-        Minimum 300 flyers per batch voor een rendabele printrun. A6 is ons standaardformaat -- grotere formaten hebben een toeslag.
+        A6 dubbelzijdig is standaard -- inbegrepen in elk pakket. Wil je groter? Dan is A5 een optionele upgrade (+€{A5_UPGRADE_PRICE.toFixed(2).replace('.', ',')}/flyer).
       </p>
 
       {/* Min-300 waarschuwing */}
@@ -67,13 +68,12 @@ export default function PriceCalculator({
 
       {/* Formaat */}
       <div style={{ marginBottom: '20px' }}>
-        <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '10px' }}>FORMAAT (Print.one tarieven)</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+        <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', marginBottom: '10px' }}>FORMAAT (A6 dubbelzijdig standaard)</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
           {([
-            { id: 'a6' as FlyerFormaat, label: 'A6', afm: '105×148 mm', std: true },
-            { id: 'a5' as FlyerFormaat, label: 'A5', afm: '148×210 mm', std: false },
+            { id: 'a6' as FlyerFormaat, label: 'A6', afm: '105×148 mm', std: true, note: 'Dubbelzijdig inbegrepen' },
+            { id: 'a5' as FlyerFormaat, label: 'A5', afm: '148×210 mm', std: false, note: `Upgrade +€${A5_UPGRADE_PRICE.toFixed(2).replace('.', ',')}/flyer` },
           ] as const).map(f => {
-            const toeslag = toeslagLabel(f.id, dubbelzijdig);
             const isSelected = formaat === f.id;
             return (
               <div key={f.id} onClick={() => onFormaatChange(f.id)}
@@ -86,22 +86,11 @@ export default function PriceCalculator({
                 {f.std && <div style={{ position: 'absolute', top: '-8px', left: '50%', transform: 'translateX(-50%)', background: 'var(--green)', color: 'var(--ink)', fontSize: '9px', fontWeight: 700, padding: '1px 8px', borderRadius: '2px', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>STANDAARD</div>}
                 <div style={{ fontFamily: 'var(--font-serif)', fontSize: '24px', marginBottom: '4px' }}>{f.label}</div>
                 <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{f.afm}</div>
-                <div style={{ fontSize: '11px', color: isSelected ? 'var(--green-dim)' : 'var(--muted)', fontFamily: 'var(--font-mono)', fontWeight: 600, marginTop: '6px' }}>{toeslag}</div>
+                <div style={{ fontSize: '11px', color: isSelected ? 'var(--green-dim)' : 'var(--muted)', fontFamily: 'var(--font-mono)', fontWeight: 600, marginTop: '6px' }}>{f.note}</div>
               </div>
             );
           })}
         </div>
-      </div>
-
-      {/* Dubbelzijdig */}
-      <div style={{ marginBottom: '20px' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '14px', border: `1px solid ${dubbelzijdig ? 'var(--green)' : 'var(--line)'}`, borderRadius: 'var(--radius)', background: dubbelzijdig ? 'var(--green-bg)' : 'var(--paper)' }}>
-          <input type="checkbox" checked={dubbelzijdig} onChange={e => onDubbelzijdigChange(e.target.checked)} style={{ accentColor: 'var(--green)', width: '16px', height: '16px' }} />
-          <div>
-            <div style={{ fontWeight: 600, fontSize: '14px' }}>Dubbelzijdig</div>
-            <div style={{ fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>+€0,10 per flyer -- achterkant voor extra info, kortingscode of kaart</div>
-          </div>
-        </label>
       </div>
 
       {/* Verwacht aantal flyers per maand */}
@@ -114,7 +103,7 @@ export default function PriceCalculator({
           <span style={{ fontSize: '12px', color: 'var(--muted)' }}>nieuwe woningeigenaren/maand in uw werkgebied</span>
         </div>
         <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-          Dit aantal wordt elke 25e verstuurd. Printkosten: <strong>€{(prijsPerStuk(formaat, dubbelzijdig) * estAdressenMaand).toFixed(2).replace('.', ',')}</strong> ({estAdressenMaand} × €{prijsPerStuk(formaat, dubbelzijdig).toFixed(2).replace('.', ',')}/stuk)
+          Dit aantal wordt elke maand bezorgd tussen de 28e en 30e. Print + PostNL-bezorging zitten in het abonnement voor de inbegrepen flyers; extra flyers daarboven worden per stuk bijgerekend.
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo, useEffect, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -172,6 +172,20 @@ function FloatingRing2() {
 /* ─── Main component ──────────────────────────────────────────────────────── */
 
 export default function Hero3D() {
+  // Skip the heavy Three.js canvas on small viewports and when the OS reports
+  // prefers-reduced-motion -- the hero still looks good without particles and
+  // LCP on mobile drops significantly.
+  const [enabled, setEnabled] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const smallScreen = window.matchMedia('(max-width: 768px)').matches;
+    setEnabled(!reducedMotion && !smallScreen);
+  }, []);
+
+  if (!enabled) return null;
+
   return (
     <div
       aria-hidden="true"

@@ -11,7 +11,7 @@ const FAQS = [
   },
   {
     v: 'Wanneer worden de flyers bezorgd?',
-    a: 'Elke maand op de 25e. We trekken op die dag verse Kadaster-data voor jouw werkgebied en sturen de flyers naar alle nieuwe bewoners van die maand.',
+    a: 'Elke maand tussen de 28e en 30e. Rond de 20e trekken we verse Kadaster-data voor jouw werkgebied en daarna gaat de bulkorder naar de drukker, zodat de flyers eind van de maand bij alle nieuwe bewoners op de mat liggen.',
   },
   {
     v: 'Werken jullie alleen in grote steden?',

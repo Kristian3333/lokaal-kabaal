@@ -27,7 +27,7 @@ export default function MonthSelector({
     <div>
       <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '8px' }}>Wanneer wil je starten?</h2>
       <p style={{ color: 'var(--muted)', marginBottom: '20px' }}>
-        Flyers worden elke maand op de <strong>25e</strong> verstuurd naar nieuwe bewoners van die maand. Kies je startmaand -- tot 12 maanden vooruit.
+        Flyers worden elke maand tussen de <strong>28e en 30e</strong> bezorgd bij nieuwe bewoners van die maand. Kies je startmaand -- tot 12 maanden vooruit.
       </p>
       <div className="datum-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
         {availableMonths.map(m => (
@@ -43,7 +43,7 @@ export default function MonthSelector({
         ))}
       </div>
       <div style={{ marginTop: '16px', padding: '12px', background: 'var(--paper2)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', fontSize: '12px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-        ℹ Startdatum is altijd de 1e van de gekozen maand. Bezorging vindt elke maand automatisch plaats op de 25e via Kadaster-data.
+        ℹ Startdatum is altijd de 1e van de gekozen maand. Bezorging vindt elke maand automatisch plaats tussen de 28e en 30e via Kadaster-data.
       </div>
     </div>
   );

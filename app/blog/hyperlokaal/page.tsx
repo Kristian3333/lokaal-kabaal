@@ -1,5 +1,17 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
+
+export const metadata: Metadata = {
+  title: 'Hyperlokaal: Vertrouwen via Fysieke Aanwezigheid',
+  description: 'Waarom een flyer in de bus meer vertrouwen wekt dan een Facebook-advertentie voor lokale ondernemers.',
+  alternates: { canonical: 'https://lokaalkabaal.agency/blog/hyperlokaal' },
+  openGraph: {
+    title: 'Hyperlokaal marketen | LokaalKabaal',
+    description: 'Vertrouwen opbouwen met fysieke marketing die op het juiste moment aankomt.',
+    url: 'https://lokaalkabaal.agency/blog/hyperlokaal',
+  },
+};
 
 export default function BlogHyperlokaal() {
   return (
@@ -58,7 +70,7 @@ Of je kiest voor iets dat blijft hangen. Letterlijk.`,
 
         <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.25)', borderRadius: 'var(--radius)', padding: '24px', marginTop: '40px' }}>
           <p style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '16px' }}>Klaar om jouw buurt te veroveren?</p>
-          <Link href="/login" style={{ display: 'inline-block', padding: '12px 24px', background: 'var(--ink)', color: '#fff', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px', textDecoration: 'none' }}>Eerste batch voor €49 →</Link>
+          <Link href="/login" style={{ display: 'inline-block', padding: '12px 24px', background: 'var(--ink)', color: '#fff', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px', textDecoration: 'none' }}>Start nu jouw campagne →</Link>
         </div>
       </article>
 

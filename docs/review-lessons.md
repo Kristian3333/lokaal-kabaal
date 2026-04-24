@@ -26,6 +26,7 @@ When reviewing code (manually or via `/review` or `/cleanup`), verify each appli
 ## Component Patterns
 
 - Never use `alert()` for user notifications. Use the Toast component (`showToast()` from `@/components/Toast`) -- caught: 2026-03-24, found alert() in FlyerExport and dashboard
+- Toast vs inline error: use **toast** for background or cross-page failures (campaign fetch fail, settings save, logout). Use **inline error** for direct-action failures the user is watching (form submit, wizard step advance, checkout). Keep one pattern per interaction flow -- caught: 2026-04-24, wizard mixed both for the same PrintOne error path
 - Three.js components MUST dispose geometries and materials in useEffect cleanup to prevent memory leaks -- caught: 2026-03-24, Hero3D created new BufferAttribute objects every frame without disposal
 - Decorative/animation components (Hero3D, HeroMapAnim) MUST have `aria-hidden="true"` -- caught: 2026-03-24, screen readers were trying to parse particle network
 - SVG icons inside interactive elements need `aria-hidden="true"` when the parent has an aria-label -- caught: 2026-03-24, Nav hamburger SVGs lacked accessibility attributes

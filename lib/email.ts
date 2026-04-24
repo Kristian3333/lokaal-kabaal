@@ -5,6 +5,15 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 
 const FROM_EMAIL = 'LokaalKabaal <noreply@lokaalkabaal.agency>';
 
+// Warn once at module load when running in production without an explicit
+// NEXT_PUBLIC_BASE_URL -- emails fall back to the hardcoded domain, which
+// still works but defeats per-env preview deployments.
+if (process.env.NODE_ENV === 'production' && !process.env.NEXT_PUBLIC_BASE_URL) {
+  console.warn(
+    '[email] NEXT_PUBLIC_BASE_URL is niet gezet in productie. Outbound emaillinks vallen terug op https://lokaalkabaal.agency. Zet deze env var expliciet in Vercel voor stabiele multi-environment links.',
+  );
+}
+
 const APP_URL = process.env.NEXT_PUBLIC_BASE_URL
   ? `${process.env.NEXT_PUBLIC_BASE_URL}/app`
   : 'https://lokaalkabaal.agency/app';
@@ -75,7 +84,7 @@ export async function sendCampaignActivation(
     <p>Beste ${escHtml(bedrijfsnaam)}, je campagne <strong>"${escHtml(campagneNaam)}"</strong> is nu actief.
     Flyers worden automatisch verstuurd naar nieuwe bewoners in
     <strong>${pc4Count} postcodegebieden</strong>.</p>
-    <p>De eerste verzending vindt plaats op de 25e van de komende maand.</p>
+    <p>De eerste verzending vindt plaats tussen de 28e en 30e van de komende maand.</p>
     `,
     { text: 'Bekijk je campagne', url: APP_URL },
   );
@@ -166,7 +175,7 @@ export async function sendWelcomeEmail(
     <ol style="padding-left: 20px; margin: 12px 0;">
       <li style="margin-bottom: 8px;">Stel je campagne in: kies postcodes en duur</li>
       <li style="margin-bottom: 8px;">Ontwerp je flyer: gebruik onze AI-assistent of upload je eigen ontwerp</li>
-      <li style="margin-bottom: 8px;">Wij doen de rest: elke 25e van de maand worden flyers automatisch gedrukt en verstuurd</li>
+      <li style="margin-bottom: 8px;">Wij doen de rest: elke maand worden flyers automatisch gedrukt en bezorgd tussen de 28e en 30e</li>
     </ol>
     <p>Heb je vragen? Stuur een mail naar
       <a href="mailto:hallo@lokaalkabaal.agency"

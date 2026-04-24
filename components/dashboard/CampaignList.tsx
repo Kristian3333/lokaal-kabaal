@@ -64,7 +64,7 @@ export default function CampaignList({
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', fontWeight: 700, color: 'var(--green-dim)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Nieuwe bewoners · Altum-data</span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'rgba(0,0,0,0.3)' }}>·</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--green-dim)' }}>elke 25e automatisch verstuurd</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--green-dim)' }}>elke maand tussen 28e en 30e bezorgd</span>
             </div>
             {c.status === 'actief' && (
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--green-dim)' }}>

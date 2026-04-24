@@ -153,7 +153,7 @@ export default function FlyersMakelaar() {
                 ['Gemiddelde makelaarsprovisie (2%)', '€8.500'],
                 ['Gemiddelde tijd tot opdracht (na eerste contact)', '1–3 jaar'],
                 ['Kosten van de flyer die dit contact legde', '~€3'],
-                ['Break-even conversieratio (bij €49/mnd abonnement)', '<0,1%'],
+                ['Break-even conversieratio (bij €349/mnd abonnement)', '<0,1%'],
                 ['Verwachte conversieratio welkomstflyer (tot opdracht)', '1–3%'],
               ].map(([label, val], i) => (
                 <div key={i} style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', borderBottom: i < 5 ? '1px solid var(--line)' : 'none', background: i % 2 === 0 ? 'var(--white)' : 'var(--paper)' }}>

@@ -1,5 +1,17 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
+
+export const metadata: Metadata = {
+  title: 'Digital-First: Moderne Technologie voor een Fysiek Product',
+  description: 'Hoe LokaalKabaal Kadaster-data, automatisering en AI combineert om het meest analoge marketingmedium te vernieuwen.',
+  alternates: { canonical: 'https://lokaalkabaal.agency/blog/digital-first' },
+  openGraph: {
+    title: 'Digital-First flyers voor nieuwe bewoners | LokaalKabaal',
+    description: 'Kadaster-data, automatisering en AI voor het meest analoge marketingmedium.',
+    url: 'https://lokaalkabaal.agency/blog/digital-first',
+  },
+};
 
 export default function BlogDigitalFirst() {
   return (
@@ -27,7 +39,7 @@ Dat is precies de kracht van het model. We gebruiken de meest geavanceerde data-
           },
           {
             kop: 'Kadaster als marketing-engine',
-            tekst: `Het Kadaster registreert elke eigendomsoverdracht in Nederland. Via Altum AI ontsluiten we deze data: elke maand op de 25e trekken we de transacties van de voorgaande maand voor elk actief werkgebied. Dat geeft ons een lijst van adressen waar recent nieuwe eigenaren zijn ingetrokken.
+            tekst: `Het Kadaster registreert elke eigendomsoverdracht in Nederland. Via Altum AI ontsluiten we deze data: elke maand rond de 20e trekken we de transacties van de voorgaande maand voor elk actief werkgebied. Dat geeft ons een lijst van adressen waar recent nieuwe eigenaren zijn ingetrokken.
 
 Eén API-call per klant per maand. Geen privacy-gevoelige persoonsgegevens -- alleen adressen. Precies genoeg om de flyers naar de juiste brievenbussen te sturen.`,
           },
@@ -58,7 +70,7 @@ Daarna: integratie met PostNL voor live-bezorgingstatus, gepersonaliseerde QR-co
 
         <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.25)', borderRadius: 'var(--radius)', padding: '24px', marginTop: '40px' }}>
           <p style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '16px' }}>Ervaar het platform zelf</p>
-          <Link href="/login" style={{ display: 'inline-block', padding: '12px 24px', background: 'var(--ink)', color: '#fff', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px', textDecoration: 'none' }}>Eerste batch voor €49 →</Link>
+          <Link href="/login" style={{ display: 'inline-block', padding: '12px 24px', background: 'var(--ink)', color: '#fff', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px', textDecoration: 'none' }}>Start nu jouw campagne →</Link>
         </div>
       </article>
 

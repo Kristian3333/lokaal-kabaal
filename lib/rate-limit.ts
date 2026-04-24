@@ -143,3 +143,16 @@ export function authLimiter(req: NextRequest): RateLimitResult {
 export function apiLimiter(req: NextRequest): RateLimitResult {
   return rateLimit(req, { windowMs: 60_000, maxRequests: 30 });
 }
+
+/**
+ * Pre-configured rate limiter for code/pincode redemption endpoints.
+ * Stricter than auth: 10 attempts per 10 minutes per IP, sized to make
+ * 4-6 digit pincode brute-force impractical while still allowing retailer staff
+ * to register multiple legitimate conversions.
+ *
+ * @param req - The incoming Next.js request.
+ * @returns Rate limit result.
+ */
+export function redeemLimiter(req: NextRequest): RateLimitResult {
+  return rateLimit(req, { windowMs: 10 * 60_000, maxRequests: 10 });
+}

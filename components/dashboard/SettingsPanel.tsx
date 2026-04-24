@@ -16,6 +16,10 @@ interface SettingsPanelProps {
   tier: Tier;
   /** Whether the user is on a yearly contract */
   isJaarcontract?: boolean;
+  /** Company name captured at signup */
+  bedrijfsnaam?: string;
+  /** Branche (sector) captured at signup */
+  branche?: string;
   /** Callback to navigate to pricing/upgrade */
   onUpgrade: () => void;
 }
@@ -27,6 +31,8 @@ export default function SettingsPanel({
   email,
   tier,
   isJaarcontract,
+  bedrijfsnaam,
+  branche,
   onUpgrade,
 }: SettingsPanelProps): React.JSX.Element {
   const [brandLogoUrl, setBrandLogoUrl] = useState('');
@@ -181,6 +187,29 @@ export default function SettingsPanel({
         <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{email}</div>
       </div>
 
+      {/* Persoonlijke flyerhulp (Agency jaarcontract) */}
+      {tier === 'agency' && isJaarcontract && (
+        <div style={{ background: 'var(--ink)', border: '1px solid rgba(0,232,122,0.35)', borderRadius: 'var(--radius)', padding: '18px 22px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
+          <div>
+            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
+              Persoonlijke flyerhulp · inbegrepen
+            </div>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: '#fff', marginBottom: '4px' }}>
+              Onze designers maken jouw flyer
+            </div>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', lineHeight: 1.5, maxWidth: '480px' }}>
+              Stuur je wensen, logo en lopende acties door -- wij leveren binnen 2 werkdagen een druk-klare flyer op maat.
+            </div>
+          </div>
+          <a
+            href={`mailto:Design@lokaalkabaal.agency?subject=Designaanvraag%20flyer${email ? `&body=Account%3A%20${encodeURIComponent(email)}` : ''}`}
+            style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 18px', background: 'var(--green)', color: 'var(--ink)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', fontFamily: 'var(--font-mono)' }}
+          >
+            Stuur designaanvraag →
+          </a>
+        </div>
+      )}
+
       {/* Huidig pakket */}
       <div style={{ background: 'var(--white)', border: `1px solid ${cfg.color}40`, borderRadius: 'var(--radius)', padding: '16px 20px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -204,19 +233,20 @@ export default function SettingsPanel({
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-        {/* Bedrijfsgegevens */}
+        {/* Bedrijfsgegevens -- pre-populated from signup */}
         <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
           <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '16px' }}>Bedrijfsgegevens</div>
           {[
-            { label: 'Bedrijfsnaam', ph: 'Jouw Bedrijf BV' },
-            { label: 'KVK-nummer', ph: '12345678' },
-            { label: 'Adres', ph: 'Straatnaam 1' },
-            { label: 'Postcode', ph: '1234 AB' },
-            { label: 'Stad', ph: 'Amsterdam' },
+            { label: 'Bedrijfsnaam', ph: 'Jouw Bedrijf BV', prefill: bedrijfsnaam ?? '' },
+            { label: 'Branche', ph: 'Kapper / Barbershop', prefill: branche ?? '' },
+            { label: 'KVK-nummer', ph: '12345678', prefill: '' },
+            { label: 'Adres', ph: 'Straatnaam 1', prefill: '' },
+            { label: 'Postcode', ph: '1234 AB', prefill: '' },
+            { label: 'Stad', ph: 'Amsterdam', prefill: '' },
           ].map(f => (
             <div key={f.label} style={{ marginBottom: '12px' }}>
               <label style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', display: 'block', marginBottom: '4px' }}>{f.label.toUpperCase()}</label>
-              <input placeholder={f.ph} style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)', boxSizing: 'border-box' as const }} />
+              <input defaultValue={f.prefill} placeholder={f.ph} style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper2)', boxSizing: 'border-box' as const }} />
             </div>
           ))}
           <button style={{ padding: '10px 20px', background: 'var(--ink)', color: 'var(--paper)', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}>Opslaan</button>
@@ -307,11 +337,16 @@ export default function SettingsPanel({
         </div>
       </div>
 
-      {/* Landingspagina branding */}
-      <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px 24px' }}>
-        <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '4px', color: 'var(--ink)' }}>Landingspagina branding</div>
+      {/* Landingspagina branding -- in development, niet zichtbaar voor klanten */}
+      <div style={{ background: 'var(--white)', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px 24px', position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '4px' }}>
+          <div style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', color: 'var(--ink)' }}>Landingspagina branding</div>
+          <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#b8860b', background: 'rgba(255,200,0,0.12)', border: '1px solid rgba(255,200,0,0.35)', borderRadius: '3px', padding: '2px 8px' }}>
+            Binnenkort
+          </span>
+        </div>
         <div style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '14px' }}>
-          Pas de pagina aan die klanten zien wanneer ze de QR-code scannen.
+          Pas de pagina aan die klanten zien wanneer ze de QR-code scannen. We zijn deze feature aan het herontwerpen; je instellingen worden alvast opgeslagen voor wanneer de landingspagina live gaat.
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
           <div>

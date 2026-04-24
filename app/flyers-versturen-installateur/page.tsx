@@ -154,7 +154,7 @@ export default function FlyersInstallateur() {
                 ['Jaarwaarde vaste klant', '€700'],
                 ['Lifetime value (5 jaar)', '€3.500'],
                 ['Kosten van de flyer die deze klant binnenbracht', '~€3'],
-                ['Break-even conversieratio (bij €49/mnd abonnement)', '<1%'],
+                ['Break-even conversieratio (bij €349/mnd abonnement)', '<1%'],
                 ['Verwachte conversieratio welkomstflyer', '3–7%'],
               ].map(([label, val], i) => (
                 <div key={i} style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', borderBottom: i < 6 ? '1px solid var(--line)' : 'none', background: i % 2 === 0 ? 'var(--white)' : 'var(--paper)' }}>

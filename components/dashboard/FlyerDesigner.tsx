@@ -44,6 +44,10 @@ interface FlyerDesignerProps {
   onSetPendingCampaign: (pc: PendingCampaign | null) => void;
   flyerBedrijfsnaam: string;
   initFlyer: FlyerState;
+  /** Optional: show Persoonlijke flyerhulp CTA for Agency + jaarcontract */
+  userTier?: 'starter' | 'pro' | 'agency';
+  isJaarcontract?: boolean;
+  userEmail?: string;
 }
 
 /**
@@ -68,6 +72,9 @@ export default function FlyerDesigner({
   onSetPage,
   onSetPendingCampaign,
   initFlyer,
+  userTier,
+  isJaarcontract,
+  userEmail,
 }: FlyerDesignerProps): React.JSX.Element {
   const logoRef = useRef<HTMLInputElement>(null);
   const heroRef = useRef<HTMLInputElement>(null);
@@ -121,6 +128,33 @@ export default function FlyerDesigner({
                 Campagne goedkeuren →
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Persoonlijke flyerhulp (Agency jaarcontract) */}
+        {userTier === 'agency' && isJaarcontract && (
+          <div style={{
+            background: 'var(--ink)', border: '1px solid rgba(0,232,122,0.35)',
+            borderRadius: 'var(--radius)', padding: '16px 20px', marginBottom: '20px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px', flexWrap: 'wrap',
+          }}>
+            <div>
+              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--green)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>
+                Persoonlijke flyerhulp · inbegrepen
+              </div>
+              <div style={{ fontSize: '13px', color: '#fff', fontWeight: 600, marginBottom: '2px' }}>
+                Laat onze designers deze flyer voor je maken
+              </div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>
+                Wij leveren binnen 2 werkdagen een druk-klare flyer op maat.
+              </div>
+            </div>
+            <a
+              href={`mailto:Design@lokaalkabaal.agency?subject=Designaanvraag%20flyer${userEmail ? `&body=Account%3A%20${encodeURIComponent(userEmail)}` : ''}`}
+              style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 18px', background: 'var(--green)', color: 'var(--ink)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', fontFamily: 'var(--font-mono)' }}
+            >
+              Stuur designaanvraag →
+            </a>
           </div>
         )}
 

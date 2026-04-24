@@ -70,7 +70,8 @@ export async function POST(req: NextRequest) {
       .set({ magicLinkToken: token, magicLinkExpiry: expiry })
       .where(eq(retailers.email, email));
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://lokaalkabaal.agency';
+    // Prefer explicit env, fall back to the request origin so dev works without config
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || req.nextUrl.origin;
 
     // Fire-and-forget: we still return 200 even if email fails
     sendMagicLink(email, token, baseUrl).catch((err) => {

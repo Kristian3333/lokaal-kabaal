@@ -130,7 +130,7 @@ export default function OverOns() {
         </h2>
         <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '28px' }}>Begin vandaag. Eerste campagne loopt binnen 48 uur.</p>
         <Link href="/login" style={{ padding: '14px 36px', background: 'var(--ink)', color: '#fff', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px', textDecoration: 'none', display: 'inline-block' }}>
-          Eerste batch voor €49 →
+          Start nu jouw campagne →
         </Link>
       </section>
 

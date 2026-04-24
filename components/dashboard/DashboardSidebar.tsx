@@ -4,7 +4,7 @@ import { TIERS, TEST_ACCOUNTS, isTestAccount, type Tier } from '@/lib/tiers';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Page = 'dashboard' | 'wizard' | 'flyer' | 'credits' | 'profiel' | 'conversies';
+type Page = 'dashboard' | 'wizard' | 'flyer' | 'billing' | 'profiel' | 'conversies';
 
 interface NavItem {
   id: Page;
@@ -53,8 +53,10 @@ export default function DashboardSidebar({
           const locked = minTier ? tierOrder.indexOf(userTier) < tierOrder.indexOf(minTier) : false;
           return (
             <button key={id} data-tour={`tour-nav-${id}`} onClick={() => onNavigate(id)}
+              aria-current={page === id ? 'page' : undefined}
+              aria-disabled={locked || undefined}
               style={{ width: '100%', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px', background: page === id ? 'rgba(255,255,255,0.06)' : 'none', borderLeft: page === id ? '2px solid var(--green)' : '2px solid transparent', border: 'none', borderRight: 'none', color: locked ? 'rgba(255,255,255,0.2)' : page === id ? 'var(--paper)' : 'rgba(255,255,255,0.45)', cursor: 'pointer', textAlign: 'left', fontSize: '13px', fontFamily: 'var(--font-sans)', fontWeight: page === id ? 600 : 400, transition: 'all 0.15s' }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', color: locked ? 'rgba(255,255,255,0.15)' : page === id ? 'var(--green)' : 'rgba(255,255,255,0.3)' }}>{icon}</span>
+              <span aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', color: locked ? 'rgba(255,255,255,0.15)' : page === id ? 'var(--green)' : 'rgba(255,255,255,0.3)' }}>{icon}</span>
               {label}
               {locked && minTier && <span style={{ marginLeft: 'auto', fontSize: '9px', color: TIERS[minTier].color, fontFamily: 'var(--font-mono)', opacity: 0.7 }}>{TIERS[minTier].label} ↑</span>}
             </button>

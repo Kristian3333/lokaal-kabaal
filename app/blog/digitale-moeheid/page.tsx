@@ -1,5 +1,17 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
+
+export const metadata: Metadata = {
+  title: 'Digitale Moeheid: Waarom Fysiek Langer Blijft Hangen',
+  description: 'Een Instagram-ad wordt 3 seconden bekeken. Een flyer op de mat blijft een week op de keukentafel liggen. Waarom fysieke marketing beter converteert.',
+  alternates: { canonical: 'https://lokaalkabaal.agency/blog/digitale-moeheid' },
+  openGraph: {
+    title: 'Digitale Moeheid: Waarom Fysiek Langer Blijft Hangen | LokaalKabaal',
+    description: 'Waarom een flyer beter blijft hangen dan een Instagram-ad van 3 seconden.',
+    url: 'https://lokaalkabaal.agency/blog/digitale-moeheid',
+  },
+};
 
 export default function BlogDigitaleMoeheid() {
   return (
@@ -60,7 +72,7 @@ Ze hebben geen routine. Ze hebben geen stamkroeg. Ze zoeken actief naar een kapp
 
         <div style={{ background: 'var(--green-bg)', border: '1px solid rgba(0,232,122,0.25)', borderRadius: 'var(--radius)', padding: '24px', marginTop: '40px' }}>
           <p style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', marginBottom: '16px' }}>Stop met swipen. Begin met bezorgen.</p>
-          <Link href="/login" style={{ display: 'inline-block', padding: '12px 24px', background: 'var(--ink)', color: '#fff', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px', textDecoration: 'none' }}>Eerste batch voor €49 →</Link>
+          <Link href="/login" style={{ display: 'inline-block', padding: '12px 24px', background: 'var(--ink)', color: '#fff', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '14px', textDecoration: 'none' }}>Start nu jouw campagne →</Link>
         </div>
       </article>
 

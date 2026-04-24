@@ -2,20 +2,51 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { TIERS, canStartCampaign, type Tier } from '@/lib/tiers';
 import { showToast } from '@/components/Toast';
 import CampaignDashboard, { type Campaign } from '@/components/dashboard/CampaignDashboard';
-import CampaignWizard, { type WizState, type PendingCampaign } from '@/components/dashboard/CampaignWizard';
-import FlyerDesigner, { type SavedFlyer } from '@/components/dashboard/FlyerDesigner';
-import SettingsPanel from '@/components/dashboard/SettingsPanel';
+import type { WizState, PendingCampaign } from '@/components/dashboard/CampaignWizard';
+import type { SavedFlyer } from '@/components/dashboard/FlyerDesigner';
 import { type FlyerState } from '@/components/dashboard/FlyerPreview';
-import ConversiesPanel from '@/components/dashboard/ConversiesPanel';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
-import BillingOverview from '@/components/dashboard/BillingOverview';
+
+// ─── Dynamic panels ──────────────────────────────────────────────────────────
+//
+// The wizard, flyer editor, billing and settings panels are only mounted once
+// the user navigates to them. Lazy-loading keeps the /app first-load bundle
+// (currently ~127 kB) smaller and defers Three.js/Leaflet/jsPDF dependencies.
+
+const PanelLoading = (): React.JSX.Element => (
+  <div style={{ padding: '40px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: '13px' }}>
+    Laden...
+  </div>
+);
+
+const CampaignWizard = dynamic(() => import('@/components/dashboard/CampaignWizard'), {
+  ssr: false,
+  loading: PanelLoading,
+});
+const FlyerDesigner = dynamic(() => import('@/components/dashboard/FlyerDesigner'), {
+  ssr: false,
+  loading: PanelLoading,
+});
+const SettingsPanel = dynamic(() => import('@/components/dashboard/SettingsPanel'), {
+  ssr: false,
+  loading: PanelLoading,
+});
+const ConversiesPanel = dynamic(() => import('@/components/dashboard/ConversiesPanel'), {
+  ssr: false,
+  loading: PanelLoading,
+});
+const BillingOverview = dynamic(() => import('@/components/dashboard/BillingOverview'), {
+  ssr: false,
+  loading: PanelLoading,
+});
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-type Page = 'dashboard' | 'wizard' | 'flyer' | 'credits' | 'profiel' | 'conversies';
+type Page = 'dashboard' | 'wizard' | 'flyer' | 'billing' | 'profiel' | 'conversies';
 
 const INIT_FLYER: FlyerState = {
   kleur: '#0A0A0A', accent: '#00E87A', afmeting: 'a5', dubbelzijdig: false,
@@ -30,10 +61,11 @@ const INIT_FLYER: FlyerState = {
 const INIT_WIZ: WizState = {
   step: 1, akkoord: { av: false, privacy: false }, kluswaarde: 2500,
   spec: '', specQ: '', datum: '', centrum: '', straal: 10,
-  aantalFlyers: 500, formaat: 'a6', dubbelzijdig: false, duurMaanden: 3,
+  aantalFlyers: 500, formaat: 'a6', dubbelzijdig: true, duurMaanden: 3,
   filterBouwjaarMin: 1900, filterBouwjaarMax: new Date().getFullYear(),
   filterWozMin: 0, filterWozMax: 2000000, filterEnergielabel: [],
   proefFlyer: false, proefAdres: '', email: '', pc4Lijst: [], pc4Add: '', flyerIndex: 0,
+  pakket: 'pro', jaarcontract: false,
 };
 
 const NAV_ITEMS: { id: Page; label: string; icon: string; minTier?: Tier }[] = [
@@ -41,13 +73,13 @@ const NAV_ITEMS: { id: Page; label: string; icon: string; minTier?: Tier }[] = [
   { id: 'wizard', label: 'Nieuwe campagne', icon: '+' },
   { id: 'flyer', label: 'Mijn flyer', icon: '◧' },
   { id: 'conversies', label: 'Conversies', icon: '◑' },
-  { id: 'credits', label: 'Credits', icon: '◎' },
+  { id: 'billing', label: 'Abonnement', icon: '◎' },
   { id: 'profiel', label: 'Mijn profiel', icon: '◉' },
 ];
 
 const PAGE_TITLES: Record<Page, string> = {
   dashboard: 'Overzicht', wizard: 'Nieuwe campagne', flyer: 'Flyer editor',
-  conversies: 'Conversies & ROI', credits: 'Credits & abonnementen', profiel: 'Mijn profiel',
+  conversies: 'Conversies & ROI', billing: 'Abonnement & facturatie', profiel: 'Mijn profiel',
 };
 
 // ─── Main App ─────────────────────────────────────────────────────────────────
@@ -59,7 +91,7 @@ export default function LokaalKabaal(): React.JSX.Element {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [campaignsLoading, setCampaignsLoading] = useState(true);
   const [campaignsError, setCampaignsError] = useState<string | null>(null);
-  const [user, setUser] = useState<{ email: string; naam: string; tier?: Tier; isJaarcontract?: boolean } | null>(null);
+  const [user, setUser] = useState<{ email: string; naam: string; tier?: Tier; isJaarcontract?: boolean; branche?: string } | null>(null);
   const [subStatus, setSubStatus] = useState<{ subscriptionStatus: string; dashboardActiefTot: string | null; dagenResterend: number | null } | null>(null);
   const [pendingCampaign, setPendingCampaign] = useState<PendingCampaign | null>(null);
   const [wiz, setWiz] = useState<WizState>(INIT_WIZ);
@@ -120,13 +152,18 @@ export default function LokaalKabaal(): React.JSX.Element {
   // Initialize user from session/localStorage and fetch campaigns + subscription status
   useEffect(() => {
     async function initUser() {
-      let identified: { email: string; naam: string; tier?: Tier; isJaarcontract?: boolean } | null = null;
+      let identified: { email: string; naam: string; tier?: Tier; isJaarcontract?: boolean; branche?: string } | null = null;
       try {
         const sessionRes = await fetch('/api/auth/session');
         if (sessionRes.ok) {
           const session = await sessionRes.json();
           if (session.authenticated && session.email) {
-            identified = { email: session.email, naam: '', tier: session.tier ?? undefined };
+            identified = {
+              email: session.email,
+              naam: session.bedrijfsnaam ?? '',
+              tier: session.tier ?? undefined,
+              branche: session.branche ?? undefined,
+            };
           }
         }
       } catch (err) { console.error('[dashboard] Session check failed:', err); }
@@ -196,7 +233,7 @@ export default function LokaalKabaal(): React.JSX.Element {
   const uitloggen = async (): Promise<void> => {
     try { await fetch('/api/auth/logout', { method: 'POST' }); } catch (err) { console.error('[dashboard] Logout request failed:', err); }
     localStorage.removeItem('lk_user');
-    router.push('/login');
+    router.push('/');
   };
 
   const startNieuweCampagne = () => {
@@ -206,7 +243,14 @@ export default function LokaalKabaal(): React.JSX.Element {
       showToast(`Je ${cfg.label}-abonnement staat max. ${cfg.maxCampaigns} gelijktijdige campagne${cfg.maxCampaigns !== 1 ? 's' : ''} toe. Upgrade naar Pro of Agency voor meer campagnes.`, 'warning');
       return;
     }
-    setWiz(INIT_WIZ);
+    // Pre-fill sector with the branche the user chose at signup (if any) and
+    // default the package picker to the user's current tier.
+    setWiz({
+      ...INIT_WIZ,
+      spec: user?.branche ?? '',
+      pakket: userTier,
+      jaarcontract: !!user?.isJaarcontract,
+    });
     setPage('wizard');
   };
 
@@ -215,11 +259,17 @@ export default function LokaalKabaal(): React.JSX.Element {
   }, [activeFlyerIdx]);
 
   const runFlyerPipeline = useCallback(async (url: string) => {
+    const cleaned = url.trim();
+    if (!cleaned) { setScanMsg('Vul eerst een website-URL in.'); setTimeout(() => setScanMsg(''), 4000); return; }
+    // Accept "www.foo.nl" or "foo.nl" -- the server normalizes again but we also
+    // keep a consistent URL for the state fields below.
+    const normalizedUrl = /^https?:\/\//i.test(cleaned) ? cleaned : `https://${cleaned.replace(/^\/+/, '')}`;
+
     setScanLoading(true); setAiLoading(true); setScanMsg('Website ophalen en flyer genereren...');
     try {
       const res = await fetch('/api/flyer/generate', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, branche: wiz.spec || 'Lokale retailer', bedrijfsnaam: flyer.bedrijfsnaam || '', telefoon: flyer.telefoon || '', email: flyer.email || '', website: flyer.website || url, slogan: flyer.slogan || '' }),
+        body: JSON.stringify({ url: normalizedUrl, branche: wiz.spec || 'Lokale retailer', bedrijfsnaam: flyer.bedrijfsnaam || '', telefoon: flyer.telefoon || '', email: flyer.email || '', website: flyer.website || normalizedUrl, slogan: flyer.slogan || '' }),
       });
       const data = await res.json();
       if (!res.ok || data.error) { setScanMsg(data.error || `Fout (${res.status})`); return; }
@@ -230,6 +280,7 @@ export default function LokaalKabaal(): React.JSX.Element {
       if (data.tekst?.usps?.length) patch.usp = data.tekst.usps.join('\n');
       if (data.tekst?.headline) patch.headline = data.tekst.headline;
       if (data.tekst?.cta) patch.cta = data.tekst.cta;
+      if (!flyer.website) patch.website = normalizedUrl;
       updateFlyer(patch);
       setScanMsg(data.pdfUrl ? 'Flyer gegenereerd -- PDF klaar!' : 'Kleuren en tekst overgenomen!');
     } catch { setScanMsg('Generatie mislukt -- controleer de URL en probeer opnieuw.'); }
@@ -309,7 +360,6 @@ export default function LokaalKabaal(): React.JSX.Element {
               onSetPage={p => setPage(p as Page)}
               onSetPendingCampaign={setPendingCampaign}
               userEmail={user?.email || ''}
-              isJaarcontract={!!user?.isJaarcontract}
             />
           )}
           {page === 'flyer' && (
@@ -332,6 +382,9 @@ export default function LokaalKabaal(): React.JSX.Element {
               onSetPendingCampaign={setPendingCampaign}
               flyerBedrijfsnaam={flyer.bedrijfsnaam}
               initFlyer={INIT_FLYER}
+              userTier={userTier}
+              isJaarcontract={!!user?.isJaarcontract}
+              userEmail={user?.email}
             />
           )}
           {page === 'conversies' && (
@@ -341,7 +394,7 @@ export default function LokaalKabaal(): React.JSX.Element {
               onStartCampagne={() => setPage('wizard')}
             />
           )}
-          {page === 'credits' && (
+          {page === 'billing' && (
             <BillingOverview />
           )}
           {page === 'profiel' && (
@@ -349,6 +402,8 @@ export default function LokaalKabaal(): React.JSX.Element {
               email={user?.email || ''}
               tier={userTier}
               isJaarcontract={!!user?.isJaarcontract}
+              bedrijfsnaam={user?.naam}
+              branche={user?.branche}
               onUpgrade={() => window.open('/#prijzen', '_blank')}
             />
           )}

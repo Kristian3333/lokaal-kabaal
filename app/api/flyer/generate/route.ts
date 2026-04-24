@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { flyerVerifications } from '@/lib/schema';
 import { requireAuth } from '@/lib/auth';
 import { generateFlyerCopy } from '@/lib/flyer-templates';
+import { isValidExternalUrl } from '@/lib/validation';
 
 export const maxDuration = 30;
 
@@ -362,6 +363,15 @@ export async function POST(req: NextRequest) {
     }
 
     const normalizedUrl = url.startsWith('http') ? url : `https://${url}`;
+
+    // SSRF guard: reject internal/private hostnames so a logged-in retailer
+    // can't force the server to fetch localhost, 169.254.* metadata endpoints, etc.
+    if (!isValidExternalUrl(normalizedUrl)) {
+      return NextResponse.json(
+        { error: 'Ongeldige of niet-toegestane URL' },
+        { status: 400 }
+      );
+    }
 
     // Step 1: scrape basic info (no AI)
     const scraped = await scrapeBasic(normalizedUrl);
