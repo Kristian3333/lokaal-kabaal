@@ -527,8 +527,15 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
 - [ ] **Full WCAG 2.2 AA audit** of the dashboard. Previous passes fixed
   obvious items; need a screen-reader sweep + focus-trap checks on wizard
   steps.
-- [ ] **Keyboard-only navigation** verified end-to-end, especially the
-  wizard's range sliders and PC4 chips editor.
+- [~] **Keyboard-only navigation** foundation hersteld in `globals.css`:
+  `outline: none` op inputs/textareas/selects verwijderd (was een AA
+  schending omdat er geen vervanging was), en een globale
+  `:focus-visible` regel toegevoegd met 2px groene outline + 3px
+  groene glow op `a`/`button` -- alleen zichtbaar bij
+  tab-navigation, niet bij muisklik. Bijkomend een
+  `prefers-reduced-motion` media-query die alle animaties tot 0.01ms
+  terugbrengt. E2E-verificatie van wizard-sliders en PC4-chips editor
+  blijft queued (Playwright keyboard-only scenario).
 - [x] **Plain-language samenvatting** bovenaan `/privacy` en `/voorwaarden`:
   `PlainLanguageToggle` component toont 5-6 bullet-point TL;DR in gewone
   taal, standaard uitgeklapt zodat de bounce-rate op legal pages daalt.

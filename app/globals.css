@@ -66,10 +66,34 @@ html, body {
 input, textarea, select {
   font-family: var(--font-sans);
   font-size: 14px;
-  outline: none;
 }
 
 button { cursor: pointer; font-family: var(--font-sans); }
+
+/* Keyboard-only focus ring. :focus-visible fires for tab-navigation but not
+ * mouse clicks, so users who navigate with a keyboard always see where focus
+ * is. Mouse users don't get a stray ring on every click. */
+*:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Links on the dark hero background need the focus ring at higher contrast
+ * against the ink backdrop. The green already passes AA on dark. */
+a:focus-visible, button:focus-visible {
+  box-shadow: 0 0 0 3px rgba(0,232,122,0.25);
+}
+
+/* Respect users who have asked the OS to minimise motion. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 
 /* Scrollbar hide utility */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
