@@ -60,4 +60,6 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: `${base}/privacy`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
   { url: `${base}/voorwaarden`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
   { url: `${base}/avg-dpia`, lastModified: now, changeFrequency: 'yearly', priority: 0.4 },
+  { url: `${base}/iso-27001-roadmap`, lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
+  { url: `${base}/voorbeelden/maandrapport`, lastModified: now, changeFrequency: 'yearly', priority: 0.6 },
 ];

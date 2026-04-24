@@ -306,11 +306,17 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
   technische maatregelen, bewaartermijnen, betrokkenenrechten,
   contact). Privacy-pagina linkt prominent naar deze versie voor
   procurement-teams. Opgenomen in sitemap.
-- [ ] **ISO 27001 roadmap** (not cert yet, but document the controls we do
-  have: HTTPS/TLS, encrypted-at-rest Neon, scrypt password hashes, signed
-  session tokens, rate limiting, signature-verified webhooks).
-- [ ] **Sample campaign reports** PDF downloadable without signup for
-  retailers evaluating the product.
+- [x] **ISO 27001 roadmap page** live op `/iso-27001-roadmap`: 17
+  controles (A.5.x + A.8.x) gelabeld als Live / In progress / Gepland,
+  elk met een concrete beschrijving van welke controle al in de code
+  zit (session-cookies, SSRF-guard, CSV-injection, rate-limit, etc.)
+  en welke er nog aan zitten te komen (externe pentest, drizzle-kit
+  CI, Better Uptime). Summary counts aan de top.
+- [x] **Sample maandrapport preview** live op `/voorbeelden/maandrapport`:
+  4 summary-cards, 6-maands SVG trendlijn (verstuurd / scans / conversies),
+  top-5 PC4 tabel met realistische illustratieve data. Retailers zien
+  wat ze krijgen vóór signup. PDF-download komt nadat de real-data
+  cron wired is.
 - [ ] **Trustpilot / Google reviews** integration with schema.org Review
   markup on the pricing page.
 - [x] **Security.txt** at `/.well-known/security.txt` via Next.js rewrite:
