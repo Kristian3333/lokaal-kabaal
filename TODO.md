@@ -382,10 +382,11 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
   bureau-dashboard), wholesale-tarief (30% korting, min 5 klanten),
   bureaus@lokaalkabaal.agency CTA. Feature build komt later; dit is de
   lead-gen surface.
-- [ ] **Add-on: design-on-demand**. Currently free for Agency jaarcontract
-  as "Persoonlijke flyerhulp". Productize as a €49/flyer a-la-carte for
-  other tiers -- known willingness to pay, existing mail alias already in
-  production.
+- [~] **Add-on: design-on-demand** lead-gen surface live op `/design`:
+  productpagina voor €49/flyer a-la-carte (gratis tot 4 flyers/jaar bij
+  Agency jaarcontract), 4-stap proces (brief → 2 varianten → revisies →
+  druk-klaar PDF), mailto:Design@lokaalkabaal.agency CTA. Intake-form +
+  designer-workflow komen in de volgende fase.
 - [ ] **Add-on: digital retargeting**. After scan, retailer can re-engage
   the new resident via Facebook/Google display ads on a lookalike
   audience. Partnership with a retargeting provider, we take a cut.

@@ -66,4 +66,5 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: `${base}/gemeenten`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
   { url: `${base}/white-label`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
   { url: `${base}/data`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+  { url: `${base}/design`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
 ];
