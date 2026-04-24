@@ -238,6 +238,27 @@ a:focus-visible, button:focus-visible {
 
   /* Wizard postcode chips: touch-friendly */
   .pc4-chip { padding: 6px 12px !important; font-size: 13px !important; }
+
+  /* Flyer editor grid (designer + preview sidebar) collapses to single
+   * column so the 280px preview rail doesn't push the editor off-screen. */
+  .flyer-editor-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Wizard step content: any nested inline-style grid inside .wizard-scroll
+   * collapses to a single column on phones so step-6 pricing tables, step-4
+   * duration/budget grids, and step-8 package cards stop clipping. */
+  .wizard-scroll [style*="grid-template-columns"],
+  .wizard-scroll [style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Dashboard main content padding: tighter on mobile so every card gets
+   * the full viewport width. */
+  .app-main > *:first-child {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
 }
 
 /* ── HeroMapAnim ──────────────────────────────────────────────────────────── */

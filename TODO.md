@@ -308,8 +308,15 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
   `showScanNotification` met SSR-safe fallbacks. 9 tests (no-window,
   unsupported, granted, default, class-based Notification mock). UI
   opt-in toggle + dashboard-scan hookup zijn de volgende stappen.
-- [ ] **Mobile dashboard**: today the dashboard is desktop-only in practice.
-  Responsive pass on CampaignWizard + FlyerDesigner for iPad/phone editing.
+- [~] **Mobile dashboard** collapse-regels toegevoegd in `globals.css`:
+  FlyerDesigner hoofd-grid (`.flyer-editor-grid`) klapt van
+  `1fr 280px` naar 1 kolom zodat de preview-rail niet meer off-screen
+  duwt; elke inline-style grid binnen `.wizard-scroll` klapt naar 1
+  kolom zodat de wizard-stappen (pricing, duration/budget, package
+  cards) stoppen met clippen op phones. Dashboard-main krijgt 16px
+  side-padding. FlyerDesigner-root component heeft nu een class hook.
+  iPad-specifieke testen (1024px breakpoint) blijven open voor een
+  gerichte sweep met echte devices.
 - [x] **Dark mode toggle** in SettingsPanel top-right via
   `components/ThemeToggle.tsx`. Persists `lk_theme` in localStorage,
   initialises from `prefers-color-scheme`, sets `data-theme="dark"` on

@@ -209,7 +209,7 @@ export default function FlyerDesigner({
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '16px', alignItems: 'start' }}>
+        <div className="flyer-editor-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '16px', alignItems: 'start' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
             {/* Template marketplace */}
