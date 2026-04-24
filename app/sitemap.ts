@@ -74,4 +74,5 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: `${base}/de`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
   { url: `${base}/integraties/shopify`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
   { url: `${base}/integraties/pos-kassa`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+  { url: `${base}/voor-partners`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
 ];

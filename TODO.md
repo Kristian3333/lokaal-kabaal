@@ -179,8 +179,16 @@ Direct-mail SEO today is 7 industry pages (bakker, kapper, installateur ...) +
   `/flyers-versturen-nieuwe-bewoners` met 3-stappen (postcodes → flyer →
   bezorging tussen 28-30e) gekoppeld aan /login URLs zodat Google direct
   rich results kan tonen.
-- [ ] **Backlink strategy**: partner with gemeente welkomstpakket sites,
-  Ondernemersvereniging listings, Chamber of Commerce content partnerships.
+- [~] **Backlink strategy** surface live op `/voor-partners`:
+  link-kit met 6 publieke assets (NL verhuisdata, branche-benchmarks,
+  ROI-calculator, verhuisdata-tool, welkomstpakket business-case,
+  neurowetenschap blog), elke asset met target-doelgroep en copy-paste
+  `<a href>` suggestie. 3 diepere samenwerkingsvormen (co-branded
+  research, embed-widgets, event-sponsoring) + mailto partnerships-
+  pitch naar partners@lokaalkabaal.agency. Expliciet statement "geen
+  geld-voor-link deals" zodat we niet in paid-link territorium komen.
+  Outreach-uitvoering zelf (cold mails naar gemeenten en
+  ondernemersverenigingen) blijft een sales-/content-ops taak.
 - [x] **Dynamic OG image generation** via `/api/og?title=...&subtitle=...&badge=...`
   using edge runtime + `next/og`. 1200x630, brand palette, Instrument Serif
   title. Root layout references it in OpenGraph + Twitter card so shares
