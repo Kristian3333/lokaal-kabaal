@@ -346,9 +346,12 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
   pad zodra retailers een API key kunnen aanmaken. WWW-Authenticate
   header + docs-link in 401. 2 tests. Next: /v1/conversions en
   webhook-subscriptions.
-- [ ] **Shopify + WooCommerce plugin**: auto-call `/api/codes/redeem` when
-  a customer checks out with one of our codes. Removes manual pincode entry
-  for webshops. Listing on Shopify App Store = acquisition channel.
+- [~] **Shopify + WooCommerce plugin** docs + waitlist live op
+  `/integraties/shopify`: 4 voordelen (auto-redemption, real-time
+  dashboard, single-use fraud-proof, geen PII), concrete code-snippet
+  voor Shopify scriptTag + WooCommerce PHP filter, verwijzing naar
+  `/docs/webhooks` voor custom-stack integraties, mailto plugin-aanvraag
+  naar integraties@lokaalkabaal.agency. App-Store listing blijft queued.
 - [ ] **Lightspeed / MplusKASSA POS integration** for in-store redeem.
   Same API surface, different UX.
 - [~] **Zapier/Slack integration foundation**: `/docs/webhooks` public
