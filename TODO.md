@@ -427,8 +427,14 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
   ontbreekt, `resolveLocale(acceptLanguage, cookie)` parser. 10 tests.
   Next: locale-aware layout dat de header parset en call-sites omzetten
   van hardcoded Dutch naar `t(locale, ...)`.
-- [ ] **Germany** as year 2+ bet: Grundbuch data exists, DSGVO-alignment
-  is doable, the market is 5x NL. Needs partner on printing side.
+- [~] **Germany** waitlist surface live op `/de`: positionering voor
+  2027 launch met destatis-gebaseerde Umzugs-volumes per bundesland
+  (NRW, Bayern, BW, Niedersachsen, Hessen, Berlin), NL-vs-DE
+  vergelijkingstabel (data, DSGVO/BDSG, druck-partner, porto, MwSt,
+  taal), 4-kwartaal roadmap (Q4 2026 -> Q3 2027), founding-member
+  aanbod (30% korting eerste 12 mnd), mailto waitlist naar
+  de@lokaalkabaal.agency. Lokale Druck-Partner-selectie en BDSG-audit
+  blijven queued.
 
 ## 9. Data products & analytics moat
 

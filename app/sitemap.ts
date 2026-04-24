@@ -70,4 +70,5 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: `${base}/retargeting`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
   { url: `${base}/welkomstpakket-gemeenten`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
   { url: `${base}/be`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+  { url: `${base}/de`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
 ];
