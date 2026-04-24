@@ -148,9 +148,11 @@ Direct-mail SEO today is 7 industry pages (bakker, kapper, installateur ...) +
   "bakker in Utrecht". 7 branches x 340 cities = ~2.400 auto-generated
   landing pages. Canonical to the main industry page, differentiated by a
   data block (new movers/mnd in that city for that branche).
-- [ ] **Free tool: new-movers checker**. Public page: enter a PC4, show the
-  monthly average new-movers count + CLV estimate for their branche. Strong
-  link bait, captures leads before signup. Public `/tools/verhuisdata/[pc4]`.
+- [x] **Free tool: new-movers checker** live at `/tools/verhuisdata`. PC4
+  input -> hits existing `/api/pc4` POST met straalKm=1 -> toont
+  `~N nieuwe huiseigenaren per maand` + jaarcijfer + conversieratio 4-8%.
+  SEO-metadata, OG image met "Gratis tool" badge, CTA naar /login.
+  Opgenomen in sitemap.ts. Vervolg: CLV-branchefilter toevoegen.
 - [ ] **Free tool: flyer ROI calculator** as a standalone page with its own
   SEO keywords ("ROI direct mail", "flyer rendement berekenen"). Embeddable
   widget version for bloggers/partners.
