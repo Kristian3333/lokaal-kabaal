@@ -55,6 +55,7 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: `${base}/blog/digitale-moeheid`, lastModified: now, changeFrequency: 'yearly', priority: 0.6 },
   { url: `${base}/blog/eerste-kennismaking`, lastModified: now, changeFrequency: 'yearly', priority: 0.6 },
   { url: `${base}/blog/hyperlokaal`, lastModified: now, changeFrequency: 'yearly', priority: 0.6 },
+  { url: `${base}/blog/neurowetenschap-nieuwe-bewoner`, lastModified: now, changeFrequency: 'yearly', priority: 0.6 },
   { url: `${base}/over-ons`, lastModified: now, changeFrequency: 'yearly', priority: 0.5 },
   { url: `${base}/contact`, lastModified: now, changeFrequency: 'yearly', priority: 0.5 },
   { url: `${base}/privacy`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },

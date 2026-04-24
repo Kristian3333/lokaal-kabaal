@@ -160,9 +160,14 @@ Direct-mail SEO today is 7 industry pages (bakker, kapper, installateur ...) +
   → reactieve verwachte klanten / omzet / terugverdientijd / jaar-ROI.
   `lib/clv.ts` exports BRANCHE_CLV + `calculateRoi` pure helper; 8 tests.
   Opgenomen in sitemap. Embeddable widget versie nog openstaand.
-- [ ] **Blog cadence 2x/week** via an editorial calendar. Themes: retailer
-  success stories, new-mover behavior research, local marketing trends.
-  Cross-link aggressively to product pages.
+- [~] **Blog cadence** uitgebouwd: nieuwe post
+  `/blog/neurowetenschap-nieuwe-bewoner` toegevoegd (24 april 2026),
+  draait rond Wendy Woods cue-context-routine framework, 43%
+  gewoonte-automatisme na verhuizing, en praktische implicaties voor
+  timing/context-boven-korting/herhaal-ritme. Doorlinks naar 3
+  gerelateerde posts plus CTA naar prijzen. 5 posts totaal nu live.
+  2x/week publishing-cadence blijft een content-ops keuze (redacteur
+  + editorial calendar).
 - [x] **Comparison pages** live bij `/vergelijk/[concurrent]`: Spotta,
   PostNL Direct Mail en Facebook/Meta Ads. Elke pagina heeft een eerlijke
   feature-matrix (✓/◐/—), "kies X als" + "kies ons als" cards, neutraal

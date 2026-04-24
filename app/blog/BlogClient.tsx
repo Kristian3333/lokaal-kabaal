@@ -5,6 +5,14 @@ import Nav from '@/components/Nav';
 
 const ARTIKELEN = [
   {
+    slug: 'neurowetenschap-nieuwe-bewoner',
+    categorie: 'Neuromarketing',
+    titel: 'De neurowetenschap van de nieuwe bewoner',
+    samenvatting: 'Waarom 43% van ons dagelijks gedrag automatisch is, hoe een verhuizing die automaten tijdelijk reset, en wat dat betekent voor jouw eerste flyer.',
+    leestijd: '6 min',
+    datum: '24 april 2026',
+  },
+  {
     slug: 'hyperlokaal',
     categorie: 'Strategie',
     titel: 'Hyperlokaal: Vertrouwen via Fysieke Aanwezigheid',
