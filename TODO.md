@@ -159,9 +159,12 @@ Direct-mail SEO today is 7 industry pages (bakker, kapper, installateur ...) +
 - [ ] **Blog cadence 2x/week** via an editorial calendar. Themes: retailer
   success stories, new-mover behavior research, local marketing trends.
   Cross-link aggressively to product pages.
-- [ ] **Comparison pages**: "LokaalKabaal vs Spotta", "LokaalKabaal vs PostNL
-  Direct Mail", "Flyer vs Meta Ads voor lokale ondernemer". High-intent
-  bottom-of-funnel pages.
+- [x] **Comparison pages** live bij `/vergelijk/[concurrent]`: Spotta,
+  PostNL Direct Mail en Facebook/Meta Ads. Elke pagina heeft een eerlijke
+  feature-matrix (✓/◐/—), "kies X als" + "kies ons als" cards, neutraal
+  geschreven zodat Google dit als echte comparison indexeert. Opgenomen
+  in sitemap met `lib/concurrenten.ts` als data-source. 3 routes
+  geprerenderd via generateStaticParams.
 - [ ] **FAQ schema + HowTo schema** on all product pages (we already have
   plain JSON-LD, need explicit `@type: FAQPage` and `@type: HowTo` blocks).
 - [ ] **Backlink strategy**: partner with gemeente welkomstpakket sites,

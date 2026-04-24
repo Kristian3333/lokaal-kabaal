@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { GEMEENTEN } from '@/lib/gemeenten';
+import { CONCURRENTEN } from '@/lib/concurrenten';
 
 const base = 'https://lokaalkabaal.agency';
 const now = new Date();
@@ -11,7 +12,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: 'monthly' as const,
     priority: 0.7,
   }));
-  return [...gemeentenRoutes, ...STATIC_ROUTES];
+  const vergelijkRoutes: MetadataRoute.Sitemap = CONCURRENTEN.map(c => ({
+    url: `${base}/vergelijk/${c.slug}`,
+    lastModified: now,
+    changeFrequency: 'monthly' as const,
+    priority: 0.6,
+  }));
+  return [...gemeentenRoutes, ...vergelijkRoutes, ...STATIC_ROUTES];
 }
 
 const STATIC_ROUTES: MetadataRoute.Sitemap = [
