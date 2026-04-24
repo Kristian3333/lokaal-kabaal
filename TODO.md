@@ -271,8 +271,12 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
   retailers a dopamine hit that keeps them engaged.
 - [ ] **Mobile dashboard**: today the dashboard is desktop-only in practice.
   Responsive pass on CampaignWizard + FlyerDesigner for iPad/phone editing.
-- [ ] **Dark mode** toggle in SettingsPanel. CSS vars already exist; just
-  needs a `data-theme` attr + alternate palette.
+- [x] **Dark mode toggle** in SettingsPanel top-right via
+  `components/ThemeToggle.tsx`. Persists `lk_theme` in localStorage,
+  initialises from `prefers-color-scheme`, sets `data-theme="dark"` on
+  `<html>`. `app/globals.css` has an `html[data-theme='dark']` block
+  that inverts neutral CSS vars; existing inline-style components
+  that read var(--ink) / var(--paper) pick this up automatically.
 - [ ] **Keyboard shortcuts** for dashboard power users (cmd+k command
   palette). Differentiator vs competitors who mostly have no keyboard UX.
 
@@ -300,8 +304,12 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
 
 Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
 
-- [ ] **Public REST API** for retailers: CRUD campaigns, read conversions,
-  webhook subscriptions. Needs OAuth / personal access tokens.
+- [~] **Public REST API v1 skeleton**: `GET /api/v1/campaigns` returns
+  the caller's campaigns as `{data:[...], meta:{count,apiVersion}}`.
+  Auth via session cookie today + TODO voor Bearer personal-access-token
+  pad zodra retailers een API key kunnen aanmaken. WWW-Authenticate
+  header + docs-link in 401. 2 tests. Next: /v1/conversions en
+  webhook-subscriptions.
 - [ ] **Shopify + WooCommerce plugin**: auto-call `/api/codes/redeem` when
   a customer checks out with one of our codes. Removes manual pincode entry
   for webshops. Listing on Shopify App Store = acquisition channel.

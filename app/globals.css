@@ -25,6 +25,24 @@
   --font-sans: var(--font-manrope), 'Manrope', sans-serif;
 }
 
+/* Dark mode -- opt-in via <html data-theme="dark">. The existing --ink/paper
+ * palette is already high-contrast dark-on-light, so dark mode inverts the
+ * neutrals while keeping --green accents unchanged. Inline style overrides
+ * scattered across the dashboard will still read CSS vars, so the theme
+ * switch propagates without per-component work. */
+html[data-theme='dark'] {
+  --ink: #F5F3EF;
+  --paper: #0A0A0A;
+  --paper2: #121212;
+  --paper3: #1A1A1A;
+  --line: #2A2A2A;
+  --line2: #3A3A3A;
+  --muted: #8A8479;
+  --white: #121212;
+  --green-bg: rgba(0,232,122,0.12);
+  --green-bg2: rgba(0,232,122,0.18);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

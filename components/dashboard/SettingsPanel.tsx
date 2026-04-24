@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { showToast } from '@/components/Toast';
+import ThemeToggle from '@/components/ThemeToggle';
 import { TIERS, type Tier } from '@/lib/tiers';
 
 interface SettingsPanelProps {
@@ -179,12 +180,15 @@ export default function SettingsPanel({
 
   return (
     <div className="fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', gap: '16px', flexWrap: 'wrap' }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '28px', marginBottom: '4px' }}>Mijn profiel</h1>
           <p style={{ color: 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: '12px' }}>Beheer je bedrijfsgegevens en instellingen</p>
         </div>
-        <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{email}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <ThemeToggle />
+          <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{email}</div>
+        </div>
       </div>
 
       {/* Persoonlijke flyerhulp (Agency jaarcontract) */}
