@@ -392,9 +392,13 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
   flow (gehashte PC4 + device-hint via Conversions API, geen NAW), €79/mnd
   service fee + ad-spend op het account van de retailer, mailto pilot-CTA.
   Pixel-sync en audience-push komen in de volgende fase.
-- [ ] **Municipal contracts**: sell gemeenten a "Welcome to [city]" booklet
-  that bundles 20 local merchants. Flat-fee per printed batch, merchants
-  pay per placement. High ACV, sticky.
+- [~] **Municipal contracts** lead-gen surface live op
+  `/welkomstpakket-gemeenten`: pagina voor gemeente-beleidsmedewerkers,
+  6 voordelen (nul kosten, AVG-compliant, bestuurlijk afgedekt, kwartaal
+  dashboard), 5-stap traject (intake -> werving -> booklet -> bezorging
+  -> rapport), kostenmodel per gemeentegrootte, mailto-intake naar
+  overheid@lokaalkabaal.agency. Sales pipeline plus booklet-productie
+  komen in de volgende fase.
 - [~] **Data product landing** live op `/data`: B2B aanbod voor makelaars,
   verzekeraars, marketeers en overheden. 4 doelgroep-use-cases, 3 tiers
   (Basic €500/mnd, Pro €1.900/mnd, Custom research op aanvraag),
