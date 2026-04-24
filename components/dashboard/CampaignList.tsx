@@ -25,6 +25,8 @@ interface CampaignListProps {
   onStartCampaign: () => void;
   /** Callback to toggle a campaign between actief/gepauzeerd */
   onToggleStatus: (id: number) => void;
+  /** Callback to duplicate a campaign (prefill wizard with its settings) */
+  onDuplicate?: (c: Campaign) => void;
   /** Format a price number to a display string */
   formatPrijs: (x: number) => string;
 }
@@ -33,6 +35,7 @@ export default function CampaignList({
   campaigns,
   onStartCampaign,
   onToggleStatus,
+  onDuplicate,
   formatPrijs,
 }: CampaignListProps): React.JSX.Element {
   if (campaigns.length === 0) {
@@ -95,6 +98,15 @@ export default function CampaignList({
                 style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', padding: '5px 10px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper)', cursor: 'pointer' }}>
                 {c.status === 'actief' ? 'Pauzeren' : 'Hervatten'}
               </button>
+              {onDuplicate && (
+                <button
+                  onClick={() => onDuplicate(c)}
+                  aria-label={`Dupliceer campagne ${c.spec}`}
+                  style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', padding: '5px 10px', border: '1px solid var(--line)', borderRadius: 'var(--radius)', background: 'var(--paper)', cursor: 'pointer' }}
+                >
+                  Dupliceer
+                </button>
+              )}
             </div>
           </div>
         </div>

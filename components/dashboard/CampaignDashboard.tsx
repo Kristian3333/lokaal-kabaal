@@ -74,6 +74,8 @@ interface CampaignDashboardProps {
   onClearPendingCampaign: () => void;
   /** Callback to toggle a campaign status */
   onToggleCampaignStatus: (id: number) => void;
+  /** Callback to duplicate an existing campaign (prefills wizard) */
+  onDuplicateCampaign: (c: Campaign) => void;
   /** Callback to refetch campaigns */
   onRefetchCampaigns: () => void;
 }
@@ -191,6 +193,7 @@ export default function CampaignDashboard({
   onGoToSettings,
   onClearPendingCampaign,
   onToggleCampaignStatus,
+  onDuplicateCampaign,
   onRefetchCampaigns,
 }: CampaignDashboardProps): React.JSX.Element {
   const activeCampaigns = campaigns.filter(c => c.status === 'actief');
@@ -304,6 +307,7 @@ export default function CampaignDashboard({
           campaigns={campaigns}
           onStartCampaign={onStartCampaign}
           onToggleStatus={onToggleCampaignStatus}
+          onDuplicate={onDuplicateCampaign}
           formatPrijs={formatPrijs}
         />
       )}

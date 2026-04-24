@@ -267,6 +267,31 @@ export default function LokaalKabaal(): React.JSX.Element {
     setPage('wizard');
   };
 
+  /** Pre-fill the wizard with an existing campaign's settings for one-click
+   *  duplication (different werkgebied, same everything else). Respects the
+   *  tier's campaign cap -- blocked campaigns get a toast. */
+  const duplicateCampaign = (c: Campaign) => {
+    const activeCampaigns = campaigns.filter(x => x.status === 'actief').length;
+    if (!canStartCampaign(userTier, activeCampaigns)) {
+      const cfg = TIERS[userTier];
+      showToast(`Je ${cfg.label}-abonnement staat max. ${cfg.maxCampaigns} gelijktijdige campagne${cfg.maxCampaigns !== 1 ? 's' : ''} toe. Upgrade naar Pro of Agency voor meer campagnes.`, 'warning');
+      return;
+    }
+    setWiz({
+      ...INIT_WIZ,
+      spec: c.spec,
+      datum: '',           // force user to pick a new startdatum
+      centrum: '',         // force user to pick a new werkgebied
+      aantalFlyers: c.aantalFlyers,
+      formaat: (c.formaat as typeof INIT_WIZ.formaat) || 'a6',
+      dubbelzijdig: true,
+      pakket: userTier,
+      jaarcontract: !!user?.isJaarcontract,
+    });
+    showToast(`Campagne "${c.spec}" gedupliceerd -- kies een nieuw werkgebied`, 'success');
+    setPage('wizard');
+  };
+
   const updateFlyer = useCallback((patch: Partial<FlyerState>) => {
     setFlyers(fs => fs.map((f, i) => i === activeFlyerIdx ? { ...f, ...patch } : f));
   }, [activeFlyerIdx]);
@@ -366,6 +391,7 @@ export default function LokaalKabaal(): React.JSX.Element {
               onGoToSettings={() => setPage('profiel')}
               onClearPendingCampaign={() => setPendingCampaign(null)}
               onToggleCampaignStatus={id => setCampaigns(prev => prev.map(x => x.id === id ? { ...x, status: x.status === 'actief' ? 'gepauzeerd' : 'actief' } : x))}
+              onDuplicateCampaign={duplicateCampaign}
               onRefetchCampaigns={() => { if (user?.email) fetchCampaigns(user.email); }}
             />
           )}

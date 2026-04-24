@@ -696,6 +696,29 @@ export default function CampaignWizard({
                       </div>
                     ) : null;
                   })()}
+
+                  {/* Bulk paste: accepts comma/space/newline-separated PC4 list */}
+                  {(() => {
+                    const maxPc4s = TIERS[userTier].maxPc4s;
+                    const atLimit = maxPc4s !== null && wiz.pc4Lijst.length >= maxPc4s;
+                    if (atLimit) return null;
+                    return (
+                      <details style={{ marginTop: '10px' }}>
+                        <summary style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--muted)', cursor: 'pointer' }}>
+                          Bulk plakken (meerdere postcodes tegelijk)
+                        </summary>
+                        <BulkPc4Input
+                          existing={wiz.pc4Lijst}
+                          maxPc4s={maxPc4s}
+                          onAdd={toAdd => {
+                            const combined = Array.from(new Set([...wiz.pc4Lijst, ...toAdd])).sort();
+                            const capped = maxPc4s !== null ? combined.slice(0, maxPc4s) : combined;
+                            onUpdateWiz({ pc4Lijst: capped });
+                          }}
+                        />
+                      </details>
+                    );
+                  })()}
                 </div>
               )}
             </div>
@@ -1143,6 +1166,79 @@ export default function CampaignWizard({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * BulkPc4Input -- textarea that accepts a comma/space/newline-separated
+ * list of PC4 postcodes, extracts only valid 4-digit entries, de-dupes
+ * against the existing list, and calls `onAdd` with the new-only slice.
+ * The parent is responsible for merging + capping.
+ */
+function BulkPc4Input({
+  existing,
+  maxPc4s,
+  onAdd,
+}: {
+  existing: string[];
+  maxPc4s: number | null;
+  onAdd: (newPc4s: string[]) => void;
+}): React.JSX.Element {
+  const [raw, setRaw] = useState('');
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  const slotsLeft = maxPc4s === null ? Infinity : maxPc4s - existing.length;
+
+  function parseAndAdd(): void {
+    const candidates = raw.split(/[\s,;]+/).map(s => s.trim()).filter(Boolean);
+    const valid = candidates.filter(s => /^\d{4}$/.test(s));
+    const existingSet = new Set(existing);
+    const fresh = Array.from(new Set(valid)).filter(pc4 => !existingSet.has(pc4));
+    const toAdd = isFinite(slotsLeft) ? fresh.slice(0, slotsLeft) : fresh;
+    if (toAdd.length === 0) {
+      setFeedback(valid.length === 0 ? 'Geen geldige 4-cijferige postcodes gevonden.' : 'Alle postcodes staan al in de lijst.');
+      return;
+    }
+    onAdd(toAdd);
+    const skipped = fresh.length - toAdd.length;
+    setFeedback(`${toAdd.length} postcode${toAdd.length !== 1 ? 's' : ''} toegevoegd${skipped > 0 ? ` (${skipped} overgeslagen wegens tier-limiet)` : ''}.`);
+    setRaw('');
+  }
+
+  return (
+    <div style={{ marginTop: '8px' }}>
+      <textarea
+        value={raw}
+        onChange={e => { setRaw(e.target.value); setFeedback(null); }}
+        placeholder="bijv. 3512, 3513, 3514&#10;1012 1013 1014"
+        aria-label="Bulk postcode input (komma, spatie of enter gescheiden)"
+        rows={3}
+        style={{
+          width: '100%', padding: '8px 10px', border: '1px solid var(--line)',
+          borderRadius: 'var(--radius)', fontFamily: 'var(--font-mono)', fontSize: '12px',
+          background: 'var(--paper2)', resize: 'vertical', boxSizing: 'border-box',
+        }}
+      />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px', flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          onClick={parseAndAdd}
+          disabled={!raw.trim()}
+          style={{
+            padding: '6px 12px', background: raw.trim() ? 'var(--ink)' : 'var(--line)',
+            color: '#fff', border: 'none', borderRadius: 'var(--radius)',
+            fontFamily: 'var(--font-mono)', fontSize: '12px',
+            cursor: raw.trim() ? 'pointer' : 'not-allowed',
+          }}
+        >
+          Plak toevoegen →
+        </button>
+        <span style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--muted)' }}>
+          {isFinite(slotsLeft) ? `${slotsLeft} plek${slotsLeft !== 1 ? 'ken' : ''} over` : 'onbeperkt'}
+        </span>
+        {feedback && <span style={{ fontSize: '11px', color: 'var(--green-dim)', fontFamily: 'var(--font-mono)' }}>{feedback}</span>}
+      </div>
     </div>
   );
 }

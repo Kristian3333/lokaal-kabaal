@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { GEMEENTEN } from '@/lib/gemeenten';
 import { CONCURRENTEN } from '@/lib/concurrenten';
+import { allBrancheCityCombos } from '@/lib/industry-city';
 
 const base = 'https://lokaalkabaal.agency';
 const now = new Date();
@@ -18,7 +19,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: 'monthly' as const,
     priority: 0.6,
   }));
-  return [...gemeentenRoutes, ...vergelijkRoutes, ...STATIC_ROUTES];
+  const matrixRoutes: MetadataRoute.Sitemap = allBrancheCityCombos().map(({ branche, gemeente }) => ({
+    url: `${base}/flyers-versturen-${branche.slug}-in-${gemeente.slug}`,
+    lastModified: now,
+    changeFrequency: 'monthly' as const,
+    // Lower priority than the canonical branche pages
+    priority: 0.5,
+  }));
+  return [...gemeentenRoutes, ...vergelijkRoutes, ...matrixRoutes, ...STATIC_ROUTES];
 }
 
 const STATIC_ROUTES: MetadataRoute.Sitemap = [

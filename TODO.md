@@ -144,10 +144,12 @@ Direct-mail SEO today is 7 industry pages (bakker, kapper, installateur ...) +
   URL en dynamic OG image per stad. Sitemap.ts injecteert alle 40 slugs.
   Tests: 10 lib cases + 7 metadata cases. Next batch: uitbreiden naar ~340
   gemeenten en Altum-feed wiring voor echte data.
-- [ ] **Programmatic industry x city matrix**: "kapper in Rotterdam",
-  "bakker in Utrecht". 7 branches x 340 cities = ~2.400 auto-generated
-  landing pages. Canonical to the main industry page, differentiated by a
-  data block (new movers/mnd in that city for that branche).
+- [x] **Programmatic industry x city matrix batch 1**:
+  `/flyers-versturen-[branche]-in-[gemeente]` live voor 6 branches × 40
+  gemeenten = 240 long-tail pages. Canonicalt elke pagina terug naar de
+  branche-hoofdpagina (geen duplicate-content risk). `lib/industry-city.ts`
+  met 6 branche-definities + `allBrancheCityCombos` voor static generation.
+  Sitemap injecteert alle 240 slugs met priority 0.5.
 - [x] **Free tool: new-movers checker** live at `/tools/verhuisdata`. PC4
   input -> hits existing `/api/pc4` POST met straalKm=1 -> toont
   `~N nieuwe huiseigenaren per maand` + jaarcijfer + conversieratio 4-8%.
@@ -219,10 +221,16 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
   SVG trendlijn (verzonden / interesse / conversies per maand, 3 colored
   polylines) plus a top-5 PC4 breakdown card (PC4 + conversieratio +
   sample size). 11 lib tests.
-- [ ] **Campaign duplication**: one-click "Start dezelfde campagne ergens
-  anders" for retailers with multiple locations.
-- [ ] **PC4 bulk import + export**. CSV upload or paste list for retailers
-  who already know their territory.
+- [x] **Campaign duplication**: "Dupliceer" knop op elke campaign card
+  in `CampaignList`. Klikken opent de wizard met dezelfde branche +
+  aantalFlyers + formaat, maar lege startdatum en centrum zodat de
+  retailer een nieuw werkgebied kan kiezen. Tier-cap toast als gebruiker
+  al aan de limiet zit.
+- [x] **PC4 bulk paste** in wizard step 4: een collapsible "Bulk plakken"
+  details met textarea die komma/spatie/enter-gescheiden PC4s accepteert,
+  dedupes tegen bestaande lijst, caps op tier-limiet en toont feedback
+  ("3 toegevoegd, 2 overgeslagen wegens tier-limiet"). CSV export nog
+  openstaand.
 - [ ] **PC4 heatmap**: overlay new-mover density on the NLMap so retailers
   pick PC4's with the highest yield per euro.
 - [ ] **Multi-location support**: one retailer account, multiple winkels
