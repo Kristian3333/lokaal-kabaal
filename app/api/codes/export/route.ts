@@ -3,24 +3,12 @@ import { db } from '@/lib/db';
 import { flyerVerifications } from '@/lib/schema';
 import { eq } from 'drizzle-orm';
 import { requireAuth } from '@/lib/auth';
+import { toCsv } from '@/lib/csv';
 
 // GET /api/codes/export?campagneId=xxx&format=csv
-// Exporteert alle verificatiecodes voor een campagne als CSV
-// Bedoeld zodat retailers codes kunnen importeren als kortingscodes in hun webshop
-
-/** Escape CSV cell to prevent formula injection */
-function escapeCsvCell(value: string): string {
-  if (typeof value !== 'string') return String(value ?? '');
-  // Prefix cells starting with formula characters
-  if (/^[=+\-@\t\r]/.test(value)) {
-    return "'" + value;
-  }
-  // Escape existing quotes
-  if (value.includes('"') || value.includes(',') || value.includes('\n')) {
-    return '"' + value.replace(/"/g, '""') + '"';
-  }
-  return value;
-}
+// Exporteert alle verificatiecodes voor een campagne als CSV of JSON.
+// Bedoeld zodat retailers codes kunnen importeren als kortingscodes in hun webshop.
+// CSV formula-injection escaping zit in lib/csv.ts (shared met tests + andere endpoints).
 
 export async function GET(req: NextRequest) {
   const authResult = requireAuth(req);
@@ -55,23 +43,31 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ codes: rows });
   }
 
-  // CSV export
-  const header = 'code,adres,postcode,stad,geldig_tot,status';
-  const csvRows = rows.map(r => {
-    const status = r.conversieOp ? 'conversie' : r.interesseOp ? 'interesse' : new Date() > new Date(r.geldigTot) ? 'verlopen' : 'actief';
-    const geldigTot = new Date(r.geldigTot).toISOString().slice(0, 10);
-    // Escape all cells to prevent CSV formula injection
-    return [
-      escapeCsvCell(r.code),
-      escapeCsvCell(r.adres),
-      escapeCsvCell(r.postcode),
-      escapeCsvCell(r.stad),
-      escapeCsvCell(geldigTot),
-      escapeCsvCell(status),
-    ].join(',');
-  });
+  const now = new Date();
+  const withStatus = rows.map(r => ({
+    code: r.code,
+    adres: r.adres,
+    postcode: r.postcode,
+    stad: r.stad,
+    geldig_tot: new Date(r.geldigTot).toISOString().slice(0, 10),
+    status:
+      r.conversieOp ? 'conversie' :
+      r.interesseOp ? 'interesse' :
+      now > new Date(r.geldigTot) ? 'verlopen' :
+      'actief',
+  }));
 
-  const csv = [header, ...csvRows].join('\n');
+  const csv = toCsv(
+    [
+      ['code', 'code'],
+      ['adres', 'adres'],
+      ['postcode', 'postcode'],
+      ['stad', 'stad'],
+      ['geldig_tot', 'geldig_tot'],
+      ['status', 'status'],
+    ],
+    withStatus,
+  );
 
   return new NextResponse(csv, {
     headers: {

@@ -41,7 +41,7 @@ When reviewing code (manually or via `/review` or `/cleanup`), verify each appli
 
 - All API routes handling user data require auth via `requireAuth()` from `@/lib/auth` -- caught: 2026-03-24, 21 routes had no auth
 - URL inputs (scrape, scan) MUST be validated with `isValidExternalUrl()` to prevent SSRF (blocks localhost, 127.0.0.1, 10.x, 192.168.x, file://) -- caught: 2026-03-24, /api/scrape accepted arbitrary URLs including internal IPs
-- CSV exports MUST escape cells starting with `=`, `+`, `-`, `@` to prevent formula injection in Excel -- caught: 2026-03-24, codes/export generated unescaped CSV
+- CSV exports MUST escape cells starting with `=`, `+`, `-`, `@` to prevent formula injection in Excel -- caught: 2026-03-24, codes/export generated unescaped CSV. Use `toCsv()` / `escapeCsvCell()` from `lib/csv.ts` (shared + tested) rather than re-implementing per endpoint.
 - Security headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options) are set in middleware.ts -- caught: 2026-03-24, no security headers were configured
 - Input validation for all external data: use `lib/validation.ts` helpers (isValidEmail, isValidPc4, isValidFormaat, etc.) -- caught: 2026-03-24, most routes accepted unvalidated input
 - Auth endpoints (login, register, magic-link) MUST have rate limiting via `authLimiter` from `@/lib/rate-limit` -- caught: 2026-03-26, zero rate limiting existed on any endpoint

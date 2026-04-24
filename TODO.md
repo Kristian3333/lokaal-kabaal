@@ -221,9 +221,12 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
   already-converted, already-followed-up, mixed-batch, custom-delay,
   and boundary cases. Next: wire a cron that calls this and enqueues a
   PrintOne follow-up batch, plus an opt-in toggle in the campaign wizard.
-- [ ] **A/B testing UI**. Agency tier only. Two flyer variants, auto 50/50
-  split, dashboard shows scan-rate and conversion per variant. Schema
-  (`ab_tests`, `abTestVariant`) already exists.
+- [~] **A/B testing statistics core** (`lib/ab-stats.ts`): pure
+  `compareAb(armA, armB, minSample=30)` met normal-approximation
+  two-proportion z-test + normal CDF, returnt {rateA, rateB, pValue,
+  significant, genoegData}. 8 tests covering equal rates, big lift,
+  negative lift, zero-sample, borderline p-value. UI + schema-wiring
+  voor Agency-tier A/B dashboard is de volgende stap.
 - [x] **Conversion dashboard v2**: `lib/conversie-stats.ts` helpers +
   `TimeseriesAndBreakdown` component in `ConversiesPanel` shows an inline
   SVG trendlijn (verzonden / interesse / conversies per maand, 3 colored
