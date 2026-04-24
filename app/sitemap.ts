@@ -67,4 +67,5 @@ const STATIC_ROUTES: MetadataRoute.Sitemap = [
   { url: `${base}/white-label`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
   { url: `${base}/data`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
   { url: `${base}/design`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+  { url: `${base}/retargeting`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
 ];

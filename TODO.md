@@ -387,9 +387,11 @@ Turn LokaalKabaal from a SaaS into a platform that other tools plug into.
   Agency jaarcontract), 4-stap proces (brief → 2 varianten → revisies →
   druk-klaar PDF), mailto:Design@lokaalkabaal.agency CTA. Intake-form +
   designer-workflow komen in de volgende fase.
-- [ ] **Add-on: digital retargeting**. After scan, retailer can re-engage
-  the new resident via Facebook/Google display ads on a lookalike
-  audience. Partnership with a retargeting provider, we take a cut.
+- [~] **Add-on: digital retargeting** lead-gen surface live op `/retargeting`:
+  productpagina legt Meta + Google + TikTok retargeting uit, privacy-first
+  flow (gehashte PC4 + device-hint via Conversions API, geen NAW), €79/mnd
+  service fee + ad-spend op het account van de retailer, mailto pilot-CTA.
+  Pixel-sync en audience-push komen in de volgende fase.
 - [ ] **Municipal contracts**: sell gemeenten a "Welcome to [city]" booklet
   that bundles 20 local merchants. Flat-fee per printed batch, merchants
   pay per placement. High ACV, sticky.
