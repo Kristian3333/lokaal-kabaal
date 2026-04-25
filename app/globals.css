@@ -23,6 +23,15 @@
   --font-serif: var(--font-instrument-serif), 'Instrument Serif', Georgia, serif;
   --font-mono: var(--font-dm-mono), 'DM Mono', monospace;
   --font-sans: var(--font-manrope), 'Manrope', sans-serif;
+
+  /* Sidebar palette is theme-locked. The dashboard nav stays a dark surface
+   * in both light and dark modes (GitHub/Linear pattern) so the white-on-dark
+   * inline styles don't invert into invisible white-on-light. */
+  --sidebar-bg: #0A0A0A;
+  --sidebar-text: #F5F3EF;
+  --sidebar-text-muted: rgba(255,255,255,0.55);
+  --sidebar-text-dim: rgba(255,255,255,0.3);
+  --sidebar-border: rgba(255,255,255,0.06);
 }
 
 /* Dark mode -- opt-in via <html data-theme="dark">. The existing --ink/paper

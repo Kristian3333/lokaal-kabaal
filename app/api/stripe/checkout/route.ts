@@ -3,7 +3,11 @@ import Stripe from 'stripe';
 import { requireAuth } from '@/lib/auth';
 
 function getStripe() {
-  return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-02-25.clover' });
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    throw new Error('STRIPE_SECRET_KEY env var is missing');
+  }
+  return new Stripe(key, { apiVersion: '2026-02-25.clover' });
 }
 
 // ─── Tier-prijzen ─────────────────────────────────────────────────────────────
@@ -63,6 +67,14 @@ export async function POST(req: NextRequest) {
     const tierConfig = TIER_PRICES[tier as TierType];
     if (!tierConfig) {
       return NextResponse.json({ error: `Ongeldig pakket: ${tier}` }, { status: 400 });
+    }
+
+    if (!process.env.STRIPE_SECRET_KEY) {
+      console.error('[stripe/checkout] STRIPE_SECRET_KEY is niet geconfigureerd');
+      return NextResponse.json(
+        { error: 'Betaling tijdelijk niet beschikbaar (configuratie ontbreekt)' },
+        { status: 503 },
+      );
     }
 
     const stripe = getStripe();
@@ -140,6 +152,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: session.url, sessionId: session.id });
   } catch (err: unknown) {
     console.error('[stripe/checkout]', err);
+    // In non-production, surface the underlying Stripe error so the
+    // operator can see exactly why checkout fails (bad key, mode mismatch,
+    // missing webhook, etc.) without paging through server logs. In prod
+    // we keep the generic message so we don't leak internals to clients.
+    if (process.env.NODE_ENV !== 'production') {
+      const detail = err instanceof Error ? err.message : String(err);
+      return NextResponse.json(
+        { error: 'Betaling starten mislukt', detail },
+        { status: 500 },
+      );
+    }
     return NextResponse.json({ error: 'Betaling starten mislukt' }, { status: 500 });
   }
 }

@@ -41,11 +41,14 @@ function buildTemplateHTML(d: {
   telefoon?: string;
   email?: string;
   website?: string;
+  formaat: string;
 }): string {
   const rgb = hexToRgb(d.primairKleur);
   const luminantie = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
   const tekstKleur = luminantie > 0.5 ? '#0A0A0A' : '#FFFFFF';
   const mutedKleur = luminantie > 0.5 ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)';
+
+  const cfg = PRINT_CONFIG[d.formaat] ?? PRINT_CONFIG.a6;
 
   // QR code URL met merge variable -- Print.one vervangt {{qr_url}} per order
   const qrImageSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{qr_url}}&bgcolor=ffffff&color=0a0a0a&margin=2`;
@@ -58,7 +61,7 @@ function buildTemplateHTML(d: {
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap');
   *{box-sizing:border-box;margin:0;padding:0}
   body{
-    width:148mm;height:210mm;
+    width:${cfg.mmW}mm;height:${cfg.mmH}mm;
     background:${d.primairKleur};
     font-family:'Manrope',sans-serif;
     overflow:hidden;
@@ -157,7 +160,8 @@ function hexToRgb(hex: string): [number, number, number] {
 
 // ─── Achterkant met retouradres ─────────────────────────────────────────────
 
-function buildBackHTML(sender: { name: string; address: string; postalCode: string; city: string }): string {
+function buildBackHTML(sender: { name: string; address: string; postalCode: string; city: string; formaat: string }): string {
+  const cfg = PRINT_CONFIG[sender.formaat] ?? PRINT_CONFIG.a6;
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -165,7 +169,7 @@ function buildBackHTML(sender: { name: string; address: string; postalCode: stri
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap');
   *{box-sizing:border-box;margin:0;padding:0}
-  body{width:148mm;height:210mm;background:#fff;font-family:'Manrope',sans-serif;overflow:hidden}
+  body{width:${cfg.mmW}mm;height:${cfg.mmH}mm;background:#fff;font-family:'Manrope',sans-serif;overflow:hidden}
   .back{width:100%;height:100%;padding:24px;display:flex;flex-direction:column;justify-content:flex-end}
   .label{font-size:11px;color:#999;margin:0 0 8px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em}
   .name{font-size:13px;font-weight:700;margin:0 0 4px;color:#333}
@@ -185,37 +189,38 @@ function buildBackHTML(sender: { name: string; address: string; postalCode: stri
 // ─── Wrap HTML voor Print.one rendering ─────────────────────────────────────
 
 function wrapForPrint(rawHtml: string, formaat: string): string {
-  const cfg = PRINT_CONFIG[formaat] ?? PRINT_CONFIG.a5;
+  const cfg = PRINT_CONFIG[formaat] ?? PRINT_CONFIG.a6;
+  // Preserve original <head> contents (font @import, CSS rules) so the
+  // wrapped document doesn't render unstyled. Earlier versions only
+  // captured the body innerHTML and dropped every style rule, which made
+  // PrintOne render the flyer as a tiny pile of unstyled text.
+  const headMatch = rawHtml.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
   const bodyMatch = rawHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-  const content = bodyMatch ? bodyMatch[1] : rawHtml;
-  const scale = cfg.scale.toFixed(4);
+  const headContent = headMatch ? headMatch[1] : '';
+  const bodyContent = bodyMatch ? bodyMatch[1] : rawHtml;
 
   return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=${cfg.previewW}, initial-scale=1.0">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  ${headContent}
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* Print canvas: PrintOne renders the document at the postcard's
+     * physical dimensions (incl. 3mm bleed). Using mm here -- not px --
+     * means the rendered output matches the paper size regardless of the
+     * rendering DPI on PrintOne's side. */
     html, body {
-      width: ${cfg.previewW}px;
-      height: ${cfg.previewH}px;
+      width: ${cfg.mmW}mm;
+      height: ${cfg.mmH}mm;
+      margin: 0;
+      padding: 0;
       overflow: hidden;
-      font-family: 'Manrope', sans-serif;
-    }
-    .lk-wrap {
-      width: ${cfg.previewW}px;
-      height: ${cfg.previewH}px;
-      zoom: ${scale};
-      transform-origin: top left;
     }
   </style>
 </head>
 <body>
-  <div class="lk-wrap">
-    ${content}
-  </div>
+  ${bodyContent}
 </body>
 </html>`;
 }
@@ -257,7 +262,7 @@ export async function POST(req: NextRequest) {
       telefoon,
       email,
       website,
-      formaat = 'a5',
+      formaat = 'a6',
       // Afzender
       senderName,
       senderAddress,
@@ -272,7 +277,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const format = FORMAAT_MAP[formaat] ?? 'POSTCARD_A5';
+    const format = FORMAAT_MAP[formaat] ?? 'POSTCARD_A6';
 
     // Bouw de template HTML met merge variable placeholders
     const voorkantHtml = buildTemplateHTML({
@@ -288,6 +293,7 @@ export async function POST(req: NextRequest) {
       telefoon,
       email,
       website,
+      formaat,
     });
 
     const achterkantHtml = buildBackHTML({
@@ -295,6 +301,7 @@ export async function POST(req: NextRequest) {
       address: senderAddress || 'Postbus 1000',
       postalCode: senderPostalCode || '1000 AA',
       city: senderCity || 'Amsterdam',
+      formaat,
     });
 
     // Wrap voor Print.one rendering

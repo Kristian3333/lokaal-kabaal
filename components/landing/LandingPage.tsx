@@ -13,7 +13,6 @@ import Testimonials from '@/components/landing/Testimonials';
 import ActivityTicker from '@/components/landing/ActivityTicker';
 import ExitIntent from '@/components/landing/ExitIntent';
 import PartnerStrip from '@/components/landing/PartnerStrip';
-import ProefFlyerForm from '@/components/landing/ProefFlyerForm';
 import { motion } from 'framer-motion';
 
 const Hero3D = dynamic(() => import('@/components/Hero3D'), { ssr: false });
@@ -574,9 +573,6 @@ export default function LandingPage(): React.JSX.Element {
 
       {/* ── TESTIMONIALS ────────────────────────────────────────────────────── */}
       <Testimonials />
-
-      {/* ── PROEF-FLYER LEAD MAGNET ─────────────────────────────────────────── */}
-      <ProefFlyerForm />
 
       {/* ── PRICING ─────────────────────────────────────────────────────────── */}
       <PricingSection />

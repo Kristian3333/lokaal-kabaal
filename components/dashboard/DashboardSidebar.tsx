@@ -38,13 +38,13 @@ export default function DashboardSidebar({
   const tierOrder: Tier[] = ['starter', 'pro', 'agency'];
 
   return (
-    <nav style={{ width: 'var(--sidebar)', flexShrink: 0, background: 'var(--ink)', display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+    <nav style={{ width: 'var(--sidebar)', flexShrink: 0, background: 'var(--sidebar-bg)', display: 'flex', flexDirection: 'column', borderRight: '1px solid var(--sidebar-border)' }}>
       {/* Logo */}
-      <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: 'var(--paper)', fontStyle: 'italic', lineHeight: 1.1 }}>
+      <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid var(--sidebar-border)' }}>
+        <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: 'var(--sidebar-text)', fontStyle: 'italic', lineHeight: 1.1 }}>
           Lokaal<br /><span style={{ color: 'var(--green)' }}>Kabaal</span>
         </div>
-        <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>nieuwe bewoners → vaste klanten</div>
+        <div style={{ fontSize: '9px', color: 'var(--sidebar-text-dim)', fontFamily: 'var(--font-mono)', marginTop: '4px' }}>nieuwe bewoners → vaste klanten</div>
       </div>
 
       {/* Navigation */}
@@ -55,8 +55,8 @@ export default function DashboardSidebar({
             <button key={id} data-tour={`tour-nav-${id}`} onClick={() => onNavigate(id)}
               aria-current={page === id ? 'page' : undefined}
               aria-disabled={locked || undefined}
-              style={{ width: '100%', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px', background: page === id ? 'rgba(255,255,255,0.06)' : 'none', borderLeft: page === id ? '2px solid var(--green)' : '2px solid transparent', border: 'none', borderRight: 'none', color: locked ? 'rgba(255,255,255,0.2)' : page === id ? 'var(--paper)' : 'rgba(255,255,255,0.45)', cursor: 'pointer', textAlign: 'left', fontSize: '13px', fontFamily: 'var(--font-sans)', fontWeight: page === id ? 600 : 400, transition: 'all 0.15s' }}>
-              <span aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', color: locked ? 'rgba(255,255,255,0.15)' : page === id ? 'var(--green)' : 'rgba(255,255,255,0.3)' }}>{icon}</span>
+              style={{ width: '100%', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px', background: page === id ? 'rgba(255,255,255,0.06)' : 'none', borderLeft: page === id ? '2px solid var(--green)' : '2px solid transparent', border: 'none', borderRight: 'none', color: locked ? 'rgba(255,255,255,0.2)' : page === id ? 'var(--sidebar-text)' : 'var(--sidebar-text-muted)', cursor: 'pointer', textAlign: 'left', fontSize: '13px', fontFamily: 'var(--font-sans)', fontWeight: page === id ? 600 : 400, transition: 'all 0.15s' }}>
+              <span aria-hidden="true" style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', color: locked ? 'rgba(255,255,255,0.15)' : page === id ? 'var(--green)' : 'var(--sidebar-text-dim)' }}>{icon}</span>
               {label}
               {locked && minTier && <span style={{ marginLeft: 'auto', fontSize: '9px', color: TIERS[minTier].color, fontFamily: 'var(--font-mono)', opacity: 0.7 }}>{TIERS[minTier].label} ↑</span>}
             </button>
@@ -65,14 +65,14 @@ export default function DashboardSidebar({
       </div>
 
       {/* User footer */}
-      <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <div style={{ padding: '12px 16px', borderTop: '1px solid var(--sidebar-border)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-          <div style={{ width: '28px', height: '28px', background: 'var(--green)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '11px', color: 'var(--ink)', flexShrink: 0 }}>
+          <div style={{ width: '28px', height: '28px', background: 'var(--green)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '11px', color: '#0A0A0A', flexShrink: 0 }}>
             {(user?.naam || 'G')[0].toUpperCase()}
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontSize: '12px', color: 'var(--paper)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.naam || 'Gebruiker'}</div>
-            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email || ''}</div>
+            <div style={{ fontSize: '12px', color: 'var(--sidebar-text)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.naam || 'Gebruiker'}</div>
+            <div style={{ fontSize: '10px', color: 'var(--sidebar-text-dim)', fontFamily: 'var(--font-mono)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email || ''}</div>
           </div>
         </div>
         {user?.tier && (() => {
@@ -81,7 +81,7 @@ export default function DashboardSidebar({
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', padding: '4px 8px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '4px' }}>
               <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: tierCfg.color, flexShrink: 0 }} />
               <span style={{ fontSize: '10px', color: tierCfg.color, fontFamily: 'var(--font-mono)', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{tierCfg.label}</span>
-              {user.isJaarcontract && <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)', marginLeft: 'auto' }}>JAAR</span>}
+              {user.isJaarcontract && <span style={{ fontSize: '9px', color: 'var(--sidebar-text-dim)', fontFamily: 'var(--font-mono)', marginLeft: 'auto' }}>JAAR</span>}
             </div>
           );
         })()}
@@ -91,7 +91,7 @@ export default function DashboardSidebar({
 
         {/* Test account switcher -- only visible for test accounts */}
         {user?.email && isTestAccount(user.email) && (
-          <div style={{ marginTop: '8px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '8px' }}>
+          <div style={{ marginTop: '8px', borderTop: '1px solid var(--sidebar-border)', paddingTop: '8px' }}>
             <div style={{ fontSize: '9px', color: 'rgba(255,200,0,0.5)', fontFamily: 'var(--font-mono)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>Test switcher</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
               {TEST_ACCOUNTS.map(acc => {
@@ -101,7 +101,7 @@ export default function DashboardSidebar({
                   <button key={acc.email} onClick={() => onSwitchTestAccount(acc)}
                     style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', padding: '5px 8px', cursor: 'pointer', textAlign: 'left', background: isActive ? 'rgba(255,255,255,0.07)' : 'transparent', border: isActive ? `1px solid ${c}44` : '1px solid transparent', borderRadius: '3px' }}>
                     <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: c, flexShrink: 0 }} />
-                    <span style={{ fontSize: '10px', color: isActive ? '#fff' : 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>{acc.label}</span>
+                    <span style={{ fontSize: '10px', color: isActive ? 'var(--sidebar-text)' : 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>{acc.label}</span>
                     {isActive && <span style={{ marginLeft: 'auto', fontSize: '9px', color: c }}>●</span>}
                   </button>
                 );
