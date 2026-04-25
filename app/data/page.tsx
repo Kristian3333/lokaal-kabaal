@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
 import { buildProvincieStats } from '@/lib/provincie-data';
+import { buildMailto } from '@/lib/contact-config';
 
 export const metadata: Metadata = {
   title: 'Verhuisdata voor makelaars, verzekeraars en marketeers',
@@ -156,7 +157,7 @@ export default function DataPage(): React.JSX.Element {
           <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '24px', lineHeight: 1.65 }}>
             Vertel ons waarvoor je de data wil gebruiken, dan stemmen we het pakket + AVG-verwerkersovereenkomst af.
           </p>
-          <a href="mailto:data@lokaalkabaal.agency?subject=Verhuisdata%20aanvraag" style={{
+          <a href={buildMailto('data')} style={{
             display: 'inline-block', padding: '14px 32px', background: 'var(--ink)', color: '#fff',
             fontSize: '14px', fontWeight: 800, textDecoration: 'none', borderRadius: '4px',
           }}>

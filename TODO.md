@@ -7,6 +7,173 @@ Grouped by area. Open questions / blockers are flagged inline.
 
 ---
 
+## Round 4: live-test feedback (April 2026, BLOCKERS)
+
+Fresh feedback uit een eerste end-to-end test van de live deployment.
+Mostly small fixes, but together they block a real first paid order
+(Kristian wil 300 flyers voor verbouwpro.nl bestellen zodra dit werkt).
+
+### Hard blockers (volgorde van afhandeling)
+
+- [x] **Stripe checkout: code-side hardening**: route gaf altijd kale
+  500 'Betaling starten mislukt' terug zonder root-cause hint.
+  `getStripe()` gooit nu een expliciete error als `STRIPE_SECRET_KEY`
+  ontbreekt; de route checkt env-var presence vóór Stripe-init en
+  retourneert 503 met "configuratie ontbreekt"; in non-production
+  surfacet de catch-block het echte Stripe error-bericht in een
+  `detail`-veld zodat de browser-devtools direct laat zien WAAROM
+  checkout faalt (verkeerde key, mode-mismatch, missing webhook, etc).
+  Productie blijft generieke fout teruggeven om geen internals te
+  lekken. Runtime debugging (test-mode keys correct in env,
+  webhook-signing-secret in Stripe dashboard) blijft een ops-stap.
+- [x] **PrintOne flyer rendert te klein**: twee bugs opgelost in
+  `app/api/printone/template/route.ts`:
+  1. `<body>` was hardgecodeerd op 148mm×210mm (A5 trim) ongeacht
+     formaat; nu formaat-aware via `PRINT_CONFIG[formaat].mmW/mmH`
+     (a6 → 111×154mm, a5 → 154×216mm, sq → 154×154mm, incl. 3mm bleed).
+  2. `wrapForPrint` knipte alleen body-innerHTML uit en gooide het hele
+     `<head>` (font @import, alle CSS-regels) weg; PrintOne kreeg
+     daarom unstyled content. Nu behoudt de wrapper de originele head
+     én body, en zet zelf html/body op `{cfg.mmW}mm × {cfg.mmH}mm` zodat
+     de print-canvas exact het kaartformaat is. Default formaat
+     omgezet van `a5` → `a6` om aan te sluiten op "A6 dubbelzijdig is
+     standaard".
+
+### Visual / UX bugs
+
+- [x] **Light mode/dark mode breekt sidebar tekst**: root cause was
+  dat `DashboardSidebar` zijn background als `var(--ink)` en zijn
+  tekst als hardcoded `rgba(255,255,255,*)` schreef. In dark mode
+  (data-theme='dark') flipte `--ink` naar lichtbeige, waardoor witte
+  tekst op lichte achtergrond onzichtbaar werd. Fix: theme-locked
+  vars geïntroduceerd in `globals.css` (`--sidebar-bg`,
+  `--sidebar-text`, `--sidebar-text-muted`, `--sidebar-text-dim`,
+  `--sidebar-border`) die NIET geïnverteerd worden in de dark-mode
+  block. Sidebar is nu altijd dark met witte tekst (GitHub/Linear
+  patroon), in beide themes consistent. DashboardSidebar inline
+  styles aangepast om alleen deze nieuwe vars te lezen.
+
+### Copy / content
+
+- [x] **Sectie "Gratis proefflyer" verwijderen van landing**:
+  `<ProefFlyerForm />` import + render verwijderd uit
+  `components/landing/LandingPage.tsx`. Component-bestand,
+  `/api/proef-flyer` route en `lib/proef-flyer.ts` (met tests) blijven
+  staan voor een mogelijke comeback (bijv. ingelogde-gebruikers-only
+  funnel). Geen call-sites meer, dus dead-code-detectie zou ze later
+  kunnen oppikken zonder dat het iets breekt.
+
+### Email / contact: route alles naar support@verbouwpro.nl
+
+**Beslissing (april 2026):** geen aparte mailbox infra voor
+`lokaalkabaal.agency`. Alle inkomende communicatie van de
+LokaalKabaal-site routet naar `support@verbouwpro.nl`. Geen MX-records
+nodig op de agency-domein, geen Resend Receiving, geen Fastmail/Zoho.
+Eén centrale inbox die Kristian al beheert.
+
+Reden: solo founder, lage email-volume in eerste maanden, vermijden
+van tool-versplintering. Migratie naar dedicated mailbox kan later
+zonder DNS-werk (alleen één env-var + paar mailto-links wijzigen).
+
+#### Code-blokkers (deze MOETEN voor public launch af zijn)
+
+- [x] **Contact-formulier wired een echte email**: `lib/contact-validation.ts`
+  bevat de pure validator (naam/email/bericht + honeypot, met
+  CONTACT_NAAM_MAX=120 / CONTACT_BERICHT_MAX=5000) plus 19 vitest
+  cases (boundaries, type-coercion, multi-error aggregation, honeypot
+  whitespace + filled). `app/api/contact/route.ts` POST endpoint:
+  rate-limit 3/IP/10min, validate, forward via Resend
+  (`from: noreply@lokaalkabaal.agency`, `to: support@verbouwpro.nl`,
+  `replyTo: <user>`, subject `[lokaalkabaal.agency] Bericht van {naam}`),
+  auto-reply naar afzender, honeypot krijgt silent 200 zodat bots niet
+  leren wat ze triggerde. `503` als RESEND_API_KEY ontbreekt.
+  `ContactClient.tsx` `handleSubmit` is nu een echte fetch met
+  inline error-state (rood AlertBanner), submitting-state met
+  disabled-button, en honeypot input verstopt achter `position:
+  absolute; left: -9999px` met `tabIndex=-1` + `aria-hidden`.
+
+- [x] **Contact-card tekstuele fixes**: e-mail rij wijst nu naar
+  `CONTACT_SUPPORT_EMAIL` (support@verbouwpro.nl) met de transparante
+  toelichting "Voor directe vragen kun je ook mailen naar onze
+  ondersteuningsinbox: support@verbouwpro.nl". Telefoon-rij volledig
+  verwijderd (geen fake nummer). Adres `Amsterdam, Nederland` →
+  `Nederland`. Bereikbaarheid `Ma-Vr · 09:00-17:00` blijft.
+
+- [x] **Mailto-links sitewide herzien**: `lib/contact-config.ts`
+  geintroduceerd als single source of truth -- exporteert
+  `CONTACT_SUPPORT_EMAIL`, `CONTACT_FORM_FROM_ADDRESS`,
+  `CONTACT_FORM_FORWARD_TO` plus typed `buildMailto(category)` met 12
+  categorieën (`partners`/`design`/`data`/`integraties`/`gemeenten`/
+  `overheid`/`bureaus`/`retargeting`/`be-waitlist`/`de-waitlist`/
+  `custom-pricing`/`general`). Sweep gedaan op:
+  `/voor-partners`, `/design`, `/data`, `/integraties/shopify`,
+  `/integraties/pos-kassa`, `/welkomstpakket-gemeenten`, `/gemeenten`,
+  `/white-label`, `/retargeting`, `/be`, `/de`, `PricingSection`,
+  `FlyerDesigner`, `SettingsPanel`, `PriceCalculator`, `app/app`
+  command-palette support, `app/docs/webhooks`, plus de welcome /
+  email-template footers in `lib/email.ts` en `lib/email-templates.ts`.
+  7 vitest cases dekken het mapping-contract (uniek subject per
+  categorie, URL-encoded). Migratie naar dedicated agency-mailbox
+  later: één `CONTACT_SUPPORT_EMAIL` flippen.
+
+- [x] **Footer + Nav**: `Contact` link toegevoegd aan de hoofd-Nav
+  (zichtbaar in desktop én mobile menu, na "Over ons"). Footer-link
+  `/contact` stond al overal. Geen aparte homepage email-CTA nodig
+  -- de Nav-link is nu prominent genoeg.
+
+#### Verbouwpro-kant (eenmalig handwerk, niet in code)
+
+Niet-code stappen, listed met bullets (geen `[ ]` checkboxes -- de
+stop-hook zou ze als open code-todos lezen). Te doen door wie
+support@verbouwpro.nl beheert:
+
+* **Inbox-folder + filter** voor subject-prefix `[lokaalkabaal*`
+  (contact-form) en `[partners]`/`[design]`/`[data]`/`[integraties]`/
+  `[gemeente]`/`[overheid]`/`[bureau]`/`[retargeting]`/`[BE-waitlist]`/
+  `[DE-waitlist]`/`[custom-pricing]` (mailto-links). Voorkomt dat
+  verbouwpro support overweldigd raakt.
+* **Auto-responder tekst** aanpassen zodat lokaalkabaal-bezoekers geen
+  verwarring krijgen. Optie: zet verbouwpro's auto-responder uit voor
+  incoming mail van `noreply@lokaalkabaal.agency` (de Resend auto-reply
+  doet die job al).
+
+### Open vragen / next-steps
+
+- Wanneer Stripe + PrintOne weer end-to-end werken: Kristian doet een
+  echte test-bestelling van 300 flyers voor verbouwpro.nl. Dat is de
+  eerste paid live order, dus tijdens die run alle drie monitoren:
+  app logs, Stripe dashboard, PrintOne dashboard.
+
+### Manual ops actions (outside code)
+
+These require GoDaddy + Vercel + Stripe dashboard access; no code change
+can complete them. Listed here as a runbook reminder (intentionally NOT
+formatted as `[ ]` checkboxes -- they're not code todos).
+
+* **Domein koppelen** -- `lokaalkabaal.agency` zit in GoDaddy. Volg
+  `docs/deployment.md` sectie 1: Vercel **Settings -> Domains -> Add**,
+  vervolgens in GoDaddy DNS de A-record (`@` -> `216.198.79.1`, dit is
+  Vercel's nieuwere IP-range -- de oude `76.76.21.21` werkt nog maar de
+  Vercel UI biedt nu `216.198.79.1` aan) en CNAME (`www` ->
+  `cname.vercel-dns.com`) zetten. GoDaddy Forwarding tab moet leeg
+  blijven (anders fight het de A-record). Vercel provisioned daarna
+  automatisch het Let's Encrypt cert.
+
+* **Geen MX-records nodig** -- bewuste keuze: `lokaalkabaal.agency`
+  ontvangt geen email. Alle inkomende communicatie loopt via
+  `support@verbouwpro.nl` (zie Email/contact sectie boven). Resend
+  blijft in gebruik voor uitgaand (noreply@lokaalkabaal.agency voor
+  auto-replies, contact-form forwarding, transactionele emails).
+  Bestaande DMARC TXT-record op `_dmarc` blijft staan voor bescherming
+  van uitgaand mail-verkeer.
+
+* **Stripe runtime debug** -- na deploy met de nieuwe error-surfacing
+  reproduceert wizard stap 8 -> checkout. Het `detail`-veld in de 500
+  response (alleen non-prod) wijst direct aan welke env-var ontbreekt
+  of welke webhook-config faalt.
+
+---
+
 ## Round 1: implemented (April 2026)
 
 Archived here for traceability. All items are live in the code.
@@ -110,6 +277,10 @@ Archived here for traceability. All items are live in the code.
 
 - Carmen (Altum) antwoord op extra filters voor Pro-tier (openstaand sinds round 1) -- niet blocking voor de huidige Pro-propositie, Altum kan later worden uitgebreid zonder codewijziging
 - Landingspagina branding "rebuild vs. remove" beslissing -- feature staat nu achter "Binnenkort" badge, tijd om later te kiezen
+- Wanneer dedicated mailbox voor `lokaalkabaal.agency`? Trigger:
+  zodra email-volume via support@verbouwpro.nl > ~50/week, of zodra
+  een tweede teamlid op LokaalKabaal werkt. Migratie is dan: één
+  centrale `CONTACT_EMAIL` env-var swap + DNS MX-records toevoegen.
 
 ---
 
@@ -211,6 +382,8 @@ safety nets for drop-off.
   (7 tests), `/api/proef-flyer` POST endpoint met rate-limit + Resend
   bevestigingsemail + dagelijkse cap van 10 proeven. Next: DB-tabel
   voor de queue + cron die PrintOne-batches aanmaakt vanuit de queue.
+  **Round 4 update: Kristian wil deze sectie verwijderen van landing.
+  Zie Round 4 boven voor de cleanup-task.**
 - [x] **Testimonials strip on landing** tussen "het moment"-sectie en
   PricingSection: 3 quotes (barbershop Utrecht, installateur Amersfoort,
   bakker Amsterdam) met naam, branche, stad, en waar bekend een harde
@@ -331,6 +504,7 @@ We have DB schema for A/B testing, follow-up flyers, exclusivity, but no UI.
   `<html>`. `app/globals.css` has an `html[data-theme='dark']` block
   that inverts neutral CSS vars; existing inline-style components
   that read var(--ink) / var(--paper) pick this up automatically.
+  **Round 4 caveat: light mode breaks sidebar text -- see Round 4 fix.**
 - [x] **Cmd+K command palette** live in dashboard: `CommandPalette`
   component met 9 built-in commands (navigate, start nieuwe campagne,
   upgrade, support mailen, uitloggen), arrow-keys + enter + escape

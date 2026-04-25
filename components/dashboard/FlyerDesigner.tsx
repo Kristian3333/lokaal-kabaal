@@ -7,6 +7,7 @@ import FlyerPreview, { type FlyerState, AdaptiveLogo } from '@/components/dashbo
 import FlyerBackPreview from '@/components/dashboard/FlyerBackPreview';
 import { type PendingCampaign } from '@/components/dashboard/CampaignWizard';
 import { FLYER_PRESETS, presetsForBranche, type FlyerPreset } from '@/lib/flyer-presets';
+import { buildMailto } from '@/lib/contact-config';
 
 // ─── Design Options ───────────────────────────────────────────────────────────
 
@@ -151,7 +152,7 @@ export default function FlyerDesigner({
               </div>
             </div>
             <a
-              href={`mailto:Design@lokaalkabaal.agency?subject=Designaanvraag%20flyer${userEmail ? `&body=Account%3A%20${encodeURIComponent(userEmail)}` : ''}`}
+              href={`${buildMailto('design')}${userEmail ? `&body=Account%3A%20${encodeURIComponent(userEmail)}` : ''}`}
               style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 18px', background: 'var(--green)', color: 'var(--ink)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', fontFamily: 'var(--font-mono)' }}
             >
               Stuur designaanvraag →

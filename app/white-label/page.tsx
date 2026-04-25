@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Nav from '@/components/Nav';
+import { buildMailto } from '@/lib/contact-config';
 
 export const metadata: Metadata = {
   title: 'White-label: LokaalKabaal voor marketingbureaus',
@@ -91,7 +92,7 @@ export default function WhiteLabelPage(): React.JSX.Element {
           <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '24px', lineHeight: 1.65 }}>
             Vertel over jouw klantenportfolio, dan configureren we een pilot-workspace voor een aantal kwalificerende klanten.
           </p>
-          <a href="mailto:bureaus@lokaalkabaal.agency?subject=White-label%20pilot" style={{
+          <a href={buildMailto('bureaus')} style={{
             display: 'inline-block', padding: '14px 32px', background: 'var(--ink)', color: '#fff',
             fontSize: '14px', fontWeight: 800, textDecoration: 'none', borderRadius: '4px',
           }}>

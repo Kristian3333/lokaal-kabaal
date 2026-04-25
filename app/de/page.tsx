@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Nav from '@/components/Nav';
+import { buildMailto } from '@/lib/contact-config';
 
 export const metadata: Metadata = {
   title: 'Flyer an Neumieter in Deutschland | LokaalKabaal',
@@ -156,7 +157,7 @@ export default function DePage(): React.JSX.Element {
           <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '24px', lineHeight: 1.65 }}>
             Schick uns deine USt-IdNr + PLZ-Einzugsgebiet. Die ersten 50 Retailer auf der Waitlist bekommen Founding-Member-Tarife (30% Rabatt auf die ersten 12 Monate) und bevorzugten Onboarding-Slot im Q3 2027.
           </p>
-          <a href="mailto:de@lokaalkabaal.agency?subject=Deutschland%20Waitlist%20Anmeldung" style={{
+          <a href={buildMailto('de-waitlist')} style={{
             display: 'inline-block', padding: '14px 32px', background: 'var(--ink)', color: '#fff',
             fontSize: '14px', fontWeight: 800, textDecoration: 'none', borderRadius: '4px',
           }}>

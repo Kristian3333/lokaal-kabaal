@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
+import { buildMailto, CONTACT_SUPPORT_EMAIL } from '@/lib/contact-config';
 
 export const metadata: Metadata = {
   title: 'Webhooks · Developer docs',
@@ -98,7 +99,7 @@ function verify(body, provided, secret) {
         </ul>
 
         <div style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.7 }}>
-          Vragen? Mail <a href="mailto:support@lokaalkabaal.agency" style={{ color: 'var(--green-dim)', textDecoration: 'underline' }}>support@lokaalkabaal.agency</a> of bekijk de{' '}
+          Vragen? Mail <a href={buildMailto('general')} style={{ color: 'var(--green-dim)', textDecoration: 'underline' }}>{CONTACT_SUPPORT_EMAIL}</a> of bekijk de{' '}
           <Link href="/avg-dpia" style={{ color: 'var(--green-dim)', textDecoration: 'underline' }}>AVG/DPIA pagina</Link> voor databehandeling.
         </div>
       </div>

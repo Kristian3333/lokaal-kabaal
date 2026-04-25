@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
+import { buildMailto } from '@/lib/contact-config';
 
 export const metadata: Metadata = {
   title: 'Lightspeed & MplusKASSA koppeling voor flyer-codes | LokaalKabaal',
@@ -140,7 +141,7 @@ export default function PosKassaIntegratiePage(): React.JSX.Element {
           <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '24px', lineHeight: 1.65 }}>
             Stuur ons je kassa-merk, provider en winkelvestigingen. Wij leveren de configuratie + een proefsessie met je technische contactpersoon binnen 3 werkdagen.
           </p>
-          <a href="mailto:integraties@lokaalkabaal.agency?subject=POS%20koppeling%20aanvraag" style={{
+          <a href={buildMailto('integraties')} style={{
             display: 'inline-block', padding: '14px 32px', background: 'var(--ink)', color: '#fff',
             fontSize: '14px', fontWeight: 800, textDecoration: 'none', borderRadius: '4px',
           }}>

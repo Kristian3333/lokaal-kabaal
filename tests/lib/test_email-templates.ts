@@ -51,8 +51,11 @@ describe('buildEmailHtml', () => {
   });
 
   it('test_buildEmailHtml_footerLink_pointsToSupport', () => {
+    // Round 4 decision (april 2026): all inbound mail routes to the central
+    // support inbox at support@verbouwpro.nl. The agency domain has no
+    // MX records; only outbound mail uses noreply@lokaalkabaal.agency.
     const html = buildEmailHtml('X', '<p>y</p>');
-    expect(html).toContain('hallo@lokaalkabaal.agency');
+    expect(html).toContain('support@verbouwpro.nl');
   });
 });
 

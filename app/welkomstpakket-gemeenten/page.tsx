@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Nav from '@/components/Nav';
+import { buildMailto } from '@/lib/contact-config';
 
 export const metadata: Metadata = {
   title: 'Welkomstpakket nieuwe bewoners voor gemeenten | LokaalKabaal',
@@ -130,7 +131,7 @@ export default function WelkomstpakketGemeentenPage(): React.JSX.Element {
           <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '24px', lineHeight: 1.65 }}>
             Wij komen graag langs bij de beleidsmedewerker Economie of Dienstverlening. Intake is vrijblijvend en levert direct een projectvoorstel op dat B&W klaar is.
           </p>
-          <a href="mailto:overheid@lokaalkabaal.agency?subject=Welkomstpakket%20intake%20aanvraag" style={{
+          <a href={buildMailto('overheid')} style={{
             display: 'inline-block', padding: '14px 32px', background: 'var(--ink)', color: '#fff',
             fontSize: '14px', fontWeight: 800, textDecoration: 'none', borderRadius: '4px',
           }}>

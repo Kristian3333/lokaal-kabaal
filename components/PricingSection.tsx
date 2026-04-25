@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useState } from 'react';
+import { buildMailto } from '@/lib/contact-config';
 import {
   TIERS,
   YEARLY_DISCOUNT,
@@ -321,7 +322,7 @@ export default function PricingSection(): React.JSX.Element {
             <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--green)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>VANAF {fmtInt(CUSTOM_PRICING_THRESHOLD)} FLYERS/MND</div>
             <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', color: '#fff', marginBottom: '8px' }}>Op aanvraag</div>
             <a
-              href="mailto:support@lokaalkabaal.agency?subject=Maatwerkprijs%20%285.000%2B%20flyers%2Fmnd%29"
+              href={buildMailto('custom-pricing')}
               style={{ display: 'inline-block', padding: '6px 14px', background: 'var(--green)', color: 'var(--ink)', borderRadius: '4px', fontSize: '12px', fontWeight: 700, textDecoration: 'none', fontFamily: 'var(--font-mono)' }}
             >
               Neem contact op →

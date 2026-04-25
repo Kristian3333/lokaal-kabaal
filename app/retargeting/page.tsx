@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Nav from '@/components/Nav';
+import { buildMailto } from '@/lib/contact-config';
 
 export const metadata: Metadata = {
   title: 'Digital retargeting: bereik QR-scanners opnieuw op Facebook & Google',
@@ -115,7 +116,7 @@ export default function RetargetingPage(): React.JSX.Element {
           <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '24px', lineHeight: 1.65 }}>
             Minimaal 200 scans/mnd nodig om een zinvolle custom audience te bouwen. Geef ons je ad-account en huidige creative, wij doen de rest.
           </p>
-          <a href="mailto:retargeting@lokaalkabaal.agency?subject=Retargeting%20pilot%20aanvraag" style={{
+          <a href={buildMailto('retargeting')} style={{
             display: 'inline-block', padding: '14px 32px', background: 'var(--ink)', color: '#fff',
             fontSize: '14px', fontWeight: 800, textDecoration: 'none', borderRadius: '4px',
           }}>

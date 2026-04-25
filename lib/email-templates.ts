@@ -74,8 +74,8 @@ export function buildEmailHtml(title: string, bodyHtml: string, cta?: CtaButton)
       <p style="margin: 0; font-size: 12px; color: #999999; line-height: 1.6;">
         LokaalKabaal -- Automatische flyers naar nieuwe bewoners<br />
         Vragen? Mail ons op
-        <a href="mailto:hallo@lokaalkabaal.agency"
-           style="color: #00E87A; text-decoration: none;">hallo@lokaalkabaal.agency</a>
+        <a href="mailto:support@verbouwpro.nl"
+           style="color: #00E87A; text-decoration: none;">support@verbouwpro.nl</a>
       </p>
     </div>
 

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
+import { buildMailto } from '@/lib/contact-config';
 
 export const metadata: Metadata = {
   title: 'Shopify & WooCommerce koppeling voor flyer-codes | LokaalKabaal',
@@ -147,7 +148,7 @@ add_filter('woocommerce_coupon_is_valid', function($valid, $coupon) {
           <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '24px', lineHeight: 1.65 }}>
             De Shopify-app en WooCommerce-plugin zijn nu in private beta. Stuur ons je winkel-URL en retailer-ID via de mail, dan leveren we de installer + een ingestelde redeem-key.
           </p>
-          <a href="mailto:integraties@lokaalkabaal.agency?subject=Shopify%20plugin%20aanvraag" style={{
+          <a href={buildMailto('integraties')} style={{
             display: 'inline-block', padding: '14px 32px', background: 'var(--ink)', color: '#fff',
             fontSize: '14px', fontWeight: 800, textDecoration: 'none', borderRadius: '4px',
           }}>

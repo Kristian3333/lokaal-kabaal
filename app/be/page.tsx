@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Nav from '@/components/Nav';
+import { buildMailto } from '@/lib/contact-config';
 
 export const metadata: Metadata = {
   title: 'Flyers sturen naar nieuwe bewoners in Belgie | LokaalKabaal',
@@ -143,7 +144,7 @@ export default function BePage(): React.JSX.Element {
           <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '24px', lineHeight: 1.65 }}>
             Stuur ons je KBO-nummer + werkgebied. We nemen contact op zodra de feed-coverage het target haalt en plannen een intake gesprek in.
           </p>
-          <a href="mailto:be@lokaalkabaal.agency?subject=Vlaanderen%20pilot%20aanmelding" style={{
+          <a href={buildMailto('be-waitlist')} style={{
             display: 'inline-block', padding: '14px 32px', background: 'var(--ink)', color: '#fff',
             fontSize: '14px', fontWeight: 800, textDecoration: 'none', borderRadius: '4px',
           }}>

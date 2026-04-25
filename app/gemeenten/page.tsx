@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
+import { buildMailto } from '@/lib/contact-config';
 
 export const metadata: Metadata = {
   title: 'Voor gemeenten: welkomstpakket op basis van Kadaster-data',
@@ -119,7 +120,7 @@ export default function GemeentenPage(): React.JSX.Element {
           <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '24px', lineHeight: 1.65 }}>
             We starten partnerships per pilotgemeente. Stuur een mail, dan plannen we een kennismakingscall.
           </p>
-          <a href="mailto:gemeenten@lokaalkabaal.agency?subject=Welkomstpakket%20pilot" style={{
+          <a href={buildMailto('gemeenten')} style={{
             display: 'inline-block', padding: '14px 32px', background: 'var(--ink)', color: '#fff',
             fontSize: '14px', fontWeight: 800, textDecoration: 'none', borderRadius: '4px',
           }}>

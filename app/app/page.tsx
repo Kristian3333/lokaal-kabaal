@@ -12,6 +12,7 @@ import { type FlyerState } from '@/components/dashboard/FlyerPreview';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import CommandPalette, { type Command } from '@/components/dashboard/CommandPalette';
 import ProductTour from '@/components/dashboard/ProductTour';
+import { buildMailto, CONTACT_SUPPORT_EMAIL } from '@/lib/contact-config';
 
 // ─── Dynamic panels ──────────────────────────────────────────────────────────
 //
@@ -353,7 +354,7 @@ export default function LokaalKabaal(): React.JSX.Element {
     { id: 'go-bill',      label: 'Abonnement & facturatie',hint: 'Stripe portaal + facturen',    keywords: ['billing', 'invoice'],    onRun: () => setPage('billing') },
     { id: 'go-profile',   label: 'Mijn profiel',           hint: 'Bedrijfsgegevens + pincode',   keywords: ['settings', 'account'],   onRun: () => setPage('profiel') },
     { id: 'upgrade',      label: 'Abonnement upgraden',    hint: 'Bekijk tiers',                 keywords: ['upgrade', 'prijs'],     onRun: () => window.open('/#prijzen', '_blank') },
-    { id: 'support',      label: 'Support mailen',         hint: 'support@lokaalkabaal.agency',  keywords: ['help', 'contact'],       onRun: () => { window.location.href = 'mailto:support@lokaalkabaal.agency'; } },
+    { id: 'support',      label: 'Support mailen',         hint: CONTACT_SUPPORT_EMAIL,           keywords: ['help', 'contact'],       onRun: () => { window.location.href = buildMailto('general'); } },
     { id: 'logout',       label: 'Uitloggen',              hint: 'Terug naar de landing',        keywords: ['sign out', 'exit'],      onRun: uitloggen },
   ];
 

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Nav from '@/components/Nav';
+import { buildMailto } from '@/lib/contact-config';
 
 export const metadata: Metadata = {
   title: 'Flyer design service: wij maken jouw flyer voor je',
@@ -104,7 +105,7 @@ export default function DesignPage(): React.JSX.Element {
           <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '24px', lineHeight: 1.65 }}>
             Stuur ons een mail met je branding + welkomsaanbieding. Wij plannen de designer in en sturen binnen 2 werkdagen twee varianten.
           </p>
-          <a href="mailto:Design@lokaalkabaal.agency?subject=Flyer%20design%20aanvraag" style={{
+          <a href={buildMailto('design')} style={{
             display: 'inline-block', padding: '14px 32px', background: 'var(--ink)', color: '#fff',
             fontSize: '14px', fontWeight: 800, textDecoration: 'none', borderRadius: '4px',
           }}>

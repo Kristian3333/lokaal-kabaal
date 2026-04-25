@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { showToast } from '@/components/Toast';
 import ThemeToggle from '@/components/ThemeToggle';
+import { buildMailto } from '@/lib/contact-config';
 import { TIERS, type Tier } from '@/lib/tiers';
 
 interface SettingsPanelProps {
@@ -206,7 +207,7 @@ export default function SettingsPanel({
             </div>
           </div>
           <a
-            href={`mailto:Design@lokaalkabaal.agency?subject=Designaanvraag%20flyer${email ? `&body=Account%3A%20${encodeURIComponent(email)}` : ''}`}
+            href={`${buildMailto('design')}${email ? `&body=Account%3A%20${encodeURIComponent(email)}` : ''}`}
             style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 18px', background: 'var(--green)', color: 'var(--ink)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', fontFamily: 'var(--font-mono)' }}
           >
             Stuur designaanvraag →

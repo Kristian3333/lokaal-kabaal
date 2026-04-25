@@ -8,6 +8,7 @@ const LINKS = [
   { href: '/#prijzen', label: 'Prijzen' },
   { href: '/blog', label: 'Blog' },
   { href: '/over-ons', label: 'Over ons' },
+  { href: '/contact', label: 'Contact' },
 ];
 
 export default function Nav() {

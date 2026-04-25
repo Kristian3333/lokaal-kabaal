@@ -245,8 +245,8 @@ export async function sendWelcomeEmail(
       <li style="margin-bottom: 8px;">Wij doen de rest: elke maand worden flyers automatisch gedrukt en bezorgd tussen de 28e en 30e</li>
     </ol>
     <p>Heb je vragen? Stuur een mail naar
-      <a href="mailto:hallo@lokaalkabaal.agency"
-         style="color: #00E87A; text-decoration: none;">hallo@lokaalkabaal.agency</a>.
+      <a href="mailto:support@verbouwpro.nl"
+         style="color: #00E87A; text-decoration: none;">support@verbouwpro.nl</a>.
     </p>
     `,
     { text: 'Start je eerste campagne', url: APP_URL },

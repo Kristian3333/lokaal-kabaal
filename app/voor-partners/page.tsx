@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Nav from '@/components/Nav';
+import { buildMailto } from '@/lib/contact-config';
 
 export const metadata: Metadata = {
   title: 'Voor partners: open data + link-kit | LokaalKabaal',
@@ -155,7 +156,7 @@ export default function VoorPartnersPage(): React.JSX.Element {
           <p style={{ color: 'var(--muted)', fontSize: '14px', marginBottom: '24px', lineHeight: 1.65 }}>
             Stuur ons je domein + een korte beschrijving van je doelgroep. We antwoorden binnen 5 werkdagen met een voorstel voor de meest logische samenwerking.
           </p>
-          <a href="mailto:partners@lokaalkabaal.agency?subject=Partnership%20voorstel" style={{
+          <a href={buildMailto('partners')} style={{
             display: 'inline-block', padding: '14px 32px', background: 'var(--ink)', color: '#fff',
             fontSize: '14px', fontWeight: 800, textDecoration: 'none', borderRadius: '4px',
           }}>

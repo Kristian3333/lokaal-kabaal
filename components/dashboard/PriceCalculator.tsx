@@ -8,6 +8,7 @@
 
 import { type FlyerFormaat } from '@/lib/printone-pricing';
 import { A5_UPGRADE_PRICE } from '@/lib/tiers';
+import { buildMailto } from '@/lib/contact-config';
 
 interface PriceCalculatorProps {
   /** Currently selected flyer format */
@@ -117,7 +118,7 @@ export default function PriceCalculator({
             Uw werkgebied bevat ~{estAdressenMaand.toLocaleString('nl')} nieuwe bewoners per maand. Voor grotere gebieden maken we een maatwerkaanbod.
           </div>
           <a
-            href={`mailto:hallo@lokaalkabaal.nl?subject=Prijsverzoek groot werkgebied&body=Hallo,%0A%0AIk wil graag een offerte voor mijn werkgebied:%0A- Centrum: ${centrum}%0A- Straal: ${straal} km%0A- Branche: ${spec}%0A- Geschatte nieuwe bewoners/mnd: ${estAdressenMaand}%0A%0AKunt u mij een aanbod sturen?`}
+            href={`${buildMailto('custom-pricing')}&body=${encodeURIComponent(`Hallo,\n\nIk wil graag een offerte voor mijn werkgebied:\n- Centrum: ${centrum}\n- Straal: ${straal} km\n- Branche: ${spec}\n- Geschatte nieuwe bewoners/mnd: ${estAdressenMaand}\n\nKunt u mij een aanbod sturen?`)}`}
             style={{ display: 'inline-block', padding: '10px 20px', background: 'var(--green)', color: 'var(--ink)', textDecoration: 'none', borderRadius: 'var(--radius)', fontWeight: 700, fontSize: '13px', fontFamily: 'var(--font-mono)' }}
           >
             Stuur prijsverzoek →
