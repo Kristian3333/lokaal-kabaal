@@ -63,3 +63,5 @@ When reviewing code (manually or via `/review` or `/cleanup`), verify each appli
 ## External Integrations
 
 - PrintOne webhook secret validation must fail closed (reject if env var missing), not fail open -- caught: 2026-03-24, fallback was to accept all requests
+- HTML wrapping for headless print renderers (PrintOne, html2canvas + jsPDF) must pin a layout viewport via `<meta name="viewport" content="width=...">`. Relying on `width=device-width` lets the renderer pick an arbitrary device viewport, after which mm-sized bodies render small in a corner of the page -- caught: 2026-05-08, template route shipped flyers in the upper right of A5 paper at 1/3 size
+- External rendering code (PDF/print) is invisible until paper arrives. When it lives in two places, it WILL diverge. Keep the wrapping/scaling logic in one shared module with dimension-asserting tests, not copy-pasted across routes -- caught: 2026-05-08, /api/printone and /api/printone/template had drifted copies of `wrapForPrint`

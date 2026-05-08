@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
+import { wrapMmHtmlForPrint } from '@/lib/printone-render';
 
 // ─── POST /api/printone/template ────────────────────────────────────────────
 // Neemt flyer design data van de builder en maakt een Print.one template aan
@@ -13,17 +14,6 @@ const FORMAAT_MAP: Record<string, string> = {
   a6: 'POSTCARD_A6',
   a5: 'POSTCARD_A5',
   sq: 'POSTCARD_A5',
-};
-
-// Print-afmetingen per formaat (incl. 3mm bleed)
-const PRINT_CONFIG: Record<string, {
-  mmW: number; mmH: number;
-  previewW: number; previewH: number;
-  scale: number;
-}> = {
-  a6: { mmW: 111, mmH: 154, previewW: 167, previewH: 231, scale: 397 / 167 },
-  a5: { mmW: 154, mmH: 216, previewW: 231, previewH: 324, scale: 559 / 231 },
-  sq: { mmW: 154, mmH: 154, previewW: 231, previewH: 231, scale: 559 / 231 },
 };
 
 // ─── Flyer HTML met merge variable placeholders ─────────────────────────────
@@ -41,18 +31,17 @@ function buildTemplateHTML(d: {
   telefoon?: string;
   email?: string;
   website?: string;
-  formaat: string;
 }): string {
   const rgb = hexToRgb(d.primairKleur);
   const luminantie = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
   const tekstKleur = luminantie > 0.5 ? '#0A0A0A' : '#FFFFFF';
   const mutedKleur = luminantie > 0.5 ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)';
 
-  const cfg = PRINT_CONFIG[d.formaat] ?? PRINT_CONFIG.a6;
-
   // QR code URL met merge variable -- Print.one vervangt {{qr_url}} per order
   const qrImageSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{qr_url}}&bgcolor=ffffff&color=0a0a0a&margin=2`;
 
+  // Canvas-afmetingen worden door wrapMmHtmlForPrint gezet (in px op print
+  // canvas). Hier alleen visuele body-eigenschappen (achtergrond, font, etc.).
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -61,10 +50,8 @@ function buildTemplateHTML(d: {
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap');
   *{box-sizing:border-box;margin:0;padding:0}
   body{
-    width:${cfg.mmW}mm;height:${cfg.mmH}mm;
     background:${d.primairKleur};
     font-family:'Manrope',sans-serif;
-    overflow:hidden;
     position:relative;
   }
   .accent-bar{position:absolute;top:0;left:0;right:0;height:1.5mm;background:${d.accentKleur}}
@@ -160,8 +147,8 @@ function hexToRgb(hex: string): [number, number, number] {
 
 // ─── Achterkant met retouradres ─────────────────────────────────────────────
 
-function buildBackHTML(sender: { name: string; address: string; postalCode: string; city: string; formaat: string }): string {
-  const cfg = PRINT_CONFIG[sender.formaat] ?? PRINT_CONFIG.a6;
+function buildBackHTML(sender: { name: string; address: string; postalCode: string; city: string }): string {
+  // Canvas-afmetingen worden door wrapMmHtmlForPrint gezet; hier alleen kleur/font.
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -169,7 +156,7 @@ function buildBackHTML(sender: { name: string; address: string; postalCode: stri
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap');
   *{box-sizing:border-box;margin:0;padding:0}
-  body{width:${cfg.mmW}mm;height:${cfg.mmH}mm;background:#fff;font-family:'Manrope',sans-serif;overflow:hidden}
+  body{background:#fff;font-family:'Manrope',sans-serif}
   .back{width:100%;height:100%;padding:24px;display:flex;flex-direction:column;justify-content:flex-end}
   .label{font-size:11px;color:#999;margin:0 0 8px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.08em}
   .name{font-size:13px;font-weight:700;margin:0 0 4px;color:#333}
@@ -182,45 +169,6 @@ function buildBackHTML(sender: { name: string; address: string; postalCode: stri
   <p class="name">${sender.name}</p>
   <p class="addr">${sender.address}, ${sender.postalCode} ${sender.city}</p>
 </div>
-</body>
-</html>`;
-}
-
-// ─── Wrap HTML voor Print.one rendering ─────────────────────────────────────
-
-function wrapForPrint(rawHtml: string, formaat: string): string {
-  const cfg = PRINT_CONFIG[formaat] ?? PRINT_CONFIG.a6;
-  // Preserve original <head> contents (font @import, CSS rules) so the
-  // wrapped document doesn't render unstyled. Earlier versions only
-  // captured the body innerHTML and dropped every style rule, which made
-  // PrintOne render the flyer as a tiny pile of unstyled text.
-  const headMatch = rawHtml.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
-  const bodyMatch = rawHtml.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-  const headContent = headMatch ? headMatch[1] : '';
-  const bodyContent = bodyMatch ? bodyMatch[1] : rawHtml;
-
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  ${headContent}
-  <style>
-    /* Print canvas: PrintOne renders the document at the postcard's
-     * physical dimensions (incl. 3mm bleed). Using mm here -- not px --
-     * means the rendered output matches the paper size regardless of the
-     * rendering DPI on PrintOne's side. */
-    html, body {
-      width: ${cfg.mmW}mm;
-      height: ${cfg.mmH}mm;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-    }
-  </style>
-</head>
-<body>
-  ${bodyContent}
 </body>
 </html>`;
 }
@@ -293,7 +241,6 @@ export async function POST(req: NextRequest) {
       telefoon,
       email,
       website,
-      formaat,
     });
 
     const achterkantHtml = buildBackHTML({
@@ -301,12 +248,11 @@ export async function POST(req: NextRequest) {
       address: senderAddress || 'Postbus 1000',
       postalCode: senderPostalCode || '1000 AA',
       city: senderCity || 'Amsterdam',
-      formaat,
     });
 
-    // Wrap voor Print.one rendering
-    const voorkant = wrapForPrint(voorkantHtml, formaat);
-    const achterkant = wrapForPrint(achterkantHtml, formaat);
+    // Wrap voor Print.one rendering -- pint canvas-pixels op basis van formaat
+    const voorkant = wrapMmHtmlForPrint(voorkantHtml, formaat);
+    const achterkant = wrapMmHtmlForPrint(achterkantHtml, formaat);
 
     // Maak template aan bij Print.one
     const result = await po<{ id?: string; message?: string[] }>('/templates', 'POST', {
