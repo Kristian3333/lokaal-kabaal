@@ -68,7 +68,6 @@ export default function FlyerExport({ frontRef, backRef, formaat, dubbelzijdig, 
         useCORS: true,
         backgroundColor: null,
         logging: false,
-        foreignObjectRendering: true,
         onclone: (clonedDoc) => applyExportSafeHeadlineStyles(clonedDoc, liveDoc),
       });
 
@@ -88,7 +87,6 @@ export default function FlyerExport({ frontRef, backRef, formaat, dubbelzijdig, 
           useCORS: true,
           backgroundColor: null,
           logging: false,
-          foreignObjectRendering: true,
           onclone: (clonedDoc) => applyExportSafeHeadlineStyles(clonedDoc, liveDoc),
         });
         const backImg = backCanvas.toDataURL('image/png');

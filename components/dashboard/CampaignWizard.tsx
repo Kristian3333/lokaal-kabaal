@@ -985,7 +985,7 @@ export default function CampaignWizard({
                 {(() => {
                   const exportDims = formaat === 'sq' ? PREVIEW_PX.sq : PREVIEW_PX.a5;
                   return (
-                    <div aria-hidden style={{ position: 'fixed', left: '-9999px', top: 0, pointerEvents: 'none' }}>
+                    <div aria-hidden style={{ position: 'fixed', left: 0, top: 0, pointerEvents: 'none', opacity: 0.01, zIndex: -1 }}>
                       <div ref={wizardPrintFlyerRef} style={{ width: `${exportDims.w}px`, height: `${exportDims.h}px` }}>
                         <FlyerPreview flyer={flyer} formaat={formaat} forPrint />
                       </div>
