@@ -22,6 +22,28 @@ async function waitForFonts(): Promise<void> {
   await fonts.ready.catch(() => {}); // FontFaceSet rejection is non-fatal.
 }
 
+/**
+ * Wait for all <img> descendants of the export root so html2canvas captures
+ * the final layout, not a transient "text wrapped before image/font settled"
+ * state.
+ */
+async function waitForImages(root: HTMLElement): Promise<void> {
+  const imgs = Array.from(root.querySelectorAll('img'));
+  if (imgs.length === 0) return;
+  await Promise.all(imgs.map((img) => {
+    if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+    return new Promise<void>((resolve) => {
+      const done = () => {
+        img.removeEventListener('load', done);
+        img.removeEventListener('error', done);
+        resolve();
+      };
+      img.addEventListener('load', done, { once: true });
+      img.addEventListener('error', done, { once: true });
+    });
+  }));
+}
+
 export default function FlyerExport({ frontRef, backRef, formaat, dubbelzijdig, bedrijfsnaam }: FlyerExportProps) {
   const [loading, setLoading] = useState(false);
   const dims = printDimsForFormaat(formaat);
@@ -34,6 +56,8 @@ export default function FlyerExport({ frontRef, backRef, formaat, dubbelzijdig, 
       const jsPDF = (await import('jspdf')).jsPDF;
 
       await waitForFonts();
+      await waitForImages(frontRef.current);
+      if (dubbelzijdig && backRef?.current) await waitForImages(backRef.current);
 
       // Keep a reference to the live document so the onclone fixer can
       // read computed CSS variable values from the original cascade.
@@ -44,10 +68,11 @@ export default function FlyerExport({ frontRef, backRef, formaat, dubbelzijdig, 
         useCORS: true,
         backgroundColor: null,
         logging: false,
+        foreignObjectRendering: true,
         onclone: (clonedDoc) => applyExportSafeHeadlineStyles(clonedDoc, liveDoc),
       });
 
-      const frontImg = frontCanvas.toDataURL('image/jpeg', 0.95);
+      const frontImg = frontCanvas.toDataURL('image/png');
 
       const pdf = new jsPDF({
         orientation: 'portrait',
@@ -55,7 +80,7 @@ export default function FlyerExport({ frontRef, backRef, formaat, dubbelzijdig, 
         format: [dims.w, dims.h],
       });
 
-      pdf.addImage(frontImg, 'JPEG', 0, 0, dims.w, dims.h);
+      pdf.addImage(frontImg, 'PNG', 0, 0, dims.w, dims.h);
 
       if (dubbelzijdig && backRef?.current) {
         const backCanvas = await html2canvas(backRef.current, {
@@ -63,11 +88,12 @@ export default function FlyerExport({ frontRef, backRef, formaat, dubbelzijdig, 
           useCORS: true,
           backgroundColor: null,
           logging: false,
+          foreignObjectRendering: true,
           onclone: (clonedDoc) => applyExportSafeHeadlineStyles(clonedDoc, liveDoc),
         });
-        const backImg = backCanvas.toDataURL('image/jpeg', 0.95);
+        const backImg = backCanvas.toDataURL('image/png');
         pdf.addPage([dims.w, dims.h], 'portrait');
-        pdf.addImage(backImg, 'JPEG', 0, 0, dims.w, dims.h);
+        pdf.addImage(backImg, 'PNG', 0, 0, dims.w, dims.h);
       }
 
       // Crop marks at the 3mm trim line.
