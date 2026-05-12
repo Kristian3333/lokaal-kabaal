@@ -4,7 +4,7 @@
 //   retailers.magic_link_expiry     timestamp     -- token expiry (15 min window)
 import {
   pgTable, uuid, varchar, boolean, timestamp, date, index,
-  integer, pgEnum, numeric, smallint,
+  integer, pgEnum, numeric, smallint, jsonb,
 } from 'drizzle-orm/pg-core';
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
@@ -103,6 +103,12 @@ export const campaigns = pgTable('campaigns', {
   reviewedBy:       varchar('reviewed_by', { length: 255 }),
   reviewNotes:      varchar('review_notes', { length: 2000 }),
   rejectionReason:  varchar('rejection_reason', { length: 2000 }),
+
+  // Snapshot van het FlyerState-object zoals de klant het ontwierp bij
+  // checkout. Stored as JSONB so the admin-review page kan <FlyerPreview/>
+  // re-renderen om te zien wat we precies gaan drukken. Optioneel --
+  // de webhook-fallback heeft dit niet altijd beschikbaar.
+  flyerDesign:      jsonb('flyer_design'),
 
   createdAt:        timestamp('created_at').defaultNow().notNull(),
   updatedAt:        timestamp('updated_at').defaultNow().notNull(),

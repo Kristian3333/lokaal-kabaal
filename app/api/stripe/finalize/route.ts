@@ -137,6 +137,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       status: 'actief',
       awaitingReview: true,
       stripeSubscriptionItemId: sub.id,
+      // Snapshot of the customer's flyer design at checkout time, if
+      // the wizard handed it through sessionStorage. The admin
+      // detail page renders this with <FlyerPreview /> so reviewers
+      // see exactly what we are about to print.
+      flyerDesign: body.flyerDesign ?? null,
     }).returning({ id: campaigns.id });
 
     console.warn(`[stripe/finalize] created campaign ${created.id} for ${email} from session ${sessionId}`);

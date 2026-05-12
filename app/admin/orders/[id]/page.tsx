@@ -13,6 +13,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
+import type { FlyerState } from '@/components/dashboard/FlyerPreview';
+
+// Defer the preview bundles -- they pull in qrcode.react + a chunk of
+// inline styling that we don't need until the admin actually opens an
+// order detail page.
+const FlyerPreview = dynamic(() => import('@/components/dashboard/FlyerPreview'), { ssr: false });
+const FlyerBackPreview = dynamic(() => import('@/components/dashboard/FlyerBackPreview'), { ssr: false });
 
 interface CampaignRecord {
   id: string;
@@ -41,6 +49,7 @@ interface CampaignRecord {
   filterWozMax: number | null;
   filterEnergielabel: string | null;
   stripeSubscriptionItemId: string | null;
+  flyerDesign: FlyerState | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -209,6 +218,29 @@ export default function AdminOrderDetailPage(): React.JSX.Element {
 
       <main style={{ padding: '24px 32px', maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 320px', gap: '24px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <section style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
+            <h2 style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', margin: '0 0 14px' }}>Flyerontwerp</h2>
+            {c.flyerDesign ? (
+              <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', justifyContent: 'flex-start', alignItems: 'flex-start', background: 'var(--paper2)', padding: '20px', borderRadius: 'var(--radius)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center' }}>
+                  <FlyerPreview flyer={c.flyerDesign} formaat={(c.formaat as 'a5' | 'a6' | 'sq') ?? 'a5'} forPrint />
+                  <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Voorkant</div>
+                </div>
+                {c.dubbelzijdig && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center' }}>
+                    <FlyerBackPreview flyer={c.flyerDesign} formaat={(c.formaat as 'a5' | 'a6' | 'sq') ?? 'a5'} forPrint />
+                    <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Achterkant</div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ padding: '20px', background: 'var(--paper2)', borderRadius: 'var(--radius)', fontSize: '13px', color: 'var(--muted)', fontStyle: 'italic', textAlign: 'center', lineHeight: 1.6 }}>
+                Geen flyerontwerp opgeslagen bij deze bestelling.<br />
+                <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)' }}>(Webhook-fallback of sessionStorage-uitval: vraag de klant het ontwerp opnieuw aan te leveren voor approval.)</span>
+              </div>
+            )}
+          </section>
+
           <section style={{ background: '#fff', border: '1px solid var(--line)', borderRadius: 'var(--radius)', padding: '20px' }}>
             <h2 style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', margin: '0 0 14px' }}>Klant</h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
