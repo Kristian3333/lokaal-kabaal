@@ -123,7 +123,9 @@ describe.each(DESIGNS)('FlyerPreview design "%s"', (design) => {
         <FlyerPreview flyer={baseFlyer({ design, heroImageUrl })} formaat="a5" forPrint />,
       );
 
-      applyExportSafeHeadlineStyles(container);
+      // The function now expects a Document; pass the jsdom document
+      // which contains the rendered container.
+      applyExportSafeHeadlineStyles(container.ownerDocument);
 
       const marked = container.querySelectorAll<HTMLElement>(`[${HEADLINE_CLAMP_ATTR}]`);
       marked.forEach((el) => {
