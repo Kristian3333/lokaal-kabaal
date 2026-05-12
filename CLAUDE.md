@@ -178,3 +178,14 @@ This workflow is not optional. Skipping it creates technical debt that compounds
 - [x] Code quality sweep (emdash removal, console.log cleanup, error handling)
 - [x] Accessibility improvements (aria-labels, error boundaries, toast notifications)
 - [ ] Component extraction (dashboard split in progress)
+
+## Session Memory
+
+Maintain these files and keep them updated:
+- `docs/decisions.md` - architectural decisions with date and reasoning
+- `docs/status.md` - current state: what works, what's in progress, what's blocked
+- `docs/backlog.md` - planned work, ordered by priority
+
+At session start, read all three. At session end, update all three.
+Keep each file under 200 lines. If decisions.md gets long, 
+archive older entries to decisions-archive.md.

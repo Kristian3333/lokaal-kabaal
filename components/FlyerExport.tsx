@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { showToast } from '@/components/Toast';
 import { HTML2CANVAS_PRINT_SCALE, printDimsForFormaat } from '@/lib/flyer-export-math';
+import { applyExportSafeHeadlineStyles } from '@/lib/flyer-export-clone-style';
 
 export interface FlyerExportProps {
   frontRef: React.RefObject<HTMLDivElement>;
@@ -39,6 +40,7 @@ export default function FlyerExport({ frontRef, backRef, formaat, dubbelzijdig, 
         useCORS: true,
         backgroundColor: null,
         logging: false,
+        onclone: (clonedDoc) => applyExportSafeHeadlineStyles(clonedDoc),
       });
 
       const frontImg = frontCanvas.toDataURL('image/jpeg', 0.95);
@@ -57,6 +59,7 @@ export default function FlyerExport({ frontRef, backRef, formaat, dubbelzijdig, 
           useCORS: true,
           backgroundColor: null,
           logging: false,
+          onclone: (clonedDoc) => applyExportSafeHeadlineStyles(clonedDoc),
         });
         const backImg = backCanvas.toDataURL('image/jpeg', 0.95);
         pdf.addPage([dims.w, dims.h], 'portrait');
