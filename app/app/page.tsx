@@ -310,7 +310,7 @@ export default function LokaalKabaal(): React.JSX.Element {
     try {
       const res = await fetch('/api/flyer/generate', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: normalizedUrl, branche: wiz.spec || 'Lokale retailer', bedrijfsnaam: flyer.bedrijfsnaam || '', telefoon: flyer.telefoon || '', email: flyer.email || '', website: flyer.website || normalizedUrl, slogan: flyer.slogan || '' }),
+        body: JSON.stringify({ url: normalizedUrl, branche: wiz.spec || 'Lokale retailer', bedrijfsnaam: flyer.bedrijfsnaam || '', telefoon: flyer.telefoon || '', email: flyer.email || '', website: flyer.website || normalizedUrl, slogan: flyer.slogan || '', formaat: flyer.afmeting || 'a5' }),
       });
       const data = await res.json();
       if (!res.ok || data.error) { setScanMsg(data.error || `Fout (${res.status})`); return; }

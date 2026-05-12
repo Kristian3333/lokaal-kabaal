@@ -190,6 +190,7 @@ function buildFlyerHTML(d: {
   postcode?: string;
   stad?: string;
   geldigTot?: Date;
+  formaat?: 'a5' | 'a6';
 }): string {
   const hex = (d.primairKleur || '#ffffff').replace('#', '');
   const rgb = hex.length === 6
@@ -198,6 +199,44 @@ function buildFlyerHTML(d: {
   const luminantie = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
   const tekstKleur = luminantie > 0.5 ? '#0A0A0A' : '#FFFFFF';
   const mutedKleur = luminantie > 0.5 ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.5)';
+  const formaat = d.formaat === 'a6' ? 'a6' : 'a5';
+  const page = formaat === 'a6'
+    ? {
+        w: '105mm',
+        h: '148mm',
+        padTop: '7mm',
+        padSide: '7mm',
+        padBottom: '6mm',
+        heroH: '34mm',
+        logoMaxH: '11mm',
+        logoMaxW: '28mm',
+        bedrijfsnaamPt: '12pt',
+        badgePt: '5.8pt',
+        headlinePt: '13.5pt',
+        bodyPt: '7.5pt',
+        uspPt: '7.2pt',
+        contactPt: '6.4pt',
+        watermarkPt: '5pt',
+        qrSize: '16mm',
+      }
+    : {
+        w: '148mm',
+        h: '210mm',
+        padTop: '9mm',
+        padSide: '9mm',
+        padBottom: '7mm',
+        heroH: '48mm',
+        logoMaxH: '14mm',
+        logoMaxW: '36mm',
+        bedrijfsnaamPt: '15pt',
+        badgePt: '6.5pt',
+        headlinePt: '17pt',
+        bodyPt: '8.5pt',
+        uspPt: '8pt',
+        contactPt: '7pt',
+        watermarkPt: '5.5pt',
+        qrSize: '18mm',
+      };
 
   return `<!DOCTYPE html>
 <html>
@@ -205,38 +244,64 @@ function buildFlyerHTML(d: {
 <meta charset="UTF-8"/>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+  @page{size:${page.w} ${page.h};margin:0}
   *{box-sizing:border-box;margin:0;padding:0}
+  html{
+    width:${page.w};
+    height:${page.h};
+    background:${d.primairKleur};
+  }
   body{
-    width:148mm;height:210mm;
+    width:${page.w};height:${page.h};
     background:${d.primairKleur};
     font-family:'Manrope',sans-serif;
-    overflow:hidden;
     position:relative;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:geometricPrecision;
   }
   .accent-bar{position:absolute;top:0;left:0;right:0;height:1.5mm;background:${d.accentKleur}}
-  .flyer{width:100%;height:100%;display:flex;flex-direction:column;padding:9mm 9mm 7mm}
-  .header{display:flex;align-items:center;gap:4mm;padding-bottom:5mm;border-bottom:0.4mm solid ${d.accentKleur}55;margin-bottom:5mm;overflow:hidden;min-width:0}
-  .logo{max-height:14mm;max-width:36mm;height:auto;width:auto;object-fit:contain;display:block;flex-shrink:0}
-  .bedrijfsnaam{font-size:15pt;font-weight:800;color:${tekstKleur};line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+  .flyer{width:100%;height:100%;display:flex;flex-direction:column;padding:${page.padTop} ${page.padSide} ${page.padBottom};gap:0}
+  .header{display:flex;align-items:center;gap:4mm;padding-bottom:4mm;border-bottom:0.4mm solid ${d.accentKleur}55;margin-bottom:4mm;min-width:0}
+  .logo{max-height:${page.logoMaxH};max-width:${page.logoMaxW};height:auto;width:auto;object-fit:contain;display:block;flex-shrink:0}
+  .bedrijfsnaam{font-size:${page.bedrijfsnaamPt};font-weight:800;color:${tekstKleur};line-height:1.15;min-width:0;flex:1}
   .branche-badge{
     display:inline-block;background:${d.accentKleur};color:#0A0A0A;
-    font-size:6.5pt;font-weight:700;font-family:'DM Mono',monospace;
+    font-size:${page.badgePt};font-weight:700;font-family:'DM Mono',monospace;
     letter-spacing:.08em;text-transform:uppercase;
     padding:1mm 2.5mm;border-radius:.3mm;margin-bottom:3.5mm
   }
-  .hero{width:100%;height:48mm;object-fit:cover;border-radius:1mm;margin-bottom:4.5mm;display:block}
-  .hero-placeholder{width:100%;height:48mm;background:${d.accentKleur}22;border-radius:1mm;margin-bottom:4.5mm}
-  .headline{font-size:17pt;font-weight:800;color:${tekstKleur};line-height:1.2;margin-bottom:3mm;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;max-height:3.6em}
-  .bodytekst{font-size:8.5pt;color:${mutedKleur};line-height:1.7;margin-bottom:4mm;flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical}
-  .usps{display:flex;flex-direction:column;gap:1.5mm;margin-bottom:5mm;overflow:hidden}
-  .usp{display:flex;align-items:center;gap:2mm;font-size:8pt;color:${tekstKleur};font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hero,.hero-placeholder{width:100%;height:${page.heroH};border-radius:1mm;margin-bottom:4mm;display:block}
+  .hero{object-fit:cover}
+  .hero-placeholder{background:${d.accentKleur}22}
+  .headline{
+    font-size:${page.headlinePt};
+    font-weight:800;
+    color:${tekstKleur};
+    line-height:1.2;
+    margin-bottom:3mm;
+    max-height:3.6em;
+    overflow:hidden;
+  }
+  .bodytekst{
+    font-size:${page.bodyPt};
+    color:${mutedKleur};
+    line-height:1.6;
+    margin-bottom:4mm;
+    flex:1 1 auto;
+    min-height:0;
+    max-height:${formaat === 'a6' ? '7.8em' : '8.2em'};
+    overflow:hidden;
+  }
+  .usps{display:flex;flex-direction:column;gap:1.5mm;margin-bottom:5mm}
+  .usp{display:flex;align-items:flex-start;gap:2mm;font-size:${page.uspPt};line-height:1.35;color:${tekstKleur};font-weight:600}
   .dot{width:1.8mm;height:1.8mm;background:${d.accentKleur};border-radius:50%;flex-shrink:0}
-  .footer{border-top:.4mm solid ${d.accentKleur}33;padding-top:3mm;display:flex;justify-content:space-between;align-items:flex-end}
-  .contact{font-size:7pt;color:${mutedKleur};line-height:1.8;font-family:'DM Mono',monospace;overflow:hidden;text-overflow:ellipsis;max-width:60mm}
-  .watermark{font-size:5.5pt;color:${mutedKleur};font-family:'DM Mono',monospace;opacity:.4}
-  .qr-section{position:absolute;bottom:8mm;right:8mm;display:flex;flex-direction:column;align-items:center;gap:1.5mm}
-  .qr-code{width:18mm;height:18mm}
-  .qr-label{font-size:5.5pt;color:${mutedKleur};font-family:'DM Mono',monospace;text-align:center;letter-spacing:.04em}
+  .bottom{border-top:.4mm solid ${d.accentKleur}33;padding-top:3mm;display:flex;justify-content:space-between;align-items:flex-end;gap:5mm}
+  .contact-stack{display:flex;flex-direction:column;gap:2mm;min-width:0;flex:1}
+  .contact{font-size:${page.contactPt};color:${mutedKleur};line-height:1.6;font-family:'DM Mono',monospace;word-break:break-word}
+  .watermark{font-size:${page.watermarkPt};color:${mutedKleur};font-family:'DM Mono',monospace;opacity:.4}
+  .qr-section{display:flex;flex-direction:column;align-items:center;gap:1.2mm;flex-shrink:0}
+  .qr-code{width:${page.qrSize};height:${page.qrSize};display:block}
+  .qr-label{font-size:${page.watermarkPt};color:${mutedKleur};font-family:'DM Mono',monospace;text-align:center;letter-spacing:.04em}
   .adres-block{margin-top:3mm;padding:2.5mm 3mm;background:${d.accentKleur}18;border-left:1.5mm solid ${d.accentKleur};border-radius:.5mm}
 </style>
 <script>
@@ -279,28 +344,30 @@ function buildFlyerHTML(d: {
     <div style="font-size:8pt;color:${tekstKleur};font-family:'DM Mono',monospace;font-weight:500">${d.adres}, ${d.postcode} ${d.stad}</div>
     <div style="font-size:6.5pt;color:${mutedKleur};margin-top:1mm">Geldig t/m ${d.geldigTot ? d.geldigTot.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' }) : '30 dagen'} &middot; Eenmalig inwisselbaar</div>
   </div>` : ''}
-  <div class="footer">
-    <div class="contact">
-      ${d.telefoon ? `${d.telefoon}<br/>` : ''}
-      ${d.email ? `${d.email}<br/>` : ''}
-      ${d.website ? `${d.website}` : ''}
+  <div class="bottom">
+    <div class="contact-stack">
+      <div class="contact">
+        ${d.telefoon ? `${d.telefoon}<br/>` : ''}
+        ${d.email ? `${d.email}<br/>` : ''}
+        ${d.website ? `${d.website}` : ''}
+      </div>
+      <div class="watermark">lokaalkabaal.agency</div>
     </div>
-    <div class="watermark">lokaalkabaal.agency</div>
+    ${d.qrUrl && d.code ? `
+    <div class="qr-section">
+      <img class="qr-code" src="${buildQRImageUrl(d.qrUrl)}" alt="Scan voor verificatie"/>
+      <div class="qr-label">Scan bij kassa</div>
+      <div class="qr-label" style="opacity:.5">${d.code}</div>
+    </div>` : ''}
   </div>
 </div>
-${d.qrUrl && d.code ? `
-<div class="qr-section">
-  <img class="qr-code" src="${buildQRImageUrl(d.qrUrl)}" alt="Scan voor verificatie"/>
-  <div class="qr-label">Scan bij kassa</div>
-  <div class="qr-label" style="opacity:.5">${d.code}</div>
-</div>` : ''}
 </body>
 </html>`;
 }
 
 // ---- PDF rendering via Browserless ----
 
-async function renderPDF(html: string): Promise<Buffer | null> {
+async function renderPDF(html: string, formaat: 'a5' | 'a6' = 'a5'): Promise<Buffer | null> {
   const browserlessToken = process.env.BROWSERLESS_TOKEN;
   if (!browserlessToken) return null;
 
@@ -313,9 +380,10 @@ async function renderPDF(html: string): Promise<Buffer | null> {
         body: JSON.stringify({
           html,
           options: {
-            format: 'A5',
+            format: formaat === 'a6' ? 'A6' : 'A5',
             printBackground: true,
-            margin: { top: '3mm', bottom: '3mm', left: '3mm', right: '3mm' },
+            preferCSSPageSize: true,
+            margin: { top: '0mm', bottom: '0mm', left: '0mm', right: '0mm' },
           },
         }),
         signal: AbortSignal.timeout(15000),
@@ -350,10 +418,11 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const {
-      url, branche, bedrijfsnaam, telefoon, email, website, slogan,
+      url, branche, bedrijfsnaam, telefoon, email, website, slogan, formaat,
       // Verification fields (optional -- only for real campaign sends)
       adres, postcode, stad, retailerId, campagneId, overdrachtDatum,
     } = body;
+    const flyerFormaat: 'a5' | 'a6' = formaat === 'a6' ? 'a6' : 'a5';
 
     if (!url || !branche || !bedrijfsnaam) {
       return NextResponse.json(
@@ -436,10 +505,11 @@ export async function POST(req: NextRequest) {
       postcode,
       stad,
       geldigTot: verificationCode ? geldigTot : undefined,
+      formaat: flyerFormaat,
     });
 
     // Step 7: render PDF + upload
-    const pdf = await renderPDF(html);
+    const pdf = await renderPDF(html, flyerFormaat);
 
     let pdfUrl: string | null = null;
     if (pdf && process.env.BLOB_READ_WRITE_TOKEN) {
