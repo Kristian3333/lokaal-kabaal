@@ -29,7 +29,7 @@ interface PendingCampaign {
   dubbelzijdig: boolean;
 }
 
-type SaveState = 'saving' | 'saved' | 'no-pending' | 'failed';
+type SaveState = 'saving' | 'saved' | 'already-recorded' | 'failed';
 
 function BedanktContent(): React.JSX.Element {
   const searchParams = useSearchParams();
@@ -39,67 +39,63 @@ function BedanktContent(): React.JSX.Element {
   const ran = useRef(false);
 
   useEffect(() => {
-    // React strict-mode double-invokes effects in dev; guard so we
-    // don't POST to /api/campaigns twice for the same payment.
+    // Guard against React strict-mode's double-invoke in dev so we
+    // never POST to /api/stripe/finalize twice for the same payment.
     if (ran.current) return;
     ran.current = true;
 
-    const stored = sessionStorage.getItem('lk_pending_campaign');
-    if (!stored) {
-      // Customer hit /bedankt without going through the wizard this
-      // session (refreshed the success URL, bookmarked it, etc.).
-      // That's fine -- they paid, the Stripe webhook will sort
-      // retailer status out; we just can't auto-create the campaign
-      // from here.
-      setState('no-pending');
-      return;
-    }
-
-    let pc: PendingCampaign;
-    try {
-      pc = JSON.parse(stored) as PendingCampaign;
-    } catch {
+    if (!sessionId) {
       setState('failed');
-      setError('Ongeldige sessie-data. Neem contact op met support.');
+      setError('Geen Stripe-sessie in de URL. Open de bevestigingsmail of neem contact op met support.');
       return;
     }
 
-    const storedFlyer = sessionStorage.getItem('lk_pending_flyer');
+    // /api/stripe/finalize is the deterministic single source of truth.
+    // It reads the campaign blueprint back off the Stripe subscription's
+    // metadata (so this works even if sessionStorage was wiped between
+    // tabs), and is idempotent on the Stripe subscription id. The
+    // wizard's sessionStorage payload is now only used to enrich the
+    // campaign with the flyer design + start date the customer picked
+    // -- if it's missing the server still creates the campaign with
+    // sensible defaults that the operator finishes during review.
+    const pendingRaw = (() => {
+      try { return sessionStorage.getItem('lk_pending_campaign'); } catch { return null; }
+    })();
+    const pending: PendingCampaign | null = (() => {
+      try { return pendingRaw ? JSON.parse(pendingRaw) as PendingCampaign : null; } catch { return null; }
+    })();
+    const storedFlyer = (() => {
+      try { return sessionStorage.getItem('lk_pending_flyer'); } catch { return null; }
+    })();
     const flyerDesign = (() => {
       try { return storedFlyer ? JSON.parse(storedFlyer) : null; } catch { return null; }
     })();
-    const userEmail = (() => {
-      try { return JSON.parse(localStorage.getItem('lk_user') || '{}').email as string | undefined; } catch { return undefined; }
-    })();
 
-    fetch('/api/campaigns', {
+    fetch('/api/stripe/finalize', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        email: userEmail,
-        naam: `${pc.spec} campagne`,
-        branche: pc.spec,
-        centrum: pc.centrum,
-        verwachtAantalPerMaand: pc.aantalFlyers,
-        duurMaanden: 1,
-        startMaand: pc.datum,
-        formaat: pc.formaat,
-        dubbelzijdig: pc.dubbelzijdig,
-        stripeSessionId: sessionId,
+        sessionId,
+        datum: pending?.datum,
+        pc4Lijst: undefined,
         flyerDesign,
       }),
     })
       .then(async (r) => {
-        if (!r.ok) {
-          const body = await r.json().catch(() => ({}));
-          throw new Error((body as { error?: string }).error || `HTTP ${r.status}`);
+        const data = await r.json().catch(() => ({})) as {
+          ok?: boolean; id?: string; created?: boolean; error?: string; detail?: string;
+        };
+        if (!r.ok || !data.ok) {
+          throw new Error(data.detail ? `${data.error ?? r.status}: ${data.detail}` : (data.error ?? `HTTP ${r.status}`));
         }
-        sessionStorage.removeItem('lk_pending_campaign');
-        sessionStorage.removeItem('lk_pending_flyer');
-        setState('saved');
+        try {
+          sessionStorage.removeItem('lk_pending_campaign');
+          sessionStorage.removeItem('lk_pending_flyer');
+        } catch { /* tolerate quota / private-mode */ }
+        setState(data.created ? 'saved' : 'already-recorded');
       })
       .catch((err: Error) => {
-        console.error('[bedankt] campaign save failed:', err);
+        console.error('[bedankt] finalize failed:', err);
         setError(err.message);
         setState('failed');
       });
@@ -135,7 +131,7 @@ function BedanktContent(): React.JSX.Element {
           </>
         )}
 
-        {(state === 'saved' || state === 'no-pending') && (
+        {(state === 'saved' || state === 'already-recorded') && (
           <>
             <div style={{
               width: '64px', height: '64px', borderRadius: '50%',
@@ -149,8 +145,8 @@ function BedanktContent(): React.JSX.Element {
             </h1>
             <p style={{ fontSize: '15px', color: 'var(--ink)', lineHeight: 1.7, marginBottom: '20px' }}>
               {state === 'saved'
-                ? 'Je campagne staat klaar voor verwerking.'
-                : 'Je betaling is ontvangen.'}
+                ? 'Je campagne staat klaar voor onze controle.'
+                : 'Deze bestelling was al vastgelegd.'}
             </p>
 
             <div style={{ background: 'var(--paper2)', borderRadius: 'var(--radius)', padding: '20px', textAlign: 'left', marginBottom: '24px' }}>
