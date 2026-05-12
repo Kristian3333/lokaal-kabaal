@@ -6,7 +6,13 @@
  */
 
 import { useState } from 'react';
-import { PREVIEW_PX } from '@/components/FlyerExport';
+import {
+  PREVIEW_PX,
+  previewPxForFormaat,
+  heroHeightForCanvas,
+  bodyClampForCanvas,
+  uspLimitForCanvas,
+} from '@/lib/flyer-export-math';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -117,12 +123,15 @@ export function QrCode({ size = 40, fg = '#000', bg = 'transparent' }: {
  * Renders the front face of a flyer in one of 9 designs.
  * Supports draggable hero image repositioning.
  */
-export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange }: {
+export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange, forPrint = false }: {
   flyer: FlyerState;
   formaat?: 'a6' | 'a5' | 'sq';
   onHeroOffsetChange?: (x: number, y: number) => void;
+  /** Strip screen-only chrome (rounded corners, drop shadow, zoom) so the
+   *  html2canvas capture matches the physical printed flyer. */
+  forPrint?: boolean;
 }): React.JSX.Element | null {
-  const usps = flyer.usp ? flyer.usp.split('\n').filter(Boolean).slice(0, 3) : [];
+  const usps = flyer.usp ? flyer.usp.split('\n').filter(Boolean).slice(0, uspLimitForCanvas(3, formaat)) : [];
   const naam = flyer.bedrijfsnaam || 'Jouw Bedrijfsnaam';
   const tekst = flyer.tekst || 'Wij heten je van harte welkom als nieuwe bewoner. Kom eens langs en ontdek wat wij voor jou kunnen betekenen in de buurt.';
   const initials = naam.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase();
@@ -169,15 +178,23 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
     };
   };
 
-  const pxDims = PREVIEW_PX[formaat] ?? PREVIEW_PX['a5'];
-  const a5Dims = PREVIEW_PX['a5'];
-  const isA6 = formaat === 'a6';
-  const zoomRatio = isA6 ? pxDims.w / a5Dims.w : 1;
+  // SQ reflows to its own 231x231 canvas. A5 stays 231x324. A6 uses A5
+  // canvas with `zoom` so the on-screen preview shrinks proportionally;
+  // for print the offscreen wrapper captures A5 and jsPDF rescales.
+  const pxDims = previewPxForFormaat(formaat);
+  const a5Dims = PREVIEW_PX.a5;
+  const isSquare = formaat === 'sq';
+  const zoomRatio = formaat === 'a6' ? pxDims.w / a5Dims.w : 1;
+  const canvasW = isSquare ? pxDims.w : a5Dims.w;
+  const canvasH = isSquare ? pxDims.h : a5Dims.h;
+  const heroH = (a5Px: number) => heroHeightForCanvas(a5Px, formaat);
+  const bodyN = (a5Lines: number) => bodyClampForCanvas(a5Lines, formaat);
   const base: React.CSSProperties = {
-    width: `${a5Dims.w}px`, height: `${a5Dims.h}px`, borderRadius: '8px', overflow: 'hidden',
+    width: `${canvasW}px`, height: `${canvasH}px`, overflow: 'hidden',
     position: 'relative', flexShrink: 0, fontFamily: 'var(--font-sans)',
-    boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
-    zoom: zoomRatio,
+    ...(forPrint
+      ? {}
+      : { borderRadius: '8px', boxShadow: '0 12px 40px rgba(0,0,0,0.35)', zoom: zoomRatio }),
   };
 
   const ctaText = flyer.cta || '10% welkomstkorting';
@@ -202,8 +219,8 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
           </div>
           {flyer.heroImageUrl ? (
             <>
-              <div style={{ position: 'relative', marginBottom: '8px', borderRadius: '3px', overflow: 'hidden', flexShrink: 0, height: '85px' }}>
-                <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle('85px'), borderRadius: '3px' }} onMouseDown={handleHeroDrag} />
+              <div style={{ position: 'relative', marginBottom: '8px', borderRadius: '3px', overflow: 'hidden', flexShrink: 0, height: `${heroH(85)}px` }}>
+                <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle(`${heroH(85)}px`), borderRadius: '3px' }} onMouseDown={handleHeroDrag} />
                 <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.35) 100%)', pointerEvents: 'none' }} />
                 {dragOverlay}
               </div>
@@ -218,7 +235,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
             </div>
           )}
           <div style={{ width: '28px', height: '2px', background: flyer.accent, marginBottom: '8px', flexShrink: 0 }} />
-          <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.68)', lineHeight: 1.7, marginBottom: '8px', ...clampStyle(4), flexShrink: 1, minHeight: 0 }}>{tekst}</div>
+          <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.68)', lineHeight: 1.7, marginBottom: '8px', ...clampStyle(bodyN(4)), flexShrink: 0 }}>{tekst}</div>
           {usps.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '8px', flexShrink: 0 }}>
               {usps.map((u, i) => (
@@ -233,7 +250,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
             <span style={{ fontSize: '8px', fontWeight: 800, color: flyer.kleur, fontFamily: 'var(--font-mono)', letterSpacing: '0.04em' }}>{ctaText}</span>
           </div>
         </div>
-        <div style={{ borderTop: `1px solid rgba(255,255,255,0.08)`, padding: '9px 16px 9px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.2)', flexShrink: 0 }}>
+        <div style={{ borderTop: `1px solid rgba(255,255,255,0.08)`, padding: '9px 16px 14px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.2)', flexShrink: 0 }}>
           <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
             <div style={{ fontWeight: 800, fontSize: '9px', color: '#fff', letterSpacing: '0.01em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{naam}</div>
             {flyer.website && <div style={{ fontSize: '7px', color: flyer.accent, fontFamily: 'var(--font-mono)', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{flyer.website}</div>}
@@ -255,8 +272,8 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
         <div style={{ position: 'absolute', bottom: '40px', left: '-50px', width: '180px', height: '180px', borderRadius: '50%', background: flyer.kleur, opacity: 0.06 }} />
         <div style={{ position: 'absolute', bottom: '20px', left: '-20px', width: '100px', height: '100px', borderRadius: '50%', background: flyer.accent, opacity: 0.10 }} />
         {flyer.heroImageUrl ? (
-          <div style={{ position: 'relative', height: '100px', overflow: 'hidden', flexShrink: 0 }}>
-            <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle('100px') }} onMouseDown={handleHeroDrag} />
+          <div style={{ position: 'relative', height: `${heroH(100)}px`, overflow: 'hidden', flexShrink: 0 }}>
+            <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle(`${heroH(100)}px`) }} onMouseDown={handleHeroDrag} />
             <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 30%, ${flyer.kleur}cc 100%)`, pointerEvents: 'none' }} />
             {dragOverlay}
             <div style={{ position: 'absolute', bottom: '10px', left: '14px', right: '14px' }}>
@@ -282,7 +299,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
           </div>
         )}
         <div style={{ padding: '10px 14px', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ fontSize: '8px', color: '#444', lineHeight: 1.65, marginBottom: '10px', ...clampStyle(4), flexShrink: 1, minHeight: 0 }}>{tekst}</div>
+          <div style={{ fontSize: '8px', color: '#444', lineHeight: 1.65, marginBottom: '10px', ...clampStyle(bodyN(4)), flexShrink: 0 }}>{tekst}</div>
           {usps.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', flexShrink: 0 }}>
               {usps.map((u, i) => (
@@ -296,7 +313,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
             </div>
           )}
         </div>
-        <div style={{ background: flyer.accent, padding: '8px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{ background: flyer.accent, padding: '8px 14px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           <span style={{ fontSize: '8px', fontWeight: 800, color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>{ctaText}</span>
           {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.kleur} bg="transparent" />}
           <span style={{ fontSize: '7px', color: `${flyer.kleur}bb`, fontFamily: 'var(--font-mono)' }}>{flyer.website || ''}</span>
@@ -310,8 +327,8 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
     return (
       <div style={{ ...base, background: '#faf9f7', display: 'flex', flexDirection: 'column' }}>
         {flyer.heroImageUrl ? (
-          <div style={{ position: 'relative', height: '110px', overflow: 'hidden', flexShrink: 0 }}>
-            <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle('110px') }} onMouseDown={handleHeroDrag} />
+          <div style={{ position: 'relative', height: `${heroH(110)}px`, overflow: 'hidden', flexShrink: 0 }}>
+            <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle(`${heroH(110)}px`) }} onMouseDown={handleHeroDrag} />
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(250,249,247,0.95) 100%)', pointerEvents: 'none' }} />
             {dragOverlay}
           </div>
@@ -337,7 +354,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
             {headline}
           </div>
           <div style={{ width: '20px', height: '2px', background: flyer.accent, marginBottom: '10px', flexShrink: 0 }} />
-          <div style={{ fontSize: '8px', color: '#666', lineHeight: 1.65, marginBottom: '10px', ...clampStyle(4), flexShrink: 1, minHeight: 0 }}>{tekst}</div>
+          <div style={{ fontSize: '8px', color: '#666', lineHeight: 1.65, marginBottom: '10px', ...clampStyle(bodyN(4)), flexShrink: 0 }}>{tekst}</div>
           {usps.length > 0 && (
             <div style={{ borderTop: '1px solid #ede9e3', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '8px', flexShrink: 0 }}>
               {usps.map((u, i) => (
@@ -353,7 +370,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
             <span style={{ fontSize: '8px', color: flyer.accent, fontWeight: 700 }}>&#8594;</span>
           </div>
         </div>
-        <div style={{ padding: '7px 20px', borderTop: '1px solid #e8e6e0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{ padding: '7px 20px 14px', borderTop: '1px solid #e8e6e0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           {flyer.website && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
           {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.kleur} bg="transparent" />}
           {flyer.telefoon && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.telefoon}</span>}
@@ -367,8 +384,8 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
     return (
       <div style={{ ...base, background: flyer.kleur, display: 'flex', flexDirection: 'column' }}>
         {flyer.heroImageUrl ? (
-          <div style={{ position: 'relative', height: '140px', overflow: 'hidden', flexShrink: 0 }}>
-            <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle('140px') }} onMouseDown={handleHeroDrag} />
+          <div style={{ position: 'relative', height: `${heroH(140)}px`, overflow: 'hidden', flexShrink: 0 }}>
+            <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle(`${heroH(140)}px`) }} onMouseDown={handleHeroDrag} />
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.65) 100%)', pointerEvents: 'none' }} />
             {dragOverlay}
             <div style={{ position: 'absolute', top: '10px', left: '12px', background: flyer.accent, borderRadius: '2px', padding: '3px 7px' }}>
@@ -379,7 +396,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
             </div>
           </div>
         ) : (
-          <div style={{ height: '110px', background: flyer.accent, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '14px 16px', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
+          <div style={{ height: `${heroH(110)}px`, background: flyer.accent, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: '14px 16px', position: 'relative', overflow: 'hidden', flexShrink: 0 }}>
             <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', letterSpacing: '0.18em', color: flyer.kleur, opacity: 0.75, marginBottom: '5px', textTransform: 'uppercase' }}>Nieuw in de buurt</div>
             <div style={{ fontFamily: 'var(--font-serif)', fontSize: '22px', fontWeight: 700, color: flyer.kleur, lineHeight: 1.0, letterSpacing: '-0.02em', ...clampStyle(3) }}>{headline}</div>
@@ -387,7 +404,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
         )}
         <div style={{ padding: '12px 16px', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <div style={{ width: '36px', height: '3px', background: flyer.accent, marginBottom: '8px', borderRadius: '2px', flexShrink: 0 }} />
-          <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.72)', lineHeight: 1.65, marginBottom: '8px', ...clampStyle(3), flexShrink: 1, minHeight: 0 }}>{tekst}</div>
+          <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.72)', lineHeight: 1.65, marginBottom: '8px', ...clampStyle(bodyN(3)), flexShrink: 0 }}>{tekst}</div>
           {usps.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', flexShrink: 0 }}>
               {usps.map((u, i) => (
@@ -410,7 +427,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
               : <span style={{ fontSize: '7px', fontWeight: 700, color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>{flyer.website || ''}</span>
             }
           </div>
-          <div style={{ background: 'rgba(0,0,0,0.3)', padding: '5px 16px' }}>
+          <div style={{ background: 'rgba(0,0,0,0.3)', padding: '5px 16px 14px' }}>
             <div style={{ fontWeight: 700, fontSize: '8px', color: 'rgba(255,255,255,0.7)' }}>{naam}</div>
           </div>
         </div>
@@ -432,8 +449,8 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
             </div>
           </div>
           {flyer.heroImageUrl ? (
-            <div style={{ position: 'relative', marginBottom: '8px', border: `2px solid ${flyer.kleur}`, overflow: 'hidden', flexShrink: 0, width: '100%', height: '65px' }}>
-              <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle('65px') }} onMouseDown={handleHeroDrag} />
+            <div style={{ position: 'relative', marginBottom: '8px', border: `2px solid ${flyer.kleur}`, overflow: 'hidden', flexShrink: 0, width: '100%', height: `${heroH(65)}px` }}>
+              <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle(`${heroH(65)}px`) }} onMouseDown={handleHeroDrag} />
               {dragOverlay}
             </div>
           ) : null}
@@ -443,7 +460,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
             <div style={{ width: '5px', height: '5px', background: flyer.accent, transform: 'rotate(45deg)', flexShrink: 0 }} />
             <div style={{ flex: 1, height: '1px', background: flyer.kleur, opacity: 0.25 }} />
           </div>
-          <div style={{ fontSize: '7.5px', color: '#4a3a28', lineHeight: 1.65, marginBottom: '8px', textAlign: 'center', width: '100%', ...clampStyle(3), flexShrink: 1, minHeight: 0 }}>{tekst}</div>
+          <div style={{ fontSize: '7.5px', color: '#4a3a28', lineHeight: 1.65, marginBottom: '8px', textAlign: 'center', width: '100%', ...clampStyle(bodyN(3)), flexShrink: 0 }}>{tekst}</div>
           {usps.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '4px', marginBottom: '8px', flexShrink: 0 }}>
               {usps.map((u, i) => (
@@ -482,8 +499,8 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
           <div style={{ position: 'absolute', top: '-15px', right: '-15px', width: '70px', height: '70px', borderRadius: '50%', background: flyer.accent, opacity: 0.22 }} />
           <div style={{ position: 'absolute', bottom: '-25px', left: '10px', width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
           {flyer.heroImageUrl && (
-            <div style={{ position: 'relative', marginBottom: '8px', borderRadius: '8px', overflow: 'hidden', height: '58px' }}>
-              <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle('58px'), borderRadius: '8px' }} onMouseDown={handleHeroDrag} />
+            <div style={{ position: 'relative', marginBottom: '8px', borderRadius: '8px', overflow: 'hidden', height: `${heroH(58)}px` }}>
+              <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle(`${heroH(58)}px`), borderRadius: '8px' }} onMouseDown={handleHeroDrag} />
               {dragOverlay}
             </div>
           )}
@@ -498,7 +515,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
             }
             <div style={{ fontSize: '10px', fontWeight: 700, color: flyer.kleur, ...ellipsisStyle }}>{naam}</div>
           </div>
-          <div style={{ fontSize: '8px', color: '#5a4a3a', lineHeight: 1.65, marginBottom: '8px', ...clampStyle(3), flexShrink: 1, minHeight: 0 }}>{tekst}</div>
+          <div style={{ fontSize: '8px', color: '#5a4a3a', lineHeight: 1.65, marginBottom: '8px', ...clampStyle(bodyN(3)), flexShrink: 0 }}>{tekst}</div>
           {usps.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '8px', flexShrink: 0 }}>
               {usps.map((u, i) => (
@@ -513,7 +530,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
             <span style={{ fontSize: '8px', fontWeight: 800, color: flyer.kleur, fontFamily: 'var(--font-mono)' }}>{ctaText}</span>
           </div>
         </div>
-        <div style={{ padding: '6px 16px', borderTop: `1px solid ${flyer.accent}40`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{ padding: '6px 16px 14px', borderTop: `1px solid ${flyer.accent}40`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           {flyer.website && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
           {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.kleur} bg="transparent" />}
           {flyer.telefoon && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.telefoon}</span>}
@@ -536,15 +553,15 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: '7px', letterSpacing: '0.2em', color: flyer.accent, textTransform: 'uppercase', opacity: 0.9 }}>Nieuwe bewoners</div>
           </div>
           {flyer.heroImageUrl && (
-            <div style={{ position: 'relative', marginBottom: '10px', borderRadius: '4px', overflow: 'hidden', border: `1px solid ${flyer.accent}35`, flexShrink: 0, height: '72px' }}>
-              <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle('72px') }} onMouseDown={handleHeroDrag} />
+            <div style={{ position: 'relative', marginBottom: '10px', borderRadius: '4px', overflow: 'hidden', border: `1px solid ${flyer.accent}35`, flexShrink: 0, height: `${heroH(72)}px` }}>
+              <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle(`${heroH(72)}px`) }} onMouseDown={handleHeroDrag} />
               <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom, transparent 35%, ${bg}70)`, pointerEvents: 'none' }} />
               {dragOverlay}
             </div>
           )}
           <div style={{ fontFamily: 'var(--font-serif)', fontSize: '20px', color: '#fff', lineHeight: 1.05, marginBottom: '6px', letterSpacing: '-0.02em', textShadow: `0 0 20px ${flyer.accent}55`, flexShrink: 0, ...clampStyle(2) }}>{headline}</div>
           <div style={{ height: '1px', background: `linear-gradient(90deg, ${flyer.accent} 0%, transparent 100%)`, marginBottom: '8px', boxShadow: `0 0 5px ${flyer.accent}`, flexShrink: 0 }} />
-          <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.50)', lineHeight: 1.65, marginBottom: '8px', ...clampStyle(3), flexShrink: 1, minHeight: 0 }}>{tekst}</div>
+          <div style={{ fontSize: '8px', color: 'rgba(255,255,255,0.50)', lineHeight: 1.65, marginBottom: '8px', ...clampStyle(bodyN(3)), flexShrink: 0 }}>{tekst}</div>
           {usps.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '10px', flexShrink: 0 }}>
               {usps.map((u, i) => (
@@ -559,7 +576,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '8px', fontWeight: 700, color: flyer.accent, textShadow: `0 0 8px ${flyer.accent}` }}>{ctaText}</span>
           </div>
         </div>
-        <div style={{ borderTop: `1px solid ${flyer.accent}25`, padding: '7px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: `${bg}f0`, flexShrink: 0 }}>
+        <div style={{ borderTop: `1px solid ${flyer.accent}25`, padding: '7px 16px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: `${bg}f0`, flexShrink: 0 }}>
           <div>
             <div style={{ fontWeight: 700, fontSize: '8px', color: flyer.accent, fontFamily: 'var(--font-mono)', textShadow: `0 0 6px ${flyer.accent}70` }}>{naam}</div>
             {flyer.website && <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.28)', fontFamily: 'var(--font-mono)', marginTop: '1px' }}>{flyer.website}</div>}
@@ -592,8 +609,8 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
         </div>
         <div style={{ height: '3px', background: flyer.accent, flexShrink: 0 }} />
         {flyer.heroImageUrl ? (
-          <div style={{ position: 'relative', height: '82px', overflow: 'hidden', flexShrink: 0 }}>
-            <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle('82px') }} onMouseDown={handleHeroDrag} />
+          <div style={{ position: 'relative', height: `${heroH(82)}px`, overflow: 'hidden', flexShrink: 0 }}>
+            <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle(`${heroH(82)}px`) }} onMouseDown={handleHeroDrag} />
             {dragOverlay}
           </div>
         ) : (
@@ -604,7 +621,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
         <div style={{ padding: '10px 16px', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           {flyer.heroImageUrl && <div style={{ fontFamily: 'var(--font-serif)', fontSize: '14px', color: flyer.kleur, lineHeight: 1.2, marginBottom: '6px', flexShrink: 0, ...clampStyle(2) }}>{headline}</div>}
           <div style={{ width: '24px', height: '2px', background: flyer.accent, marginBottom: '7px', flexShrink: 0 }} />
-          <div style={{ fontSize: '7.5px', color: '#444', lineHeight: 1.65, marginBottom: '8px', ...clampStyle(3), flexShrink: 1, minHeight: 0 }}>{tekst}</div>
+          <div style={{ fontSize: '7.5px', color: '#444', lineHeight: 1.65, marginBottom: '8px', ...clampStyle(bodyN(3)), flexShrink: 0 }}>{tekst}</div>
           {usps.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '8px', flexShrink: 0 }}>
               {usps.map((u, i) => (
@@ -618,7 +635,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: '7.5px', fontWeight: 700, color: '#fff', letterSpacing: '0.06em' }}>{ctaText}</span>
           </div>
         </div>
-        <div style={{ background: '#f4f4f4', borderTop: `2px solid ${flyer.accent}`, padding: '6px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{ background: '#f4f4f4', borderTop: `2px solid ${flyer.accent}`, padding: '6px 16px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           {flyer.website && <span style={{ fontSize: '7px', color: '#777', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
           {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.kleur} bg="transparent" />}
           {flyer.telefoon && <span style={{ fontSize: '7px', color: '#777', fontFamily: 'var(--font-mono)' }}>{flyer.telefoon}</span>}
@@ -643,12 +660,12 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
             <span style={{ fontSize: '8.5px', fontWeight: 800, color: '#fff', fontFamily: 'var(--font-mono)', ...ellipsisStyle, display: 'block' }}>{naam}</span>
           </div>
           {flyer.heroImageUrl && (
-            <div style={{ position: 'relative', marginBottom: '8px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, height: '55px' }}>
-              <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle('55px'), borderRadius: '10px' }} onMouseDown={handleHeroDrag} />
+            <div style={{ position: 'relative', marginBottom: '8px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, height: `${heroH(55)}px` }}>
+              <img src={flyer.heroImageUrl} alt="" role="presentation" style={{ ...heroImgStyle(`${heroH(55)}px`), borderRadius: '10px' }} onMouseDown={handleHeroDrag} />
               {dragOverlay}
             </div>
           )}
-          <div style={{ fontSize: '8px', color: '#555', lineHeight: 1.65, marginBottom: '8px', ...clampStyle(3), flexShrink: 1, minHeight: 0 }}>{tekst}</div>
+          <div style={{ fontSize: '8px', color: '#555', lineHeight: 1.65, marginBottom: '8px', ...clampStyle(bodyN(3)), flexShrink: 0 }}>{tekst}</div>
           {usps.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '8px', flexShrink: 0 }}>
               {usps.map((u, i) => (
@@ -663,7 +680,7 @@ export default function FlyerPreview({ flyer, formaat = 'a5', onHeroOffsetChange
             <span style={{ fontSize: '8px', fontWeight: 800, color: '#fff', fontFamily: 'var(--font-mono)' }}>{ctaText}</span>
           </div>
         </div>
-        <div style={{ padding: '6px 16px', background: `${flyer.kleur}08`, borderTop: '1px solid rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{ padding: '6px 16px 14px', background: `${flyer.kleur}08`, borderTop: '1px solid rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           {flyer.website && <span style={{ fontSize: '7px', color: '#999', fontFamily: 'var(--font-mono)' }}>{flyer.website}</span>}
           {(flyer.qrPlaats === 'voor' || flyer.qrPlaats === 'beide') && <QrCode size={26} fg={flyer.kleur} bg="transparent" />}
           {flyer.logoData

@@ -5,39 +5,46 @@
  * Matches the design of FlyerPreview with contact info, opening hours, and QR code.
  */
 
-import { PREVIEW_PX } from '@/components/FlyerExport';
+import { PREVIEW_PX, previewPxForFormaat, backLineLimitForCanvas } from '@/lib/flyer-export-math';
 import { AdaptiveLogo, QrCode, type FlyerState } from '@/components/dashboard/FlyerPreview';
 
 /**
  * Renders the back side of a flyer in the matching design style.
  */
-export default function FlyerBackPreview({ flyer, formaat = 'a5' }: {
+export default function FlyerBackPreview({ flyer, formaat = 'a5', forPrint = false }: {
   flyer: FlyerState;
   formaat?: 'a6' | 'a5' | 'sq';
+  /** Strip screen-only chrome (rounded corners, drop shadow, zoom) so the
+   *  html2canvas capture matches the physical printed flyer. */
+  forPrint?: boolean;
 }): React.JSX.Element {
   const naam = flyer.bedrijfsnaam || 'Jouw Bedrijfsnaam';
   const initials = naam.split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase();
   const adres = flyer.adres || '';
-  const urenLines = flyer.openingstijden ? flyer.openingstijden.split('\n').filter(Boolean).slice(0, 4) : [];
+  const urenLines = flyer.openingstijden ? flyer.openingstijden.split('\n').filter(Boolean).slice(0, backLineLimitForCanvas(4, formaat)) : [];
   const backTekst = flyer.backTekst || 'Vragen? Wij helpen je graag verder.';
 
-  const pxDims = PREVIEW_PX[formaat] ?? PREVIEW_PX['a5'];
-  const a5Dims = PREVIEW_PX['a5'];
-  const isA6 = formaat === 'a6';
-  const zoomRatio = isA6 ? pxDims.w / a5Dims.w : 1;
+  // SQ reflows to 231x231; A5 stays 231x324; A6 zooms screen view.
+  const pxDims = previewPxForFormaat(formaat);
+  const a5Dims = PREVIEW_PX.a5;
+  const isSquare = formaat === 'sq';
+  const zoomRatio = formaat === 'a6' ? pxDims.w / a5Dims.w : 1;
+  const canvasW = isSquare ? pxDims.w : a5Dims.w;
+  const canvasH = isSquare ? pxDims.h : a5Dims.h;
   const base: React.CSSProperties = {
-    width: `${a5Dims.w}px`, height: `${a5Dims.h}px`, borderRadius: '8px', overflow: 'hidden',
+    width: `${canvasW}px`, height: `${canvasH}px`, overflow: 'hidden',
     position: 'relative', flexShrink: 0, fontFamily: 'var(--font-sans)',
-    boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
-    zoom: zoomRatio,
+    ...(forPrint
+      ? {}
+      : { borderRadius: '8px', boxShadow: '0 12px 40px rgba(0,0,0,0.35)', zoom: zoomRatio }),
   };
 
-  const contactRows = [
+  const contactRows = ([
     flyer.telefoon && { icon: '&#9742;', v: flyer.telefoon },
     flyer.email && { icon: '&#10003;', v: flyer.email },
     flyer.website && { icon: '&#8853;', v: flyer.website },
     adres && { icon: '&#8982;', v: adres },
-  ].filter(Boolean) as { icon: string; v: string }[];
+  ].filter(Boolean) as { icon: string; v: string }[]).slice(0, backLineLimitForCanvas(4, formaat));
 
   if (flyer.design === 'editorial') {
     return (
@@ -71,7 +78,7 @@ export default function FlyerBackPreview({ flyer, formaat = 'a5' }: {
             </div>
           )}
         </div>
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '9px 18px 9px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '9px 18px 14px 20px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.4)', fontFamily: 'var(--font-mono)' }}>Scan voor onze website</div>
           {(flyer.qrPlaats === 'achter' || flyer.qrPlaats === 'beide') && <QrCode size={36} fg={flyer.accent} bg="transparent" />}
         </div>
@@ -114,7 +121,7 @@ export default function FlyerBackPreview({ flyer, formaat = 'a5' }: {
             )}
           </div>
         </div>
-        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: flyer.accent, padding: '6px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: flyer.accent, padding: '6px 18px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '8px', fontWeight: 700, color: flyer.kleur }}>{flyer.website || 'www.jouwwebsite.nl'}</span>
           {flyer.logoData
             ? <AdaptiveLogo src={flyer.logoData} baseSize={18} />

@@ -1,8 +1,8 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { PREVIEW_PX } from '@/components/FlyerExport';
 import FlyerExport from '@/components/FlyerExport';
+import { PREVIEW_PX } from '@/lib/flyer-export-math';
 import FlyerPreview, { type FlyerState, AdaptiveLogo } from '@/components/dashboard/FlyerPreview';
 import FlyerBackPreview from '@/components/dashboard/FlyerBackPreview';
 import { type PendingCampaign } from '@/components/dashboard/CampaignWizard';
@@ -596,17 +596,27 @@ export default function FlyerDesigner({
         </div>
       </div>
 
-      {/* Offscreen print containers for PDF export */}
-      <div aria-hidden style={{ position: 'fixed', left: '-9999px', top: 0, pointerEvents: 'none', opacity: 0 }}>
-        <div ref={frontPrintRef} style={{ width: `${PREVIEW_PX.a5.w}px`, height: `${PREVIEW_PX.a5.h}px` }}>
-          <FlyerPreview flyer={flyer} formaat="a5" />
-        </div>
-        {flyer.dubbelzijdig && (
-          <div ref={backPrintRef} style={{ width: `${PREVIEW_PX.a5.w}px`, height: `${PREVIEW_PX.a5.h}px` }}>
-            <FlyerBackPreview flyer={flyer} formaat="a5" />
+      {/* Offscreen print containers for PDF export.
+          Wrapper dimensions follow the user's selected format so the captured
+          snapshot has the right aspect ratio for jsPDF. SQ reflows to 231x231
+          (FlyerPreview adapts heros, body clamps and USPs internally); A5/A6
+          share the 231x324 canvas since their aspect ratios match within 1%. */}
+      {(() => {
+        const exportFormaat: 'a6' | 'a5' | 'sq' = (flyer.afmeting as 'a6' | 'a5' | 'sq') || 'a5';
+        const exportDims = exportFormaat === 'sq' ? PREVIEW_PX.sq : PREVIEW_PX.a5;
+        return (
+          <div aria-hidden style={{ position: 'fixed', left: '-9999px', top: 0, pointerEvents: 'none', opacity: 0 }}>
+            <div ref={frontPrintRef} style={{ width: `${exportDims.w}px`, height: `${exportDims.h}px` }}>
+              <FlyerPreview flyer={flyer} formaat={exportFormaat} forPrint />
+            </div>
+            {flyer.dubbelzijdig && (
+              <div ref={backPrintRef} style={{ width: `${exportDims.w}px`, height: `${exportDims.h}px` }}>
+                <FlyerBackPreview flyer={flyer} formaat={exportFormaat} forPrint />
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        );
+      })()}
     </>
   );
 }
