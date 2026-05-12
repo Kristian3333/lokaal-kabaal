@@ -174,10 +174,15 @@ function resolveFontVariables(clonedDoc: Document, sourceDoc: Document): void {
 
 /**
  * The offscreen print container uses `opacity: 0` to hide the clone
- * from the user. html2canvas captures what the browser paints, and
- * some browsers skip subpixel text rasterisation for zero-opacity
- * subtrees. Force full opacity on every element in the cloned tree
- * so the capture gets full-fidelity text rendering.
+ * from the user. html2canvas captures what the browser paints, and a
+ * zero-opacity subtree paints nothing, so text renders as blank in the
+ * capture. Force opacity:0 to 1 so the capture actually sees the text.
+ *
+ * Intentional design opacities (e.g. 0.06 for decorative background
+ * circles, 0.9 for dimmed labels) must be preserved -- forcing them to
+ * 1 turns translucent decorations into solid colour shapes that paint
+ * on top of content text in the stacking order, occluding it in the
+ * exported PDF.
  */
 function forceFullOpacity(clonedDoc: Document): void {
   const clonedBody = clonedDoc.body;
@@ -186,7 +191,7 @@ function forceFullOpacity(clonedDoc: Document): void {
   const allElements = clonedDoc.querySelectorAll<HTMLElement>('*');
   allElements.forEach((el) => {
     const op = el.style.opacity;
-    if (op && parseFloat(op) < 1) {
+    if (op && parseFloat(op) === 0) {
       el.style.opacity = '1';
     }
   });
