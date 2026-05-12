@@ -163,6 +163,42 @@ function LoginContent() {
   }
 
   /**
+   * POST /api/auth/password-reset/request to email a real password-reset
+   * link. Distinct from the magic-link tab, which only logs the user in
+   * without changing their password.
+   */
+  async function handlePasswordReset(): Promise<void> {
+    setError('');
+    setSuccess('');
+    if (!email) {
+      setError('Vul eerst je e-mailadres in.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/password-reset/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (res.status === 429) {
+        setError('Te veel aanvragen. Wacht even en probeer opnieuw.');
+        return;
+      }
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError((body as { error?: string }).error || 'Versturen mislukt, probeer opnieuw');
+        return;
+      }
+      setSuccess('Als dit e-mailadres bij ons bekend is, ontvang je een reset-link. Controleer ook je spam.');
+    } catch {
+      setError('Versturen mislukt, probeer opnieuw');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /**
    * POST /api/auth/magic-link and show confirmation.
    */
   async function handleMagicLink(e: React.FormEvent): Promise<void> {
@@ -317,12 +353,16 @@ function LoginContent() {
               {error && (
                 <p style={{ fontSize: '11px', color: 'var(--red)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>{error}</p>
               )}
+              {success && (
+                <p style={{ fontSize: '11px', color: 'var(--green-dim)', fontFamily: 'var(--font-mono)', marginBottom: '12px' }}>{success}</p>
+              )}
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
                 <button
                   type="button"
-                  aria-label="Wachtwoord vergeten? Inloglink per e-mail aanvragen"
-                  onClick={() => { setTab('magic'); setError(''); }}
-                  style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                  aria-label="Wachtwoord vergeten? Reset-link per e-mail aanvragen"
+                  onClick={() => { void handlePasswordReset(); }}
+                  disabled={loading}
+                  style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'var(--font-mono)', background: 'none', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', padding: 0 }}
                 >
                   Wachtwoord vergeten?
                 </button>

@@ -174,6 +174,43 @@ export async function sendMagicLink(
 }
 
 /**
+ * Send a password-reset email containing a one-time link that lands the
+ * recipient on the /reset-password page so they can choose a new password.
+ *
+ * Reuses the magicLinkToken column, so a user with a pending reset link
+ * and a pending magic-login link cannot have both at once; the most
+ * recent request wins. That tradeoff is fine -- both flows require email
+ * access to the same inbox, so collision risk is zero in practice.
+ */
+export async function sendPasswordResetEmail(
+  email: string,
+  token: string,
+  baseUrl: string,
+): Promise<boolean> {
+  const resetUrl = `${baseUrl}/reset-password?token=${encodeURIComponent(token)}`;
+
+  const html = buildEmailHtml(
+    'Reset je wachtwoord',
+    `
+    <p>Je hebt een verzoek ingediend om je wachtwoord bij LokaalKabaal opnieuw in te stellen.
+    Klik op de knop hieronder om een nieuw wachtwoord te kiezen.</p>
+    <p style="color: #999999; font-size: 13px;">
+      Deze link is <strong>15 minuten</strong> geldig. Daarna moet je een nieuwe link aanvragen.
+      Heb je dit zelf niet aangevraagd? Dan kun je deze e-mail veilig negeren -- je wachtwoord
+      blijft ongewijzigd zolang je niet op de knop klikt.
+    </p>
+    `,
+    { text: 'Nieuw wachtwoord instellen', url: resetUrl },
+  );
+
+  return sendEmail({
+    to: email,
+    subject: 'Reset je wachtwoord -- LokaalKabaal',
+    html,
+  });
+}
+
+/**
  * Reminder email sent ~48h after signup if the retailer hasn't yet created
  * their first campaign. The only behavioural gate comes from the caller
  * (cron query). This function is deliberately idempotent on the email side
