@@ -451,6 +451,23 @@ export default function CampaignWizard({
           body: JSON.stringify({ aantalFlyers, spec, centrum, straal, email: wiz.email || '', bedrijfsnaam: flyer.bedrijfsnaam || '' }),
         }).then(() => setLargeOrderSent(true)).catch(() => {});
       }
+      // Stash the campaign + flyer in sessionStorage BEFORE the Stripe
+      // redirect. When Stripe sends the user back to /app?payment=success
+      // the dashboard's post-payment effect reads these keys and POSTs
+      // them to /api/campaigns -- without them, the customer pays but
+      // no campaign is created and they land on an empty dashboard.
+      try {
+        const pending: PendingCampaign = {
+          spec, datum, centrum, aantalFlyers, formaat, dubbelzijdig,
+          maxBudget: berekenPrijs(aantalFlyers, formaat, dubbelzijdig),
+          proefAdres,
+        };
+        sessionStorage.setItem('lk_pending_campaign', JSON.stringify(pending));
+        sessionStorage.setItem('lk_pending_flyer', JSON.stringify(flyer));
+      } catch (err) {
+        console.warn('[wizard] sessionStorage write failed:', err);
+      }
+
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
