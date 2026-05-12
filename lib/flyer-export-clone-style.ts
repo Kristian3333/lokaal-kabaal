@@ -130,15 +130,15 @@ function resolveFontVariables(clonedDoc: Document, sourceDoc: Document): void {
   const sourceComputed = sourceDoc.defaultView?.getComputedStyle(sourceRoot);
   if (!sourceComputed) return;
 
-  // Map of CSS variable names to resolved values.
-  const varMap = new Map<string, string>();
+  // Build a plain object of CSS variable -> resolved value.
   const varNames = ['--font-serif', '--font-mono', '--font-sans'];
-  for (const v of varNames) {
-    const resolved = sourceComputed.getPropertyValue(v).trim();
-    if (resolved) varMap.set(v, resolved);
+  const vars: { name: string; value: string }[] = [];
+  for (let i = 0; i < varNames.length; i++) {
+    const resolved = sourceComputed.getPropertyValue(varNames[i]).trim();
+    if (resolved) vars.push({ name: varNames[i], value: resolved });
   }
 
-  if (varMap.size === 0) return;
+  if (vars.length === 0) return;
 
   const allElements = clonedDoc.querySelectorAll<HTMLElement>('*');
   allElements.forEach((el) => {
@@ -146,10 +146,10 @@ function resolveFontVariables(clonedDoc: Document, sourceDoc: Document): void {
     if (!ff || !ff.includes('var(')) return;
 
     let resolved = ff;
-    for (const [varName, varValue] of varMap) {
+    for (let i = 0; i < vars.length; i++) {
       // Match var(--font-serif), var( --font-serif ), etc.
-      const pattern = new RegExp(`var\\(\\s*${varName.replace(/-/g, '\\-')}\\s*\\)`, 'g');
-      resolved = resolved.replace(pattern, varValue);
+      const pattern = new RegExp(`var\\(\\s*${vars[i].name.replace(/-/g, '\\-')}\\s*\\)`, 'g');
+      resolved = resolved.replace(pattern, vars[i].value);
     }
     el.style.fontFamily = resolved;
   });
@@ -157,8 +157,8 @@ function resolveFontVariables(clonedDoc: Document, sourceDoc: Document): void {
   // Also set the variables on :root of the cloned doc so any computed
   // style lookups inside html2canvas can find them.
   const clonedRoot = clonedDoc.documentElement;
-  for (const [varName, varValue] of varMap) {
-    clonedRoot.style.setProperty(varName, varValue);
+  for (let i = 0; i < vars.length; i++) {
+    clonedRoot.style.setProperty(vars[i].name, vars[i].value);
   }
 }
 
