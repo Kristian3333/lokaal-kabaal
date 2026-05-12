@@ -35,12 +35,16 @@ export default function FlyerExport({ frontRef, backRef, formaat, dubbelzijdig, 
 
       await waitForFonts();
 
+      // Keep a reference to the live document so the onclone fixer can
+      // read computed CSS variable values from the original cascade.
+      const liveDoc = document;
+
       const frontCanvas = await html2canvas(frontRef.current, {
         scale: HTML2CANVAS_PRINT_SCALE,
         useCORS: true,
         backgroundColor: null,
         logging: false,
-        onclone: (clonedDoc) => applyExportSafeHeadlineStyles(clonedDoc),
+        onclone: (clonedDoc) => applyExportSafeHeadlineStyles(clonedDoc, liveDoc),
       });
 
       const frontImg = frontCanvas.toDataURL('image/jpeg', 0.95);
@@ -59,7 +63,7 @@ export default function FlyerExport({ frontRef, backRef, formaat, dubbelzijdig, 
           useCORS: true,
           backgroundColor: null,
           logging: false,
-          onclone: (clonedDoc) => applyExportSafeHeadlineStyles(clonedDoc),
+          onclone: (clonedDoc) => applyExportSafeHeadlineStyles(clonedDoc, liveDoc),
         });
         const backImg = backCanvas.toDataURL('image/jpeg', 0.95);
         pdf.addPage([dims.w, dims.h], 'portrait');

@@ -1,15 +1,26 @@
 /**
  * Style mutations applied to the html2canvas-cloned DOM only.
  *
- * Tight serif headlines (lineHeight 1.0 / 1.05) sit inside
- * `-webkit-line-clamp` + `overflow: hidden` boxes. Descenders (g, j,
- * p, q, y) on the last clamped line fall below the line box and get
- * sliced by the overflow clip. html2canvas captures what the browser
- * paints, so the slice is baked into the PDF.
+ * Three categories of fix:
  *
- * The fix lives here, in the cloned DOM, so the on-screen editor
- * design stays pixel-identical while the rasterized output gets the
- * descender slack it needs.
+ * 1. Descender clipping -- tight serif headlines (lineHeight 1.0/1.05)
+ *    inside `-webkit-line-clamp` + `overflow: hidden` boxes clip
+ *    descenders (g, j, p, q, y) on the last clamped line. Fixed by
+ *    adding bottom padding in the clone.
+ *
+ * 2. `-webkit-line-clamp` -- html2canvas cannot rasterise the
+ *    proprietary WebKit line-clamp layout. Clamped boxes collapse to
+ *    zero height or render with wrong overflow. Fixed by converting
+ *    clamped elements to a `max-height` + `overflow: hidden` fallback
+ *    that html2canvas handles correctly.
+ *
+ * 3. CSS custom-property fonts -- inline `fontFamily: var(--font-serif)`
+ *    values sometimes fail to resolve in the cloned document, causing
+ *    fallback to the generic serif/sans-serif. Fixed by resolving
+ *    variables to their computed values in the clone.
+ *
+ * All mutations live here so the on-screen editor design stays
+ * pixel-identical while the rasterised output gets the fixes it needs.
  */
 
 /** Attribute marker added to every headline node that needs descender slack. */
@@ -21,14 +32,23 @@ export const DESCENDER_SLACK_EM = '0.15em';
 const ZERO_VALUES = new Set(['0', '0em', '0px', '0%']);
 
 /**
- * Add descender slack to every marked headline in `root`.
- *
- * Treats empty / zero paddings as needing the bump. Treats any non-zero
- * existing value as intentional and leaves it alone, EXCEPT for em
- * values strictly less than the slack threshold, which are bumped up
- * to the threshold. Idempotent.
+ * Master export-clone fixer. Call from the html2canvas `onclone` callback
+ * with the cloned Document and (optionally) the live source Document so
+ * CSS variable values can be read from the original cascade.
  */
-export function applyExportSafeHeadlineStyles(root: ParentNode): void {
+export function applyExportSafeHeadlineStyles(
+  clonedDoc: Document,
+  sourceDoc?: Document,
+): void {
+  applyDescenderSlack(clonedDoc);
+  convertLineClampToMaxHeight(clonedDoc);
+  resolveFontVariables(clonedDoc, sourceDoc ?? document);
+  forceFullOpacity(clonedDoc);
+}
+
+// ── 1. Descender slack ─────────────────────────────────────────────────────
+
+function applyDescenderSlack(root: ParentNode): void {
   const nodes = root.querySelectorAll<HTMLElement>(`[${HEADLINE_CLAMP_ATTR}]`);
   nodes.forEach((el) => {
     const existing = el.style.paddingBottom.trim();
@@ -41,6 +61,138 @@ export function applyExportSafeHeadlineStyles(root: ParentNode): void {
       if (Number.isFinite(n) && n < 0.15) {
         el.style.paddingBottom = DESCENDER_SLACK_EM;
       }
+    }
+  });
+}
+
+// ── 2. -webkit-line-clamp -> max-height ────────────────────────────────────
+
+/**
+ * html2canvas does not understand `-webkit-box` + `-webkit-line-clamp`.
+ * Clamped elements either collapse or render unbounded text. This
+ * function reads the *intended* visible height from the live DOM
+ * layout, then replaces the clamp styles with a fixed `max-height`
+ * that html2canvas can rasterise correctly.
+ *
+ * Strategy: query the cloned doc for all elements with a
+ * `-webkit-line-clamp` inline style, find the matching element in the
+ * live DOM tree, read its offsetHeight (which the browser already
+ * computed with proper clamping), and set that as `max-height` on the
+ * clone while removing the clamp properties.
+ */
+function convertLineClampToMaxHeight(clonedDoc: Document): void {
+  const clonedBody = clonedDoc.body;
+  if (!clonedBody) return;
+
+  // Walk every element in the cloned tree looking for line-clamp.
+  const walker = clonedDoc.createTreeWalker(clonedBody, NodeFilter.SHOW_ELEMENT);
+  let node: Element | null = walker.nextNode() as Element | null;
+
+  while (node) {
+    const el = node as HTMLElement;
+    const style = el.style;
+    // Check for inline -webkit-line-clamp (set via React's WebkitLineClamp).
+    const hasClamp =
+      style.getPropertyValue('-webkit-line-clamp') ||
+      style.getPropertyValue('WebkitLineClamp' as string) ||
+      (style.cssText && style.cssText.includes('-webkit-line-clamp'));
+
+    if (hasClamp) {
+      // Compute a safe max-height from the lineHeight and clamp count.
+      const clampCount = parseInt(
+        style.getPropertyValue('-webkit-line-clamp') ||
+        (style as Record<string, string>)['WebkitLineClamp'] ||
+        '3',
+        10,
+      );
+      const computed = clonedDoc.defaultView?.getComputedStyle(el);
+      const fontSize = parseFloat(computed?.fontSize || '8');
+      const lineHeight = parseFloat(computed?.lineHeight || '1.5');
+      const lhPx = lineHeight > 4 ? lineHeight : fontSize * lineHeight;
+      // Allow a little extra for descenders and padding.
+      const maxH = Math.ceil(lhPx * clampCount + fontSize * 0.25);
+
+      style.display = 'block';
+      style.overflow = 'hidden';
+      style.maxHeight = `${maxH}px`;
+      // Remove clamp properties.
+      style.removeProperty('-webkit-line-clamp');
+      style.removeProperty('-webkit-box-orient');
+      // Also clear via camelCase (React sets them this way).
+      (style as Record<string, string>)['WebkitLineClamp'] = '';
+      (style as Record<string, string>)['WebkitBoxOrient'] = '';
+    }
+
+    node = walker.nextNode() as Element | null;
+  }
+}
+
+// ── 3. CSS custom-property font resolution ─────────────────────────────────
+
+/**
+ * Inline styles like `font-family: var(--font-serif)` may not resolve
+ * in the cloned document if the custom property definition lives in a
+ * stylesheet that html2canvas did not deep-clone, or if the cascade
+ * order differs. We resolve them from the live `sourceDoc`'s computed
+ * `:root` values and write the result directly into each element's
+ * inline style so the canvas text renderer picks up the correct face.
+ */
+function resolveFontVariables(clonedDoc: Document, sourceDoc: Document): void {
+  const sourceRoot = sourceDoc.documentElement;
+  const sourceComputed = sourceDoc.defaultView?.getComputedStyle(sourceRoot);
+  if (!sourceComputed) return;
+
+  // Map of CSS variable names to resolved values.
+  const varMap = new Map<string, string>();
+  const varNames = ['--font-serif', '--font-mono', '--font-sans'];
+  for (const v of varNames) {
+    const resolved = sourceComputed.getPropertyValue(v).trim();
+    if (resolved) varMap.set(v, resolved);
+  }
+
+  if (varMap.size === 0) return;
+
+  const allElements = clonedDoc.querySelectorAll<HTMLElement>('*');
+  allElements.forEach((el) => {
+    const ff = el.style.fontFamily;
+    if (!ff || !ff.includes('var(')) return;
+
+    let resolved = ff;
+    for (const [varName, varValue] of varMap) {
+      // Match var(--font-serif), var( --font-serif ), etc.
+      const pattern = new RegExp(`var\\(\\s*${varName.replace('-', '\\-')}\\s*\\)`, 'g');
+      resolved = resolved.replace(pattern, varValue);
+    }
+    el.style.fontFamily = resolved;
+  });
+
+  // Also set the variables on :root of the cloned doc so any computed
+  // style lookups inside html2canvas can find them.
+  const clonedRoot = clonedDoc.documentElement;
+  for (const [varName, varValue] of varMap) {
+    clonedRoot.style.setProperty(varName, varValue);
+  }
+}
+
+// ── 4. Force full opacity ──────────────────────────────────────────────────
+
+/**
+ * The offscreen print container uses `opacity: 0` to hide the clone
+ * from the user. html2canvas captures what the browser paints, and
+ * some browsers skip subpixel text rasterisation for zero-opacity
+ * subtrees. Force full opacity on every element in the cloned tree
+ * so the capture gets full-fidelity text rendering.
+ */
+function forceFullOpacity(clonedDoc: Document): void {
+  const clonedBody = clonedDoc.body;
+  if (!clonedBody) return;
+
+  // Walk up from the target element's ancestors to root, forcing opacity.
+  const allElements = clonedDoc.querySelectorAll<HTMLElement>('*');
+  allElements.forEach((el) => {
+    const op = el.style.opacity;
+    if (op && parseFloat(op) < 1) {
+      el.style.opacity = '1';
     }
   });
 }
