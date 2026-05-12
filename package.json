@@ -34,6 +34,7 @@
     "motion": "^12.38.0",
     "nanoid": "^5.1.7",
     "next": "14.2.29",
+    "qrcode.react": "^4.2.0",
     "react": "^18",
     "react-dom": "^18",
     "react-leaflet": "^4.2.1",

@@ -28,6 +28,7 @@ export const HEADLINE_CLAMP_ATTR = 'data-headline-clamp';
 
 /** Bottom padding added to marked headlines during export. */
 export const DESCENDER_SLACK_EM = '0.15em';
+const ASCENDER_SLACK_EM = '0.06em';
 
 const ZERO_VALUES = new Set(['0', '0em', '0px', '0%']);
 
@@ -59,19 +60,7 @@ export function applyExportSafeHeadlineStyles(
 function applyDescenderSlack(root: ParentNode): void {
   const nodes = root.querySelectorAll<HTMLElement>(`[${HEADLINE_CLAMP_ATTR}]`);
   nodes.forEach((el) => {
-    const existing = el.style.paddingBottom.trim();
-    if (existing === '' || ZERO_VALUES.has(existing)) {
-      el.style.paddingBottom = DESCENDER_SLACK_EM;
-      el.style.boxSizing = 'content-box';
-      return;
-    }
-    if (existing.endsWith('em')) {
-      const n = parseFloat(existing);
-      if (Number.isFinite(n) && n < 0.15) {
-        el.style.paddingBottom = DESCENDER_SLACK_EM;
-        el.style.boxSizing = 'content-box';
-      }
-    }
+    ensureTextSlack(el);
   });
 
   // Not just headlines: export clipping also happens on single-line
@@ -80,13 +69,27 @@ function applyDescenderSlack(root: ParentNode): void {
   all.forEach((el) => {
     if (el.hasAttribute(HEADLINE_CLAMP_ATTR)) return;
     if (!looksLikeRiskyTextClipBox(el)) return;
-
-    const existing = el.style.paddingBottom.trim();
-    if (existing === '' || ZERO_VALUES.has(existing)) {
-      el.style.paddingBottom = DESCENDER_SLACK_EM;
-      el.style.boxSizing = 'content-box';
-    }
+    ensureTextSlack(el);
   });
+}
+
+function ensureTextSlack(el: HTMLElement): void {
+  const existingBottom = el.style.paddingBottom.trim();
+  if (existingBottom === '' || ZERO_VALUES.has(existingBottom)) {
+    el.style.paddingBottom = DESCENDER_SLACK_EM;
+  } else if (existingBottom.endsWith('em')) {
+    const n = parseFloat(existingBottom);
+    if (Number.isFinite(n) && n < 0.15) {
+      el.style.paddingBottom = DESCENDER_SLACK_EM;
+    }
+  }
+
+  const existingTop = el.style.paddingTop.trim();
+  if (existingTop === '' || ZERO_VALUES.has(existingTop)) {
+    el.style.paddingTop = ASCENDER_SLACK_EM;
+  }
+
+  el.style.boxSizing = 'content-box';
 }
 
 function looksLikeRiskyTextClipBox(el: HTMLElement): boolean {
@@ -140,10 +143,11 @@ function convertLineClampToMaxHeight(clonedDoc: Document): void {
       const fontSize = parseFloat(computed?.fontSize || '8');
       const lineHeight = parseFloat(computed?.lineHeight || '1.5');
       const lhPx = lineHeight > 4 ? lineHeight : fontSize * lineHeight;
+      const slackPx = Math.ceil(fontSize * 0.3);
       // max-height must equal exactly N line-heights so the box truncates
       // at a line boundary (like -webkit-line-clamp) rather than a pixel
       // boundary, which would show a partial Nth+1 line cut mid-character.
-      const maxH = Math.ceil(lhPx * clampCount);
+      const maxH = Math.ceil(lhPx * clampCount) + slackPx;
 
       style.display = 'block';
       style.overflow = 'hidden';

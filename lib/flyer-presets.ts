@@ -97,7 +97,7 @@ export const FLYER_PRESETS: FlyerPreset[] = [
     tagline: 'Clean + betrouwbaar + offerte-CTA',
     swatch: ['#1B3A5C', '#4AA8FF'],
     patch: {
-      design: 'corporate',
+      design: 'minimal',
       kleur: '#1B3A5C',
       accent: '#4AA8FF',
       headline: 'Nieuwe woning? Begin goed.',
@@ -148,7 +148,7 @@ export const FLYER_PRESETS: FlyerPreset[] = [
     tagline: 'Neon stijl voor trending branches',
     swatch: ['#0A0A0A', '#00E87A'],
     patch: {
-      design: 'neon',
+      design: 'bold',
       kleur: '#0A0A0A',
       accent: '#00E87A',
       headline: 'Welkom in de buurt!',
@@ -165,7 +165,7 @@ export const FLYER_PRESETS: FlyerPreset[] = [
     tagline: 'Vintage poster feel, warm en menselijk',
     swatch: ['#8B3E2F', '#F5D896'],
     patch: {
-      design: 'retro',
+      design: 'playful',
       kleur: '#8B3E2F',
       accent: '#F5D896',
       headline: 'Verhuisd? Welkom.',

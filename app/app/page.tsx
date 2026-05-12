@@ -8,7 +8,7 @@ import { showToast } from '@/components/Toast';
 import CampaignDashboard, { type Campaign } from '@/components/dashboard/CampaignDashboard';
 import type { WizState, PendingCampaign } from '@/components/dashboard/CampaignWizard';
 import type { SavedFlyer } from '@/components/dashboard/FlyerDesigner';
-import { type FlyerState } from '@/components/dashboard/FlyerPreview';
+import { type FlyerState, migrateDesignId } from '@/components/dashboard/FlyerPreview';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import CommandPalette, { type Command } from '@/components/dashboard/CommandPalette';
 import ProductTour from '@/components/dashboard/ProductTour';
@@ -104,7 +104,14 @@ export default function LokaalKabaal(): React.JSX.Element {
       const saved = localStorage.getItem('lk_flyers');
       if (saved) {
         const parsed: SavedFlyer[] = JSON.parse(saved);
-        return parsed.map(f => ({ ...f, afmeting: f.afmeting === 'a4' ? 'sq' : f.afmeting }));
+        // Migrate legacy values: a4 -> sq (old format flag) and pre-facelift
+        // design IDs (geometric/retro/neon/corporate) to their closest
+        // surviving welcome template so saved flyers still render.
+        return parsed.map(f => ({
+          ...f,
+          afmeting: f.afmeting === 'a4' ? 'sq' : f.afmeting,
+          design: migrateDesignId(f.design),
+        }));
       }
     } catch (err) { console.error('[dashboard] Failed to parse localStorage flyers:', err); }
     return [{ ...INIT_FLYER, naam: 'Flyer 1', id: 1 }];

@@ -12,15 +12,11 @@ import { buildMailto } from '@/lib/contact-config';
 // ─── Design Options ───────────────────────────────────────────────────────────
 
 const DESIGNS: { id: FlyerState['design']; label: string; sub: string }[] = [
-  { id: 'editorial', label: 'Editorial', sub: 'Magazine-stijl' },
-  { id: 'geometric', label: 'Geometric', sub: 'Bold & modern' },
-  { id: 'minimal', label: 'Minimal', sub: 'Luxury & clean' },
-  { id: 'bold', label: 'Bold', sub: 'Foto centraal' },
-  { id: 'retro', label: 'Retro', sub: 'Vintage poster' },
-  { id: 'warm', label: 'Warm', sub: 'Buurt & sfeer' },
-  { id: 'neon', label: 'Neon', sub: 'Dark & glowing' },
-  { id: 'corporate', label: 'Corporate', sub: 'Professioneel' },
-  { id: 'playful', label: 'Playful', sub: 'Fun & rondes' },
+  { id: 'editorial', label: 'Welkom',        sub: 'Editorial premium' },
+  { id: 'warm',      label: 'Hoi buur',      sub: 'Warm & vriendelijk' },
+  { id: 'bold',      label: 'Nieuw hier?',   sub: 'Bold & direct' },
+  { id: 'minimal',   label: 'Welkom thuis',  sub: 'Minimal & elegant' },
+  { id: 'playful',   label: 'Hallo buur!',   sub: 'Playful & kleurrijk' },
 ];
 
 // ─── Types ────────────────────────────────────────────────────────────────────

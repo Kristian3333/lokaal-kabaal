@@ -59,6 +59,7 @@ describe('applyExportSafeHeadlineStyles', () => {
     applyExportSafeHeadlineStyles(document.body);
 
     expect(h.style.paddingBottom).toBe(DESCENDER_SLACK_EM);
+    expect(h.style.paddingTop).not.toBe('');
   });
 
   it('test_applyExportSafeHeadlineStyles_replacesPaddingBottom_whenSmallerEm', () => {
@@ -246,6 +247,7 @@ describe('applyExportSafeHeadlineStyles', () => {
     applyExportSafeHeadlineStyles(document.body);
 
     expect(row.style.paddingBottom).toBe(DESCENDER_SLACK_EM);
+    expect(row.style.paddingTop).not.toBe('');
     expect(row.style.boxSizing).toBe('content-box');
   });
 });

@@ -34,8 +34,7 @@ import {
  */
 
 const DESIGNS: FlyerState['design'][] = [
-  'editorial', 'geometric', 'minimal', 'bold', 'retro',
-  'warm', 'neon', 'corporate', 'playful',
+  'editorial', 'warm', 'bold', 'minimal', 'playful',
 ];
 
 const TINY_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
