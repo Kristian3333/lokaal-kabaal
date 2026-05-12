@@ -468,7 +468,12 @@ export default function CampaignWizard({
       if (data.url) {
         window.location.href = data.url;
       } else {
-        setOrderError(data.error || 'Stripe checkout mislukt');
+        // The server returns `detail` in non-production environments with
+        // the underlying Stripe error message; surface it so we don't
+        // have to dig through Vercel logs to find missing-payment-method
+        // / wrong-API-key / inactive-product failures.
+        const msg = data.error || 'Stripe checkout mislukt';
+        setOrderError(data.detail ? `${msg}: ${data.detail}` : msg);
       }
     } catch {
       setOrderError('Verbindingsfout -- probeer opnieuw');

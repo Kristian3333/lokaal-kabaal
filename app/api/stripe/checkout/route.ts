@@ -91,6 +91,22 @@ export async function POST(req: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
     const isYearly = billing === 'yearly';
 
+    // Payment methods: default to `card` only because iDEAL and SEPA
+    // require explicit activation in the Stripe Dashboard (Settings ->
+    // Payment Methods). Test accounts ship without them activated, so
+    // requesting them produces an error like "payment method ideal is
+    // not activated" before the checkout session can be created.
+    //
+    // Once iDEAL / SEPA are activated for the account, override via:
+    //   STRIPE_PAYMENT_METHODS=card,ideal,sepa_debit
+    type StripeCheckoutPm =
+      'card' | 'ideal' | 'sepa_debit' | 'bancontact' | 'eps' | 'giropay' | 'sofort' | 'klarna' | 'paypal';
+    const allowedPms: StripeCheckoutPm[] = ['card', 'ideal', 'sepa_debit', 'bancontact', 'eps', 'giropay', 'sofort', 'klarna', 'paypal'];
+    const paymentMethodTypes = (process.env.STRIPE_PAYMENT_METHODS ?? 'card')
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s): s is StripeCheckoutPm => (allowedPms as string[]).includes(s));
+
     // Jaarlijks: één betaling van het totale jaarbedrag (incasso-vriendelijk)
     // Maandelijks: terugkerend maandbedrag
     const unitAmount = isYearly ? tierConfig.yearlyTotal : tierConfig.monthly;
@@ -99,7 +115,7 @@ export async function POST(req: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       customer: customer.id,
       mode: 'subscription',
-      payment_method_types: ['card', 'ideal', 'sepa_debit'],
+      payment_method_types: paymentMethodTypes.length > 0 ? paymentMethodTypes : ['card'],
       line_items: [
         {
           price_data: {

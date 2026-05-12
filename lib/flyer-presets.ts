@@ -177,11 +177,19 @@ export const FLYER_PRESETS: FlyerPreset[] = [
   },
 ];
 
-/** All presets that match the retailer's branche, plus generic fallbacks. */
+/** All presets that match the retailer's branche, plus generic fallbacks.
+ *  When the caller's branche IS 'generic' the two halves overlap, so the
+ *  result is de-duplicated by id to stop the marketplace listing the
+ *  same preset twice. */
 export function presetsForBranche(
   branche: FlyerPreset['branche'] | string,
 ): FlyerPreset[] {
   const exact = FLYER_PRESETS.filter(p => p.branche === branche);
   const generic = FLYER_PRESETS.filter(p => p.branche === 'generic');
-  return [...exact, ...generic];
+  const seen = new Set<string>();
+  return [...exact, ...generic].filter((p) => {
+    if (seen.has(p.id)) return false;
+    seen.add(p.id);
+    return true;
+  });
 }

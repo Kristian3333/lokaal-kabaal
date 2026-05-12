@@ -42,14 +42,9 @@ const ConversiesPanel = dynamic(() => import('@/components/dashboard/ConversiesP
   ssr: false,
   loading: PanelLoading,
 });
-const BillingOverview = dynamic(() => import('@/components/dashboard/BillingOverview'), {
-  ssr: false,
-  loading: PanelLoading,
-});
-
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-type Page = 'dashboard' | 'wizard' | 'flyer' | 'billing' | 'profiel' | 'conversies';
+type Page = 'dashboard' | 'wizard' | 'flyer' | 'profiel' | 'conversies';
 
 const INIT_FLYER: FlyerState = {
   kleur: '#0A0A0A', accent: '#00E87A', afmeting: 'a5', dubbelzijdig: false,
@@ -76,13 +71,12 @@ const NAV_ITEMS: { id: Page; label: string; icon: string; minTier?: Tier }[] = [
   { id: 'wizard', label: 'Nieuwe campagne', icon: '+' },
   { id: 'flyer', label: 'Mijn flyer', icon: '◧' },
   { id: 'conversies', label: 'Conversies', icon: '◑' },
-  { id: 'billing', label: 'Abonnement', icon: '◎' },
   { id: 'profiel', label: 'Mijn profiel', icon: '◉' },
 ];
 
 const PAGE_TITLES: Record<Page, string> = {
   dashboard: 'Overzicht', wizard: 'Nieuwe campagne', flyer: 'Flyer editor',
-  conversies: 'Conversies & ROI', billing: 'Abonnement & facturatie', profiel: 'Mijn profiel',
+  conversies: 'Conversies & ROI', profiel: 'Mijn profiel',
 };
 
 // ─── Main App ─────────────────────────────────────────────────────────────────
@@ -381,9 +375,7 @@ export default function LokaalKabaal(): React.JSX.Element {
     { id: 'go-wizard',    label: 'Nieuwe campagne starten',hint: '8-stappen wizard',             keywords: ['add', 'new', 'campagne'],onRun: startNieuweCampagne },
     { id: 'go-flyer',     label: 'Flyer editor openen',    hint: 'Ontwerp of upload',            keywords: ['flyer', 'design'],       onRun: () => setPage('flyer') },
     { id: 'go-conv',      label: 'Conversies bekijken',    hint: 'QR-scans + pincode-conversie', keywords: ['analytics', 'roi'],     onRun: () => setPage('conversies') },
-    { id: 'go-bill',      label: 'Abonnement & facturatie',hint: 'Stripe portaal + facturen',    keywords: ['billing', 'invoice'],    onRun: () => setPage('billing') },
     { id: 'go-profile',   label: 'Mijn profiel',           hint: 'Bedrijfsgegevens + pincode',   keywords: ['settings', 'account'],   onRun: () => setPage('profiel') },
-    { id: 'upgrade',      label: 'Abonnement upgraden',    hint: 'Bekijk tiers',                 keywords: ['upgrade', 'prijs'],     onRun: () => window.open('/#prijzen', '_blank') },
     { id: 'support',      label: 'Support mailen',         hint: CONTACT_SUPPORT_EMAIL,           keywords: ['help', 'contact'],       onRun: () => { window.location.href = buildMailto('general'); } },
     { id: 'logout',       label: 'Uitloggen',              hint: 'Terug naar de landing',        keywords: ['sign out', 'exit'],      onRun: uitloggen },
   ];
@@ -493,9 +485,6 @@ export default function LokaalKabaal(): React.JSX.Element {
               userEmail={user?.email || ''}
               onStartCampagne={() => setPage('wizard')}
             />
-          )}
-          {page === 'billing' && (
-            <BillingOverview />
           )}
           {page === 'profiel' && (
             <SettingsPanel
