@@ -232,4 +232,20 @@ describe('applyExportSafeHeadlineStyles', () => {
 
     expect(h.style.paddingBottom).toBe(DESCENDER_SLACK_EM);
   });
+
+  it('test_applyExportSafeHeadlineStyles_addsSlackToEllipsisTextRows', () => {
+    const row = document.createElement('div');
+    row.textContent = 'verbouwpro.nl';
+    row.style.overflow = 'hidden';
+    row.style.textOverflow = 'ellipsis';
+    row.style.whiteSpace = 'nowrap';
+    row.style.fontSize = '7px';
+    row.style.lineHeight = '1.4';
+    document.body.appendChild(row);
+
+    applyExportSafeHeadlineStyles(document.body);
+
+    expect(row.style.paddingBottom).toBe(DESCENDER_SLACK_EM);
+    expect(row.style.boxSizing).toBe('content-box');
+  });
 });

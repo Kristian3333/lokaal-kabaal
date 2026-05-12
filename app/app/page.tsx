@@ -252,11 +252,29 @@ export default function LokaalKabaal(): React.JSX.Element {
     router.push('/');
   };
 
+  /**
+   * A flyer counts as "designed" once the company name and the main
+   * headline are both filled. Without those two, the flyer that would
+   * actually print is an empty template, which is a clear footgun. We
+   * route the user to /flyer instead of letting them pay for a blank
+   * print run. Other fields (USPs, body, hero image) are recommended but
+   * not blocking, since the AI generator and design defaults still
+   * produce a presentable flyer with just the two essentials.
+   */
+  const isFlyerDesigned = (f: FlyerState): boolean => {
+    return f.bedrijfsnaam.trim().length > 0 && f.headline.trim().length > 0;
+  };
+
   const startNieuweCampagne = () => {
     const activeCampaigns = campaigns.filter(c => c.status === 'actief').length;
     if (!canStartCampaign(userTier, activeCampaigns)) {
       const cfg = TIERS[userTier];
       showToast(`Je ${cfg.label}-abonnement staat max. ${cfg.maxCampaigns} gelijktijdige campagne${cfg.maxCampaigns !== 1 ? 's' : ''} toe. Upgrade naar Pro of Agency voor meer campagnes.`, 'warning');
+      return;
+    }
+    if (!isFlyerDesigned(flyer)) {
+      showToast('Ontwerp eerst je flyer (bedrijfsnaam en titel) voordat je een campagne start.', 'warning');
+      setPage('flyer');
       return;
     }
     // Pre-fill sector with the branche the user chose at signup (if any) and
@@ -278,6 +296,11 @@ export default function LokaalKabaal(): React.JSX.Element {
     if (!canStartCampaign(userTier, activeCampaigns)) {
       const cfg = TIERS[userTier];
       showToast(`Je ${cfg.label}-abonnement staat max. ${cfg.maxCampaigns} gelijktijdige campagne${cfg.maxCampaigns !== 1 ? 's' : ''} toe. Upgrade naar Pro of Agency voor meer campagnes.`, 'warning');
+      return;
+    }
+    if (!isFlyerDesigned(flyer)) {
+      showToast('Ontwerp eerst je flyer (bedrijfsnaam en titel) voordat je een campagne dupliceert.', 'warning');
+      setPage('flyer');
       return;
     }
     setWiz({

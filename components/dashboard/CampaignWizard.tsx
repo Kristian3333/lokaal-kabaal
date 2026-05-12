@@ -433,6 +433,14 @@ export default function CampaignWizard({
   };
 
   const handleStripeCheckout = async () => {
+    // Defense-in-depth: the dashboard entry points already block the
+    // wizard for an unfinished flyer, but if the user navigated back to
+    // the designer mid-wizard and emptied the fields, refuse to start
+    // checkout rather than paying for a blank print run.
+    if (!flyer.bedrijfsnaam.trim() || !flyer.headline.trim()) {
+      setOrderError('Ontwerp eerst je flyer (bedrijfsnaam en titel) voordat je betaalt.');
+      return;
+    }
     setOrderLoading(true);
     setOrderError('');
     try {
@@ -977,7 +985,7 @@ export default function CampaignWizard({
                 {(() => {
                   const exportDims = formaat === 'sq' ? PREVIEW_PX.sq : PREVIEW_PX.a5;
                   return (
-                    <div aria-hidden style={{ position: 'fixed', left: '-9999px', top: 0, pointerEvents: 'none', opacity: 0 }}>
+                    <div aria-hidden style={{ position: 'fixed', left: '-9999px', top: 0, pointerEvents: 'none' }}>
                       <div ref={wizardPrintFlyerRef} style={{ width: `${exportDims.w}px`, height: `${exportDims.h}px` }}>
                         <FlyerPreview flyer={flyer} formaat={formaat} forPrint />
                       </div>

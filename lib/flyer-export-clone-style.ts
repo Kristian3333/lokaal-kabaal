@@ -62,15 +62,48 @@ function applyDescenderSlack(root: ParentNode): void {
     const existing = el.style.paddingBottom.trim();
     if (existing === '' || ZERO_VALUES.has(existing)) {
       el.style.paddingBottom = DESCENDER_SLACK_EM;
+      el.style.boxSizing = 'content-box';
       return;
     }
     if (existing.endsWith('em')) {
       const n = parseFloat(existing);
       if (Number.isFinite(n) && n < 0.15) {
         el.style.paddingBottom = DESCENDER_SLACK_EM;
+        el.style.boxSizing = 'content-box';
       }
     }
   });
+
+  // Not just headlines: export clipping also happens on single-line
+  // ellipsis rows and other overflow-hidden text boxes lower in the flyer.
+  const all = root.querySelectorAll<HTMLElement>('*');
+  all.forEach((el) => {
+    if (el.hasAttribute(HEADLINE_CLAMP_ATTR)) return;
+    if (!looksLikeRiskyTextClipBox(el)) return;
+
+    const existing = el.style.paddingBottom.trim();
+    if (existing === '' || ZERO_VALUES.has(existing)) {
+      el.style.paddingBottom = DESCENDER_SLACK_EM;
+      el.style.boxSizing = 'content-box';
+    }
+  });
+}
+
+function looksLikeRiskyTextClipBox(el: HTMLElement): boolean {
+  const text = (el.textContent || '').trim();
+  if (text === '') return false;
+
+  const style = el.style;
+  const hasOverflowHidden = style.overflow === 'hidden';
+  const hasEllipsis = style.textOverflow === 'ellipsis';
+  const hasNoWrap = style.whiteSpace === 'nowrap';
+  const hasClamp = style.getPropertyValue('-webkit-line-clamp') !== ''
+    || (style.cssText ? style.cssText.includes('-webkit-line-clamp') : false);
+
+  if (!hasOverflowHidden) return false;
+  if (!(hasEllipsis || hasNoWrap || hasClamp)) return false;
+  if (style.fontSize.trim() === '') return false;
+  return true;
 }
 
 // ── 2. -webkit-line-clamp -> max-height ────────────────────────────────────

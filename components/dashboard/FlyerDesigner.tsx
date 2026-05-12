@@ -605,7 +605,7 @@ export default function FlyerDesigner({
         const exportFormaat: 'a6' | 'a5' | 'sq' = (flyer.afmeting as 'a6' | 'a5' | 'sq') || 'a5';
         const exportDims = exportFormaat === 'sq' ? PREVIEW_PX.sq : PREVIEW_PX.a5;
         return (
-          <div aria-hidden style={{ position: 'fixed', left: '-9999px', top: 0, pointerEvents: 'none', opacity: 0 }}>
+          <div aria-hidden style={{ position: 'fixed', left: '-9999px', top: 0, pointerEvents: 'none' }}>
             <div ref={frontPrintRef} style={{ width: `${exportDims.w}px`, height: `${exportDims.h}px` }}>
               <FlyerPreview flyer={flyer} formaat={exportFormaat} forPrint />
             </div>
