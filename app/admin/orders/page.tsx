@@ -63,7 +63,10 @@ export default function AdminOrdersPage(): React.JSX.Element {
           return null;
         }
         if (!res.ok) {
-          setError(`Fout: ${res.status}`);
+          const body = await res.json().catch(() => ({}));
+          const e = body as { error?: string; detail?: string; hint?: string };
+          const parts = [`Fout ${res.status}`, e.error, e.detail, e.hint].filter(Boolean);
+          setError(parts.join(' -- '));
           return null;
         }
         return res.json();
