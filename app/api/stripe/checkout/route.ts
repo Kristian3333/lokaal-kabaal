@@ -88,7 +88,21 @@ export async function POST(req: NextRequest) {
            metadata: { platform: 'lokaalkabaal' },
          });
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
+    // Resolve the redirect-base in priority order:
+    //  1. NEXT_PUBLIC_APP_URL / NEXT_PUBLIC_URL -- explicit override
+    //     (set this in Vercel for stable, branded redirects)
+    //  2. VERCEL_URL -- auto-injected by Vercel for the current
+    //     deployment, so production / preview both work without
+    //     manual config
+    //  3. request origin -- finally, fall back to whatever host the
+    //     caller hit. This means even if all env vars are missing,
+    //     Stripe redirects back to the same domain the user paid from
+    //     rather than the dev default.
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.NEXT_PUBLIC_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '') ||
+      req.nextUrl.origin;
     const isYearly = billing === 'yearly';
 
     // Payment methods: default to `card` only because iDEAL and SEPA
