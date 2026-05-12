@@ -107,11 +107,18 @@ function convertLineClampToMaxHeight(clonedDoc: Document): void {
       const fontSize = parseFloat(computed?.fontSize || '8');
       const lineHeight = parseFloat(computed?.lineHeight || '1.5');
       const lhPx = lineHeight > 4 ? lineHeight : fontSize * lineHeight;
-      // Allow a little extra for descenders and padding.
-      const maxH = Math.ceil(lhPx * clampCount + fontSize * 0.25);
+      // max-height must equal exactly N line-heights so the box truncates
+      // at a line boundary (like -webkit-line-clamp) rather than a pixel
+      // boundary, which would show a partial Nth+1 line cut mid-character.
+      const maxH = Math.ceil(lhPx * clampCount);
 
       style.display = 'block';
       style.overflow = 'hidden';
+      // Force content-box so descender-slack padding-bottom sits OUTSIDE
+      // the max-height limit. Under Tailwind's global border-box, padding
+      // would eat into the content area and squeeze out part of the last
+      // visible line, again producing a mid-character clip.
+      style.boxSizing = 'content-box';
       style.maxHeight = `${maxH}px`;
       // Remove clamp properties via kebab-case (covers both camelCase
       // and property-name access paths that React may have used).
