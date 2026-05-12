@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { requireDb } from '../../../../lib/db';
-import { retailers } from '../../../../lib/schema';
-import { eq } from 'drizzle-orm';
+import { campaigns, retailers } from '../../../../lib/schema';
+import { and, eq } from 'drizzle-orm';
 import { sendPaymentConfirmation } from '@/lib/email';
 
 function getStripe() {
@@ -82,6 +82,73 @@ export async function POST(req: NextRequest) {
         sendPaymentConfirmation(email, bedrijfsnaam, tier).catch((err) => {
           console.error('[webhook] payment confirmation email failed:', err);
         });
+
+        // Create the campaign as a webhook-side fallback. The browser
+        // path (/bedankt -> /api/campaigns) is the primary creator and
+        // attaches the full flyer design + start date; this is the
+        // safety net for when that path fails (dev server down, user
+        // closes tab mid-redirect, etc.) so an order is never silently
+        // lost. Skip if a campaign already exists for this Stripe
+        // subscription -- idempotency.
+        try {
+          const retailerRow = await db
+            .select({ id: retailers.id })
+            .from(retailers)
+            .where(eq(retailers.email, email))
+            .limit(1);
+          const retailerId = retailerRow[0]?.id;
+          if (retailerId) {
+            const existing = await db
+              .select({ id: campaigns.id })
+              .from(campaigns)
+              .where(and(
+                eq(campaigns.retailerId, retailerId),
+                eq(campaigns.stripeSubscriptionItemId, sub.id),
+              ))
+              .limit(1);
+            if (existing.length === 0) {
+              const branche = meta.branche ?? '';
+              const centrum = meta.centrum ?? '';
+              const duurMaanden = Math.max(1, Math.min(24, parseInt(meta.duurMaanden ?? '1', 10) || 1));
+              const verwachtAantalPerMaand = Math.max(1, parseInt(meta.verwachtAantalPerMaand ?? '300', 10) || 300);
+              const formaat = meta.formaat ?? 'a6';
+              const dubbelzijdig = meta.dubbelzijdig === 'true';
+              // Next batch month: the 25th of next month. We store the
+              // first day of that month and let the dispatch cron handle
+              // the 25th window.
+              const next = new Date();
+              next.setMonth(next.getMonth() + 1, 1);
+              const startMaand = next.toISOString().slice(0, 10);
+              const end = new Date(next);
+              end.setMonth(end.getMonth() + (duurMaanden - 1));
+              const eindMaand = end.toISOString().slice(0, 10);
+
+              await db.insert(campaigns).values({
+                retailerId,
+                naam: branche ? `${branche} campagne` : 'Nieuwe campagne',
+                branche,
+                centrum,
+                straalKm: '10',
+                pc4Lijst: '',
+                formaat,
+                dubbelzijdig,
+                verwachtAantalPerMaand,
+                duurMaanden,
+                startMaand,
+                eindMaand,
+                status: 'actief',
+                awaitingReview: true,
+                stripeSubscriptionItemId: sub.id,
+              });
+              console.warn(`[webhook] fallback-created campaign for ${email} (sub ${sub.id})`);
+            }
+          }
+        } catch (campaignErr) {
+          // Never fail the webhook over the campaign fallback -- Stripe
+          // would retry endlessly. The /bedankt path or a manual op
+          // still has the customer's data.
+          console.error('[webhook] fallback campaign create failed:', campaignErr);
+        }
 
         break;
       }
