@@ -348,13 +348,17 @@ export async function runMonthlyDispatch(): Promise<DispatchResult> {
 
   const started = now.toISOString();
 
-  // Fetch all active campaigns in scope for this batch month
+  // Fetch all active campaigns in scope for this batch month.
+  // Crucially, skip campaigns where awaitingReview is still true: an
+  // operator must approve every order via /admin/orders before we burn
+  // Altum AI lookups + Print.one print-credits on it.
   const activeCampaigns = await db
     .select()
     .from(campaigns)
     .where(
       and(
         eq(campaigns.status, 'actief'),
+        eq(campaigns.awaitingReview, false),
         lte(campaigns.startMaand, maand),
         gte(campaigns.eindMaand, maand),
       ),

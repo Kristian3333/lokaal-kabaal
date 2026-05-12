@@ -92,11 +92,24 @@ export const campaigns = pgTable('campaigns', {
   // Stripe koppeling
   stripeSubscriptionItemId: varchar('stripe_subscription_item_id', { length: 100 }),
 
+  // Manuele review-stap. Elke nieuwe campagne start met awaitingReview=true
+  // zodat een operator de bestelling controleert voordat de dispatch-cron
+  // adressen bij Altum AI ophaalt en de print-order bij Print.one indient
+  // (allebei dure stappen waar fouten kosten met zich meebrengen).
+  // De dispatch-query negeert campagnes waar awaitingReview=true. Approval
+  // gebeurt via /admin/orders/[id].
+  awaitingReview:   boolean('awaiting_review').default(true).notNull(),
+  reviewedAt:       timestamp('reviewed_at'),
+  reviewedBy:       varchar('reviewed_by', { length: 255 }),
+  reviewNotes:      varchar('review_notes', { length: 2000 }),
+  rejectionReason:  varchar('rejection_reason', { length: 2000 }),
+
   createdAt:        timestamp('created_at').defaultNow().notNull(),
   updatedAt:        timestamp('updated_at').defaultNow().notNull(),
 }, (t) => ({
-  retailerIdx: index('idx_campaigns_retailer').on(t.retailerId),
-  statusIdx:   index('idx_campaigns_status').on(t.status),
+  retailerIdx:       index('idx_campaigns_retailer').on(t.retailerId),
+  statusIdx:         index('idx_campaigns_status').on(t.status),
+  awaitingReviewIdx: index('idx_campaigns_awaiting_review').on(t.awaitingReview),
 }));
 
 // ─── Credit-ledger ────────────────────────────────────────────────────────────
