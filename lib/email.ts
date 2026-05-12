@@ -3,7 +3,13 @@ import { buildEmailHtml, buildStatRow, escHtml } from '@/lib/email-templates';
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-const FROM_EMAIL = 'LokaalKabaal <noreply@lokaalkabaal.agency>';
+/**
+ * Default from-address points at the agency domain so DKIM/DMARC line up.
+ * Resend requires the domain to be verified; until that is configured,
+ * override via RESEND_FROM_EMAIL (e.g. "onboarding@resend.dev" works
+ * without verification for smoke tests).
+ */
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL ?? 'LokaalKabaal <noreply@lokaalkabaal.agency>';
 
 // Warn once at module load when running in production without an explicit
 // NEXT_PUBLIC_BASE_URL -- emails fall back to the hardcoded domain, which
@@ -33,14 +39,26 @@ interface SendEmailOptions {
   html: string;
 }
 
-/** Send an email via Resend. No-ops gracefully if RESEND_API_KEY is not set. */
+/**
+ * Send an email via Resend. No-ops gracefully if RESEND_API_KEY is not set.
+ *
+ * The Resend SDK does NOT throw on API errors (unverified domain, invalid
+ * api key, etc.) -- it resolves with `{ data: null, error: {...} }`. We
+ * inspect the response explicitly so silent send-failures surface in logs
+ * and the boolean return value, rather than reporting "true" when nothing
+ * actually went out.
+ */
 export async function sendEmail({ to, subject, html }: SendEmailOptions): Promise<boolean> {
   if (!resend) {
     console.error('RESEND_API_KEY not configured -- email not sent:', subject);
     return false;
   }
   try {
-    await resend.emails.send({ from: FROM_EMAIL, to, subject, html });
+    const result = await resend.emails.send({ from: FROM_EMAIL, to, subject, html });
+    if (result.error) {
+      console.error('Resend rejected email:', { subject, to, error: result.error });
+      return false;
+    }
     return true;
   } catch (err) {
     console.error('Failed to send email:', err);

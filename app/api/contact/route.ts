@@ -84,14 +84,26 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   `;
 
   try {
-    // Forward to central support inbox.
-    await resend.emails.send({
+    // Forward to central support inbox. Resend's SDK does not throw on API
+    // errors -- it resolves with { data: null, error: {...} } -- so the
+    // result must be inspected explicitly, otherwise unverified-domain and
+    // bad-API-key failures look like successful sends.
+    const forwardResult = await resend.emails.send({
       from: CONTACT_FORM_FROM_ADDRESS,
       to: CONTACT_FORM_FORWARD_TO,
       replyTo: input.email,
       subject: `[lokaalkabaal.agency] Bericht van ${input.naam}`,
       html: forwardHtml,
     });
+
+    if (forwardResult.error) {
+      console.error('[contact/forward] resend rejected:', forwardResult.error);
+      captureError(forwardResult.error, { source: 'contact/forward', email: input.email });
+      return NextResponse.json(
+        { error: 'Versturen mislukt, probeer het later opnieuw.' },
+        { status: 502 },
+      );
+    }
 
     // Auto-reply to the visitor. Failure here must not block the user
     // response -- the support team already has the original message.
@@ -100,10 +112,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       to: input.email,
       subject: 'Bericht ontvangen -- LokaalKabaal',
       html: autoReplyHtml,
+    }).then(replyResult => {
+      if (replyResult.error) {
+        console.error('[contact/auto-reply] resend rejected:', replyResult.error);
+        captureError(replyResult.error, { source: 'contact/auto-reply', email: input.email });
+      }
     }).catch(err => captureError(err, { source: 'contact/auto-reply', email: input.email }));
 
     return NextResponse.json({ ok: true });
   } catch (err) {
+    console.error('[contact/forward] threw:', err);
     captureError(err, { source: 'contact/forward', email: input.email });
     return NextResponse.json(
       { error: 'Versturen mislukt, probeer het later opnieuw.' },

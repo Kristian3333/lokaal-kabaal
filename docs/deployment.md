@@ -34,6 +34,7 @@ Set these in Vercel **Settings** -> **Environment Variables** for the
 | `STRIPE_SECRET_KEY`      | Stripe Dashboard -> Developers -> API keys            | yes      |
 | `STRIPE_WEBHOOK_SECRET`  | Stripe Dashboard -> Developers -> Webhooks            | yes      |
 | `RESEND_API_KEY`         | Resend dashboard                                      | yes      |
+| `RESEND_FROM_EMAIL`      | `LokaalKabaal <noreply@lokaalkabaal.agency>` (default) or `onboarding@resend.dev` until the agency domain is verified | optional |
 | `ANTHROPIC_API_KEY`      | console.anthropic.com                                 | optional |
 | `PRINTONE_API_KEY`       | PrintOne dashboard                                    | yes      |
 | `PRINTONE_WEBHOOK_SECRET`| PrintOne webhook config                               | yes      |

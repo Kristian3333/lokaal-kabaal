@@ -14,8 +14,14 @@
 /** Central support inbox where all human-replied mail lands. */
 export const CONTACT_SUPPORT_EMAIL = 'support@verbouwpro.nl';
 
-/** Where the auto-forward + auto-reply originates from (Resend domain). */
-export const CONTACT_FORM_FROM_ADDRESS = 'LokaalKabaal <noreply@lokaalkabaal.agency>';
+/**
+ * Where the auto-forward + auto-reply originates from. Resend requires the
+ * domain to be verified in their dashboard; until that is set up, override
+ * via the RESEND_FROM_EMAIL env var (e.g. "onboarding@resend.dev" for the
+ * Resend playground domain, which works without verification).
+ */
+export const CONTACT_FORM_FROM_ADDRESS =
+  process.env.RESEND_FROM_EMAIL ?? 'LokaalKabaal <noreply@lokaalkabaal.agency>';
 
 /** Where the contact-form forwards land (kept separate so we can later
  * route /design or /partners to specialised aliases without touching every
