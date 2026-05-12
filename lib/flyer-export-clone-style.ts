@@ -70,21 +70,15 @@ function applyDescenderSlack(root: ParentNode): void {
 /**
  * html2canvas does not understand `-webkit-box` + `-webkit-line-clamp`.
  * Clamped elements either collapse or render unbounded text. This
- * function reads the *intended* visible height from the live DOM
- * layout, then replaces the clamp styles with a fixed `max-height`
- * that html2canvas can rasterise correctly.
- *
- * Strategy: query the cloned doc for all elements with a
- * `-webkit-line-clamp` inline style, find the matching element in the
- * live DOM tree, read its offsetHeight (which the browser already
- * computed with proper clamping), and set that as `max-height` on the
- * clone while removing the clamp properties.
+ * function computes a safe max-height from the clamp count and
+ * line-height, then replaces the clamp properties with
+ * `display: block; overflow: hidden; max-height: Npx` that
+ * html2canvas handles correctly.
  */
 function convertLineClampToMaxHeight(clonedDoc: Document): void {
   const clonedBody = clonedDoc.body;
   if (!clonedBody) return;
 
-  // Walk every element in the cloned tree looking for line-clamp.
   const walker = clonedDoc.createTreeWalker(clonedBody, NodeFilter.SHOW_ELEMENT);
   let node: Element | null = walker.nextNode() as Element | null;
 
@@ -92,19 +86,15 @@ function convertLineClampToMaxHeight(clonedDoc: Document): void {
     const el = node as HTMLElement;
     const style = el.style;
     // Check for inline -webkit-line-clamp (set via React's WebkitLineClamp).
-    const hasClamp =
-      style.getPropertyValue('-webkit-line-clamp') ||
-      style.getPropertyValue('WebkitLineClamp' as string) ||
-      (style.cssText && style.cssText.includes('-webkit-line-clamp'));
+    const clampViaProperty = style.getPropertyValue('-webkit-line-clamp');
+    const clampViaCssText = style.cssText ? style.cssText.includes('-webkit-line-clamp') : false;
+    const hasClamp = clampViaProperty || clampViaCssText;
 
     if (hasClamp) {
-      // Compute a safe max-height from the lineHeight and clamp count.
-      const clampCount = parseInt(
-        style.getPropertyValue('-webkit-line-clamp') ||
-        (style as Record<string, string>)['WebkitLineClamp'] ||
-        '3',
-        10,
-      );
+      // Extract clamp count from the property value or fall back to 3.
+      const rawClamp = clampViaProperty || '3';
+      const clampCount = parseInt(rawClamp, 10) || 3;
+
       const computed = clonedDoc.defaultView?.getComputedStyle(el);
       const fontSize = parseFloat(computed?.fontSize || '8');
       const lineHeight = parseFloat(computed?.lineHeight || '1.5');
@@ -115,12 +105,10 @@ function convertLineClampToMaxHeight(clonedDoc: Document): void {
       style.display = 'block';
       style.overflow = 'hidden';
       style.maxHeight = `${maxH}px`;
-      // Remove clamp properties.
+      // Remove clamp properties via kebab-case (covers both camelCase
+      // and property-name access paths that React may have used).
       style.removeProperty('-webkit-line-clamp');
       style.removeProperty('-webkit-box-orient');
-      // Also clear via camelCase (React sets them this way).
-      (style as Record<string, string>)['WebkitLineClamp'] = '';
-      (style as Record<string, string>)['WebkitBoxOrient'] = '';
     }
 
     node = walker.nextNode() as Element | null;
@@ -160,7 +148,7 @@ function resolveFontVariables(clonedDoc: Document, sourceDoc: Document): void {
     let resolved = ff;
     for (const [varName, varValue] of varMap) {
       // Match var(--font-serif), var( --font-serif ), etc.
-      const pattern = new RegExp(`var\\(\\s*${varName.replace('-', '\\-')}\\s*\\)`, 'g');
+      const pattern = new RegExp(`var\\(\\s*${varName.replace(/-/g, '\\-')}\\s*\\)`, 'g');
       resolved = resolved.replace(pattern, varValue);
     }
     el.style.fontFamily = resolved;
@@ -187,7 +175,6 @@ function forceFullOpacity(clonedDoc: Document): void {
   const clonedBody = clonedDoc.body;
   if (!clonedBody) return;
 
-  // Walk up from the target element's ancestors to root, forcing opacity.
   const allElements = clonedDoc.querySelectorAll<HTMLElement>('*');
   allElements.forEach((el) => {
     const op = el.style.opacity;
