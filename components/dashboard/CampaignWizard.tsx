@@ -7,6 +7,7 @@ import { predictClv } from '@/lib/predictive-clv';
 import { BRANCHE_CLV } from '@/lib/clv';
 import { BRANCHE_OPTIES } from '@/lib/branches';
 import { prijsPerStuk, type FlyerFormaat } from '@/lib/printone-pricing';
+import { PREVIEW_PX } from '@/lib/flyer-export-math';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import BrancheSelector from '@/components/dashboard/BrancheSelector';
 import MonthSelector from '@/components/dashboard/MonthSelector';
@@ -357,6 +358,7 @@ export default function CampaignWizard({
   const [largeOrderSent, setLargeOrderSent] = useState(false);
   const adresTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wizardFlyerRef = useRef<HTMLDivElement>(null);
+  const wizardPrintFlyerRef = useRef<HTMLDivElement>(null);
 
   const availableMonths = getAvailableMonths();
   const stats = estimeerDekkingsgebied(straal);
@@ -385,8 +387,8 @@ export default function CampaignWizard({
       setOrderLoading(true);
       setOrderError('');
       try {
-        const flyerHtml = wizardFlyerRef.current
-          ? `<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:sans-serif}</style></head><body>${wizardFlyerRef.current.innerHTML}</body></html>`
+        const flyerHtml = wizardPrintFlyerRef.current
+          ? `<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:sans-serif}</style></head><body>${wizardPrintFlyerRef.current.innerHTML}</body></html>`
           : '<html><body><p>Flyer</p></body></html>';
 
         const adresRegel = adresFeedback.adresRegel || proefAdres.split(',')[0].trim();
@@ -972,6 +974,16 @@ export default function CampaignWizard({
                 <div ref={wizardFlyerRef} style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
                   <FlyerPreview flyer={flyer} formaat={formaat} />
                 </div>
+                {(() => {
+                  const exportDims = formaat === 'sq' ? PREVIEW_PX.sq : PREVIEW_PX.a5;
+                  return (
+                    <div aria-hidden style={{ position: 'fixed', left: '-9999px', top: 0, pointerEvents: 'none', opacity: 0 }}>
+                      <div ref={wizardPrintFlyerRef} style={{ width: `${exportDims.w}px`, height: `${exportDims.h}px` }}>
+                        <FlyerPreview flyer={flyer} formaat={formaat} forPrint />
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Summary grid */}

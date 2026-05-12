@@ -114,6 +114,60 @@ function extractHeadAndBody(rawHtml: string): { head: string; body: string } {
   };
 }
 
+/**
+ * Convert inline `-webkit-line-clamp` styles to a plain `max-height`
+ * fallback inside the print renderer. Headless Chromium can clip clamped
+ * text unpredictably once the preview HTML is re-zoomed for print.
+ */
+const CLAMP_FIX_SCRIPT = `
+  (function () {
+    function applyClampFallback() {
+      var nodes = document.body ? document.body.querySelectorAll('*') : [];
+      for (var i = 0; i < nodes.length; i++) {
+        var el = nodes[i];
+        if (!(el instanceof HTMLElement)) continue;
+        var style = el.style;
+        var clamp = style.getPropertyValue('-webkit-line-clamp');
+        var cssText = style.cssText || '';
+        if (!clamp && cssText.indexOf('-webkit-line-clamp') === -1) continue;
+
+        var clampCount = parseInt(clamp || '3', 10) || 3;
+        var computed = window.getComputedStyle(el);
+        var fontSize = parseFloat(computed.fontSize || '8');
+        var lineHeight = parseFloat(computed.lineHeight || '1.5');
+        var lineHeightPx = lineHeight > 4 ? lineHeight : fontSize * lineHeight;
+        var maxHeight = Math.ceil(lineHeightPx * clampCount);
+
+        style.display = 'block';
+        style.overflow = 'hidden';
+        style.boxSizing = 'content-box';
+        style.maxHeight = maxHeight + 'px';
+        style.removeProperty('-webkit-line-clamp');
+        style.removeProperty('-webkit-box-orient');
+      }
+    }
+
+    function boot() {
+      applyClampFallback();
+      window.requestAnimationFrame(function () {
+        applyClampFallback();
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', boot, { once: true });
+    } else {
+      boot();
+    }
+
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        boot();
+      }).catch(function () {});
+    }
+  })();
+`;
+
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
@@ -150,6 +204,7 @@ export function wrapPreviewHtmlForPrint(rawHtml: string, formaat: string): strin
       transform-origin: top left;
     }
   </style>
+  <script>${CLAMP_FIX_SCRIPT}</script>
 </head>
 <body>
   <div class="lk-wrap">
