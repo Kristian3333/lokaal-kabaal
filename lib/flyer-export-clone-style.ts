@@ -35,15 +35,23 @@ const ZERO_VALUES = new Set(['0', '0em', '0px', '0%']);
  * Master export-clone fixer. Call from the html2canvas `onclone` callback
  * with the cloned Document and (optionally) the live source Document so
  * CSS variable values can be read from the original cascade.
+ *
+ * Accepts any ParentNode (Document, DocumentFragment, or Element) so the
+ * descender-slack fix can be unit-tested against detached subtrees. The
+ * other three fixes (line-clamp conversion, font-variable resolution,
+ * opacity normalisation) require a full Document context and are skipped
+ * when the root is not a Document.
  */
 export function applyExportSafeHeadlineStyles(
-  clonedDoc: Document,
+  root: ParentNode,
   sourceDoc?: Document,
 ): void {
-  applyDescenderSlack(clonedDoc);
-  convertLineClampToMaxHeight(clonedDoc);
-  resolveFontVariables(clonedDoc, sourceDoc ?? document);
-  forceFullOpacity(clonedDoc);
+  applyDescenderSlack(root);
+  if (typeof Document !== 'undefined' && root instanceof Document) {
+    convertLineClampToMaxHeight(root);
+    resolveFontVariables(root, sourceDoc ?? document);
+    forceFullOpacity(root);
+  }
 }
 
 // ── 1. Descender slack ─────────────────────────────────────────────────────
