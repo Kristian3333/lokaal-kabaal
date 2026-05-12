@@ -153,7 +153,10 @@ export async function POST(req: NextRequest) {
           platform:             'lokaalkabaal',
         },
       },
-      success_url: `${baseUrl}/app?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      // Dedicated landing pages keep the success / cancel state
+      // unmistakable -- earlier the user just got dropped on the bare
+      // dashboard and assumed the payment had failed.
+      success_url: `${baseUrl}/bedankt?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url:  `${baseUrl}/app?payment=cancelled`,
       locale: 'nl',
       custom_text: {
