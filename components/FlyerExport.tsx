@@ -1,30 +1,24 @@
 'use client';
 
 /**
- * FlyerExport -- the "Download flyer" panel at the bottom of the editor.
+ * FlyerExport -- the "Download flyer" button at the bottom of the editor.
  *
- * The earlier html2canvas + jsPDF pipeline reimplemented CSS layout in
- * JavaScript and kept diverging from Chrome's actual rendering: each
- * patch (descender slack, line-clamp -> max-height, opacity override,
- * box-sizing fix) surfaced the next divergence. We dropped that
- * pipeline entirely.
+ * PDF generation is deliberately not offered. Every PDF path we tried
+ * (html2canvas -> jsPDF, then browser window.print() -> Save as PDF)
+ * diverged from the on-screen preview in ways that matter for postal
+ * print: descender clipping, line-clamp mid-character cuts, font
+ * fallback wrap shifts, decorative-opacity overrides. The browser's
+ * own PDF export is technically accurate but users were still
+ * dropping the file into Print.one expecting it to match the editor
+ * and getting surprised, so we removed that path entirely.
  *
- * Primary export is now an HTML file. We serialise the live flyer DOM
- * (frontRef + optional backRef) into a self-contained HTML document
- * with embedded fonts and a print stylesheet sized to the postcard's
- * mm dimensions. Opening the file in any browser renders the flyer
- * identically to the editor preview -- same layout engine, no
- * rasterisation step in the middle. From there the user can:
- *   - View it in browser (preview / share).
- *   - Ctrl+P -> "Save as PDF" (Chrome's native PDF, accurate by
- *     construction).
- *   - Ctrl+P -> physical printer at A5.
- *   - Upload the HTML directly to Print.one's template API.
- *
- * Secondary: "Print direct" button that triggers window.print() on
- * the live editor page using the same print stylesheet, so the user
- * doesn't need to download a file first if they just want a quick
- * paper print or PDF.
+ * The single supported export is an HTML file. We serialise the live
+ * flyer DOM (frontRef + optional backRef) into a self-contained HTML
+ * document with embedded fonts and a print stylesheet sized to the
+ * postcard's mm dimensions. Opening the file in any browser renders
+ * the flyer identically to the editor preview -- same layout engine,
+ * no rasterisation step in the middle. The user can view it, share
+ * it, or upload the HTML directly to Print.one's template API.
  */
 
 import { useState } from 'react';
@@ -64,7 +58,7 @@ async function waitForImages(root: HTMLElement): Promise<void> {
   }));
 }
 
-/** Minimal HTML attribute escaper for embedding user-supplied text. */
+/** Minimal HTML escaper for embedding user-supplied text into the document. */
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')
@@ -86,17 +80,17 @@ function exportClone(el: HTMLElement): HTMLElement {
 }
 
 export default function FlyerExport({ frontRef, backRef, formaat, dubbelzijdig, bedrijfsnaam }: FlyerExportProps) {
-  const [loading, setLoading] = useState<'html' | 'print' | null>(null);
+  const [loading, setLoading] = useState(false);
   const dims = printDimsForFormaat(formaat);
 
   // CSS px <-> mm at the browser default 96 DPI: 1mm = 96/25.4 px = 3.7795.
-  // Flyer DOM is laid out at SCREEN_SCALE px/mm (1.5), so zoom for print =
-  // 3.7795 / 1.5 = 2.5197 to fill the A5/A6/SQ page natively.
+  // Flyer DOM is laid out at SCREEN_SCALE px/mm (1.5), so the embedded
+  // print stylesheet uses zoom = 3.7795 / SCREEN_SCALE to fill the page.
   const PRINT_ZOOM = (96 / 25.4) / SCREEN_SCALE;
 
   const handleDownloadHtml = async () => {
     if (!frontRef.current) return;
-    setLoading('html');
+    setLoading(true);
     try {
       await waitForFonts();
       await waitForImages(frontRef.current);
@@ -166,82 +160,22 @@ export default function FlyerExport({ frontRef, backRef, formaat, dubbelzijdig, 
       console.error('HTML export error:', e);
       showToast('Download mislukt. Probeer opnieuw.', 'error');
     } finally {
-      setLoading(null);
-    }
-  };
-
-  const handlePrintNow = async () => {
-    if (!frontRef.current) return;
-    setLoading('print');
-    try {
-      await waitForFonts();
-      await waitForImages(frontRef.current);
-      if (dubbelzijdig && backRef?.current) await waitForImages(backRef.current);
-
-      const container = document.createElement('div');
-      container.className = 'flyer-print-container';
-      container.appendChild(exportClone(frontRef.current));
-      if (dubbelzijdig && backRef?.current) {
-        const back = exportClone(backRef.current);
-        container.appendChild(back);
-      }
-      Array.from(container.children).forEach((c) => (c as HTMLElement).classList.add('flyer-print-page'));
-      document.body.appendChild(container);
-
-      const originalTitle = document.title;
-      document.title = `Flyer - ${bedrijfsnaam}`;
-      await new Promise((r) => requestAnimationFrame(() => r(null)));
-      window.print();
-
-      document.title = originalTitle;
-      if (document.body.contains(container)) document.body.removeChild(container);
-    } catch (e) {
-      console.error('Print error:', e);
-      showToast('Print mislukt. Probeer opnieuw.', 'error');
-    } finally {
-      setLoading(null);
+      setLoading(false);
     }
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-      <style jsx global>{`
-        @media print {
-          @page { size: ${dims.w}mm ${dims.h}mm; margin: 0; }
-          html, body { background: white !important; margin: 0 !important; padding: 0 !important; }
-          body * { visibility: hidden; }
-          .flyer-print-container, .flyer-print-container * { visibility: visible; }
-          .flyer-print-container {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: white !important;
-          }
-          .flyer-print-page {
-            zoom: ${PRINT_ZOOM};
-            margin: 0 !important;
-            padding: 0 !important;
-            background: white !important;
-            opacity: 1 !important;
-            box-shadow: none !important;
-            border-radius: 0 !important;
-            page-break-after: always;
-          }
-          .flyer-print-page:last-child { page-break-after: auto; }
-        }
-      `}</style>
       <button
         onClick={handleDownloadHtml}
-        disabled={loading !== null}
+        disabled={loading}
         style={{
           padding: '10px 16px',
-          background: loading === 'html' ? 'var(--paper3)' : 'var(--ink)',
-          color: loading === 'html' ? 'var(--muted)' : '#fff',
+          background: loading ? 'var(--paper3)' : 'var(--ink)',
+          color: loading ? 'var(--muted)' : '#fff',
           border: 'none',
           borderRadius: 'var(--radius)',
-          cursor: loading !== null ? 'not-allowed' : 'pointer',
+          cursor: loading ? 'not-allowed' : 'pointer',
           fontSize: '13px',
           fontWeight: 700,
           fontFamily: 'var(--font-mono)',
@@ -251,34 +185,12 @@ export default function FlyerExport({ frontRef, backRef, formaat, dubbelzijdig, 
           justifyContent: 'center',
         }}
       >
-        {loading === 'html' ? 'Bezig...' : 'Download flyer als HTML'}
-      </button>
-      <button
-        onClick={handlePrintNow}
-        disabled={loading !== null}
-        style={{
-          padding: '7px 12px',
-          background: 'transparent',
-          color: 'var(--ink)',
-          border: '1px solid var(--line)',
-          borderRadius: 'var(--radius)',
-          cursor: loading !== null ? 'not-allowed' : 'pointer',
-          fontSize: '11px',
-          fontWeight: 600,
-          fontFamily: 'var(--font-mono)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          justifyContent: 'center',
-        }}
-      >
-        {loading === 'print' ? 'Printvenster opent...' : 'Of: print direct / opslaan als PDF'}
+        {loading ? 'Bezig...' : 'Download flyer als HTML'}
       </button>
       <p style={{ fontSize: '10px', color: 'var(--muted)', textAlign: 'center', fontFamily: 'var(--font-mono)', lineHeight: 1.5, margin: '4px 0 0' }}>
-        HTML opent in elke browser en print 1-op-1 zoals de preview.
-        300 DPI PNG/JPG nodig voor Print.one upload? Open de HTML en
-        gebruik <strong>Bestand &rarr; Opslaan als PDF</strong> of een
-        schermafbeelding-tool.
+        HTML opent in elke browser en rendert 1-op-1 zoals de preview.
+        Upload het bestand direct naar de Print.one template-API of deel
+        het ter controle voordat we de bestelling indienen.
       </p>
     </div>
   );
